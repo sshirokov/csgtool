@@ -43,6 +43,8 @@ int poly_update(poly_t *poly) {
 
 	f3_cross(&poly->normal, b_a, c_a);
 	f3_normalize(&poly->normal);
+
+	poly->w = f3_dot(poly->normal, *a);
 	return 0;
 error:
 	return -1;
