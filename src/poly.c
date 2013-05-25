@@ -36,7 +36,7 @@ void free_poly(poly_t *p) {
 
 int poly_update(poly_t *poly) {
 	check(poly->vertices->size > 2,
-		  "poly_update(Polyon(%p)): has %zd verticies.",
+		  "poly_update(Polyon(%p)): has only %zd verticies.",
 		  poly, poly->vertices->size);
 
 	kliter_t(float3) *v_iter = kl_begin(poly->vertices);
