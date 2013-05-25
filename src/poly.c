@@ -57,3 +57,10 @@ int poly_update(poly_t *poly) {
 error:
 	return -1;
 }
+
+int poly_classify_vertex(poly_t *poly, float3 v) {
+	float side = f3_dot(poly->normal, v) - poly->w;
+	if(side < -EPSILON) return BACK;
+	if(side > EPSILON) return FRONT;
+	return COPLANAR;
+}
