@@ -26,7 +26,7 @@ poly_t *clone_poly(poly_t *poly) {
 	kliter_t(float3) *vIter;
 	float3 *clone;
 	for(vIter = kl_begin(poly->vertices); vIter != kl_end(poly->vertices); vIter = kl_next(vIter)) {
-		check_mem(clone = f3_clone(*kl_val(vIter)));
+		check_mem(clone = clone_f3(*kl_val(vIter)));
 		*kl_pushp(float3, copy->vertices) = clone;
 	}
 

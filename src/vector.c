@@ -1,6 +1,6 @@
 #include "vector.h"
 
-float3 *f3_clone(float3 f) {
+float3 *clone_f3(float3 f) {
 	float3 *clone = malloc(sizeof(float3));
 	if(clone) memcpy(clone, f, sizeof(float3));
 	return clone;
