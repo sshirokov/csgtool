@@ -13,14 +13,17 @@ poly_t *clone_poly(poly_t *poly) {
 	poly_t *copy = NULL;
 	check_mem(copy = alloc_poly());
 
+	// Copy the simple stuff
+	copy->w = poly->w;
+	memcpy(copy->normal, poly->normal, sizeof(float3));
+
+	// Copy each vertex in poly's list
 	kliter_t(float3) *vIter;
 	float3 *clone;
 	for(vIter = kl_begin(poly->vertices); vIter != kl_end(poly->vertices); vIter = kl_next(vIter)) {
 		check_mem(clone = clone_f3(*kl_val(vIter)));
 		*kl_pushp(float3, copy->vertices) = clone;
 	}
-
-	// TODO: You are here
 
 	return copy;
 error:
