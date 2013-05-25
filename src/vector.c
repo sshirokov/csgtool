@@ -6,6 +6,23 @@ float3 *clone_f3(float3 f) {
 	return clone;
 }
 
+float3 *f3_normalize(float3 *v) {
+	float mag = sqrt((*v)[0] * (*v)[0] +
+					 (*v)[1] * (*v)[1] +
+					 (*v)[2] * (*v)[2]);
+	(*v)[0] /= mag;
+	(*v)[1] /= mag;
+	(*v)[2] /= mag;
+	return v;
+}
+
+float3 *f3_scale(float3 *v, float c) {
+	(*v)[0] *= c;
+	(*v)[1] *= c;
+	(*v)[2] *= c;
+	return v;
+}
+
 float f3_dot(float3 v1, float3 v2) {
 	return (v1[0] * v2[0] +
 			v1[1] * v2[1] +
@@ -20,16 +37,6 @@ float3 *f3_cross(float3 *result, float3 v1, float3 v2) {
 		};
 		memcpy(result, &v1_x_v2, sizeof(float3));
 		return result;
-}
-
-float3 *f3_normalize(float3 *v) {
-	float mag = sqrt((*v)[0] * (*v)[0] +
-					 (*v)[1] * (*v)[1] +
-					 (*v)[2] * (*v)[2]);
-	(*v)[0] /= mag;
-	(*v)[1] /= mag;
-	(*v)[2] /= mag;
-	return v;
 }
 
 float3 *f3_sub(float3 *result, float3 v1, float3 v2) {

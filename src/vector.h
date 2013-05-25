@@ -18,9 +18,11 @@ typedef float float3[3];
 
 float3 *clone_f3(float3 f);
 
-// Vector operations
+// Vector Updating operations
 float3 *f3_normalize(float3 *v);
+float3 *f3_scale(float3 *f, float c);
 
+// Non-destructive
 float3 *f3_cross(float3 *result, float3 v1, float3 v2);
 float f3_dot(float3 v1, float3 v2);
 float3 *f3_sub(float3 *result, float3 v1, float3 v2);
