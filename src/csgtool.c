@@ -19,6 +19,22 @@ error:
 	return NULL;
 }
 
+poly_t *clone_poly(poly_t *poly) {
+	poly_t *copy = NULL;
+	check_mem(copy = alloc_poly());
+
+	kliter_t(float3) *vIter;
+	float3 *clone;
+	for(vIter = kl_begin(poly->vertices); vIter != kl_end(poly->vertices); vIter = kl_next(vIter)) {
+		check_mem(clone = f3_clone(*kl_val(vIter)));
+		*kl_pushp(float3, copy->vertices) = clone;
+	}
+
+	return copy;
+error:
+	return NULL;
+}
+
 void free_poly(poly_t *p) {
 	kl_destroy(float3, p->vertices);
 }

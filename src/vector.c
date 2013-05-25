@@ -1,5 +1,11 @@
 #include "vector.h"
 
+float3 *f3_clone(float3 f) {
+	float3 *clone = malloc(sizeof(float3));
+	if(clone) memcpy(clone, f, sizeof(float3));
+	return clone;
+}
+
 float f3_dot(float3 v1, float3 v2) {
 	return (v1[0] * v2[0] +
 			v1[1] * v2[1] +

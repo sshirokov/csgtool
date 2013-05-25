@@ -16,6 +16,8 @@ typedef float float3[3];
 #define f3Y(x) (x)[1]
 #define f3Z(x) (x)[2]
 
+float3 *f3_clone(float3 f);
+
 // Vector operations
 float3 *f3_normalize(float3 *v);
 
