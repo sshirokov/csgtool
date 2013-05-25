@@ -64,3 +64,25 @@ int poly_classify_vertex(poly_t *poly, float3 v) {
 	if(side > EPSILON) return FRONT;
 	return COPLANAR;
 }
+
+int poly_classify_poly(poly_t *this, poly_t *other) {
+	int front = 0;
+	int back = 0;
+
+	kliter_t(float3) *vIter = kl_begin(other->vertices);
+	for(;vIter != kl_end(other->vertices); vIter = kl_next(vIter)) {
+		switch(poly_classify_vertex(this, *kl_val(vIter))) {
+		case FRONT:
+			front += 1;
+			break;
+		case BACK:
+			back += 1;
+			break;
+		}
+	}
+
+	if(front > 0 && back == 0)  return FRONT;
+	if(back > 0 && front == 0)  return BACK;
+	if(front == 0 && back == 0) return COPLANAR;
+	return SPANNING;
+}
