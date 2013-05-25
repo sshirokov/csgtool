@@ -2,6 +2,9 @@
 *.o
 csgtool
 
+# STL
+*.stl
+
 # Libraries
 *.lib
 *.a
