@@ -236,7 +236,7 @@ error:
 		return NULL;
 }
 
-stl_object *stl_read_file(char *path) {
+stl_object *stl_read_file(char *path, int recompute_normals) {
 		stl_reader* reader = NULL;
 		stl_object *obj = NULL;
 		int fd = -1;
@@ -250,6 +250,12 @@ stl_object *stl_read_file(char *path) {
 		int rc = read(fd, buffer, sizeof(buffer));
 		check(rc == 0, "File did not end when expected, assuming failure.");
 		close(fd);
+
+		if(recompute_normals) {
+			for(int i = 0; i < obj->facet_count; i++) {
+				stl_facet_update_normal(&obj->facets[i]);
+			}
+		}
 
 		return obj;
 error:

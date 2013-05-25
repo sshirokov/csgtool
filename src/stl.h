@@ -43,7 +43,7 @@ typedef stl_object* (stl_reader)(int fd);
 
 // File reader factory and dispatcher
 stl_reader* stl_detect_reader(char *path);
-stl_object *stl_read_file(char *path);
+stl_object *stl_read_file(char *path, int recompute_normals);
 
 // Binary file readers
 stl_facet *stl_read_facet(int fd);
