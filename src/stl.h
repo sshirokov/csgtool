@@ -10,8 +10,8 @@
 // Wrappers
 typedef float float3[3];
 #define FLOAT3_INIT {0.0, 0.0, 0.0}
-#define FLOAT3_INIT_MAX {INF, INF, INF}
-#define FLOAT3_INIT_MIN {-INF, -INF, -INF}
+#define FLOAT3_INIT_MAX {INFINITY, INFINITY, INFINITY}
+#define FLOAT3_INIT_MIN {-INFINITY, -INFINITY, -INFINITY}
 #define FLOAT3_FORMAT(x) (x)[0], (x)[1], (x)[2]
 #define f3X(x) (x)[0]
 #define f3Y(x) (x)[1]
