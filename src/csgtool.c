@@ -13,7 +13,9 @@ int main(int argc, char **argv) {
 	log_info("Loaded file: %s %d facets", file, file_stl->facet_count);
 
 
+	stl_free(file_stl);
 	return 0;
 error:
+	if(file_stl != NULL) stl_free(file_stl);
 	return -1;
 }
