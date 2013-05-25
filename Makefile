@@ -1,5 +1,4 @@
 #-*- mode:makefile-gmake; -*-
-## Env Setup
 ROOT = $(shell pwd)
 TARGET = csgtool
 
