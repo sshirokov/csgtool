@@ -1,6 +1,6 @@
 # Object files
 *.o
-./csgtool
+csgtool
 
 # Libraries
 *.lib
