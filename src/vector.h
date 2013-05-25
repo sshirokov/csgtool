@@ -20,6 +20,7 @@ typedef float float3[3];
 float3 *f3_normalize(float3 *v);
 
 float3 *f3_cross(float3 *result, float3 v1, float3 v2);
+float f3_dot(float3 v1, float3 v2);
 float3 *f3_sub(float3 *result, float3 v1, float3 v2);
 
 // Containers
