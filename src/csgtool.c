@@ -29,12 +29,15 @@ void free_bsp_node(bsp_node_t *node) {
 
 
 int main(int argc, char **argv) {
-	char *file = argv[1];
-	stl_object *file_stl = stl_read_file(file, 0);
+	char *file = NULL;
+	stl_object *file_stl = NULL;
 	klist_t(poly) *polygons = kl_init(poly);
-
 	check(argc >= 2, "Need a filename");
+
+	file = argv[1];
+	file_stl = stl_read_file(file, 0);
 	check(file_stl != NULL, "Failed to read stl from '%s'", file);
+
 
 	log_info("Loaded file: %s %d facets", file, file_stl->facet_count);
 
