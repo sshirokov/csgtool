@@ -145,6 +145,7 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 			t = t / f3_dot(divider->normal, diff);
 
 			float3 mid_f = FLOAT3_INIT;
+			memcpy(&mid_f, kl_val(v_cur), sizeof(float3));
 			f3_interpolate(&mid_f, *kl_val(v_cur), *kl_val(v_next), t);
 
 			clone = clone_f3(mid_f);
