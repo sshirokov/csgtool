@@ -103,6 +103,8 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 	kliter_t(float3) *v_cur = kl_begin(poly->vertices);
 	kliter_t(float3) *v_next = v_cur;
 	int c_cur, c_next;
+	float3 *clone = NULL;
+
 	for(; v_cur != kl_end(poly->vertices); v_cur = kl_next(v_cur)) {
 		// Get v_next to be the next vertext, looping to the beginning
 		v_next = kl_next(v_next);
@@ -113,8 +115,16 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 		c_cur  = poly_classify_vertex(divider, *kl_val(v_cur));
 		c_next = poly_classify_vertex(divider, *kl_val(v_next));
 
-		if(c_cur != BACK)  *kl_pushp(float3, front) = kl_val(v_cur);
-		if(c_cur != FRONT) *kl_pushp(float3, back)  = kl_val(v_cur);
+		if(c_cur != BACK)  {
+			clone = clone_f3(*kl_val(v_cur));
+			check_mem(clone);
+			*kl_pushp(float3, front) = clone;
+		}
+		if(c_cur != FRONT) {
+			clone = clone_f3(*kl_val(v_cur));
+			check_mem(clone);
+			*kl_pushp(float3, back)  = clone;
+		}
 
 		// Interpolate a midpoint if we found a spanning edge
 		if((c_cur | c_next) == SPANNING) {
@@ -127,13 +137,31 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 
 			float3 mid_f = FLOAT3_INIT;
 			f3_interpolate(&mid_f, *kl_val(v_cur), *kl_val(v_next), t);
-			*kl_pushp(float3, front) = &mid_f;
-			*kl_pushp(float3, back)  = &mid_f;
+
+			clone = clone_f3(mid_f);
+			check_mem(clone);
+			*kl_pushp(float3, front) = clone;
+			clone = clone_f3(mid_f);
+			check_mem(clone);
+			*kl_pushp(float3, back)  = clone;
 		}
 	}
 
-	log_warn("TODO: Build polygons from %zd front and %zd back for %p =split=> %p",
-			 front->size, back->size, divider, poly);
+	// Init our front and back polys
+	// and destroy their vertex lists
+	// which we'll reassign from the duplicated
+	// lists here
+	for(int i = 0; i < 2; i++) {
+		poly_init(&front_back[i]);
+		kl_destroy(float3, front_back[i].vertices);
+	}
+
+	front_back[0].vertices = front;
+	front_back[1].vertices = back;
+
+	for(int j = 0; j < 2; j++) {
+		poly_update(&front_back[j]);
+	}
 
 	return front_back;
 error:
