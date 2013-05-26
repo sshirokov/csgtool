@@ -28,23 +28,34 @@ void free_bsp_node(bsp_node_t *node) {
 	free_bsp_node(node->back);
 }
 
-void bsp_subdivide(poly_t *divider, poly_t *poly,
+int bsp_subdivide(poly_t *divider, poly_t *poly,
 				   klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,
 				   klist_t(poly) *front, klist_t(poly) *back) {
 	switch(poly_classify_poly(divider, poly)) {
 	case FRONT:
-		log_info("%p => %p: FRONT", divider, poly);
+		*kl_pushp(poly, front) = poly;
 		break;
 	case BACK:
-		log_info("%p => %p: BACK", divider, poly);
+		*kl_pushp(poly, back) = poly;
 		break;
 	case COPLANAR:
-		log_info("%p => %p: COPLANAR", divider, poly);
+		if(f3_dot(divider->normal, poly->normal) > 0)
+			*kl_pushp(poly, coplanar_front) = poly;
+		else
+			*kl_pushp(poly, coplanar_back) = poly;
 		break;
-	case SPANNING:
-		log_info("%p => %p: SPANNING", divider, poly);
+	case SPANNING: {
+		poly_t *front_back = NULL;
+		check_mem(front_back = poly_split(divider, poly));
+		*kl_pushp(poly, front) = &front_back[0];
+		*kl_pushp(poly, back)  = &front_back[1];
 		break;
 	}
+	}
+
+	return 0;
+error:
+	return -1;
 }
 
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
@@ -57,9 +68,11 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 
 	kliter_t(poly) *iter = kl_begin(polygons);
 	poly_t *poly = NULL;
+	int rc = 0;
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		poly = kl_val(iter);
-		bsp_subdivide(node->divider, poly, node->polygons, node->polygons, front, back);
+		rc = bsp_subdivide(node->divider, poly, node->polygons, node->polygons, front, back);
+		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
 	}
 
 	log_info("bsp_build(): %zd COPLANAR, %zd front, %zd back", node->polygons->size, front->size, back->size);

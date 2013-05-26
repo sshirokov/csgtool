@@ -3,10 +3,16 @@
 poly_t *alloc_poly(void) {
 	poly_t *poly = calloc(1, sizeof(poly_t));
 	check_mem(poly);
-	poly->vertices = kl_init(float3);
+	poly_init(poly);
 	return poly;
 error:
 	return NULL;
+}
+
+poly_t *poly_init(poly_t *poly) {
+	bzero(poly, sizeof(poly_t));
+	poly->vertices = kl_init(float3);
+	return poly;
 }
 
 poly_t *clone_poly(poly_t *poly) {
@@ -85,4 +91,51 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 	if(back > 0 && front == 0)  return BACK;
 	if(front == 0 && back == 0) return COPLANAR;
 	return SPANNING;
+}
+
+poly_t *poly_split(poly_t *divider, poly_t *poly) {
+	poly_t *front_back = NULL;
+	klist_t(float3) *front = kl_init(float3);
+	klist_t(float3) *back  = kl_init(float3);
+
+	check_mem(front_back = calloc(2, sizeof(poly_t)));
+
+	kliter_t(float3) *v_cur = kl_begin(poly->vertices);
+	kliter_t(float3) *v_next = v_cur;
+	int c_cur, c_next;
+	for(; v_cur != kl_end(poly->vertices); v_cur = kl_next(v_cur)) {
+		// Get v_next to be the next vertext, looping to the beginning
+		v_next = kl_next(v_next);
+		if(v_next == kl_end(poly->vertices))
+			v_next = kl_begin(poly->vertices);
+
+		// Classify the first and next vertex
+		c_cur  = poly_classify_vertex(divider, *kl_val(v_cur));
+		c_next = poly_classify_vertex(divider, *kl_val(v_next));
+
+		if(c_cur != BACK)  *kl_pushp(float3, front) = kl_val(v_cur);
+		if(c_cur != FRONT) *kl_pushp(float3, back)  = kl_val(v_cur);
+
+		// Interpolate a midpoint if we found a spanning edge
+		if((c_cur | c_next) == SPANNING) {
+			float3 diff = FLOAT3_INIT;
+			f3_sub(&diff, *kl_val(v_next), *kl_val(v_cur));
+
+			float t = divider->w;
+			t = t - f3_dot(divider->normal, *kl_val(v_cur));
+			t = t / f3_dot(divider->normal, diff);
+
+			float3 mid_f = FLOAT3_INIT;
+			f3_interpolate(&mid_f, *kl_val(v_cur), *kl_val(v_next), t);
+			*kl_pushp(float3, front) = &mid_f;
+			*kl_pushp(float3, back)  = &mid_f;
+		}
+	}
+
+	log_warn("TODO: Build polygons from %zd front and %zd back for %p =split=> %p",
+			 front->size, back->size, divider, poly);
+
+	return front_back;
+error:
+	return NULL;
 }

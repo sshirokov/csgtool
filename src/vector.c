@@ -44,3 +44,10 @@ float3 *f3_sub(float3 *result, float3 v1, float3 v2) {
 	memcpy(result, r, sizeof(float3));
 	return result;
 }
+
+float3 *f3_interpolate(float3 *result, float3 start, float3 v, float alpha) {
+	for(int i = 0; i < 3; i++) {
+		(*result)[i] += (v[i] - start[i]) * alpha;
+	}
+	return result;
+}
