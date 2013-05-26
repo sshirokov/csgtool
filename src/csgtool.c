@@ -32,10 +32,11 @@ int main(int argc, char **argv) {
 	check(argc >= 2, "Need a filename");
 	char *file = argv[1];
 	stl_object *file_stl = stl_read_file(file, 0);
+	klist_t(poly) *polygons = kl_init(poly);
+
 	check(file_stl != NULL, "Failed to read stl from '%s'", file);
 	log_info("Loaded file: %s %d facets", file, file_stl->facet_count);
 
-	klist_t(poly) *polygons = kl_init(poly);
 	for(int i = 0; i < file_stl->facet_count; i++) {
 		stl_facet *face = &file_stl->facets[i];
 		poly_t *poly = NULL;
