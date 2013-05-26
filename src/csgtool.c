@@ -76,7 +76,21 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 	}
 
 	log_info("bsp_build(): %zd COPLANAR, %zd front, %zd back", node->polygons->size, front->size, back->size);
-	// TODO: Construct node->front and node->back trees from their polysets
+
+	if((front->size > 0) && node->front == NULL) {
+		log_info("Building front of %p", node);
+		node->front = alloc_bsp_node();
+		check_mem(node->front);
+		check(bsp_build(node->front, front) != NULL,
+			  "Failed to build front tree of bsp_node(%p)", node);
+	}
+	if((back->size > 0) && node->back == NULL) {
+		log_info("Building back of %p", node);
+		node->back = alloc_bsp_node();
+		check_mem(node->back);
+		check(bsp_build(node->back, back) != NULL,
+			  "Failed to build back tree of bsp_node(%p)", node);
+	}
 
 	return node;
 error:
