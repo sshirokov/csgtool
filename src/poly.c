@@ -66,27 +66,36 @@ error:
 
 int poly_classify_vertex(poly_t *poly, float3 v) {
 	float side = f3_dot(poly->normal, v) - poly->w;
+	log_info("Side: %f", side);
 	if(side < -EPSILON) return BACK;
 	if(side > EPSILON) return FRONT;
 	return COPLANAR;
 }
 
 int poly_classify_poly(poly_t *this, poly_t *other) {
-	int front = 0;
-	int back = 0;
+	int front, back;
+
+	front = 0;
+	back = 0;
 
 	kliter_t(float3) *vIter = kl_begin(other->vertices);
 	for(;vIter != kl_end(other->vertices); vIter = kl_next(vIter)) {
+		log_info("classify_poly Loop iteration.");
 		switch(poly_classify_vertex(this, *kl_val(vIter))) {
 		case FRONT:
+			log_info("Incrementing front of %p, now %d", this, front);
 			front += 1;
 			break;
 		case BACK:
+			log_info("Incrementing back of %p, now %d", this, back);
 			back += 1;
+			break;
+		default:
+			log_info("Not front or back: %d/%d", front, back);
 			break;
 		}
 	}
-
+	log_info("poly(%p, %zd), front %d, back %d", this, this->vertices->size, front, back);
 	if(front > 0 && back == 0)  return FRONT;
 	if(back > 0 && front == 0)  return BACK;
 	if(front == 0 && back == 0) return COPLANAR;
@@ -155,6 +164,9 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 		poly_init(&front_back[i]);
 		kl_destroy(float3, front_back[i].vertices);
 	}
+
+	log_info("Front has %zd verts", front->size);
+	log_info("Back has %zd verts", back->size);
 
 	front_back[0].vertices = front;
 	front_back[1].vertices = back;
