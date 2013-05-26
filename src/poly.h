@@ -24,6 +24,7 @@ void free_poly(poly_t *p);
 int poly_update(poly_t *poly);
 
 int poly_classify_vertex(poly_t *poly, float3 v);
+int poly_classify_poly(poly_t *this, poly_t *other);
 
 #define mp_poly_free(x) free(kl_val(x))
 KLIST_INIT(poly, poly_t*, mp_poly_free)
