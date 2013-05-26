@@ -5,6 +5,28 @@
 #include "stl.h"
 #include "poly.h"
 
+typedef struct s_bsp_node {
+	klist_t(poly) *polygons;
+	struct s_bsp_node *divider;
+
+	struct s_bsp_node *front;
+	struct s_bsp_node *back;
+} bsp_node_t;
+
+bsp_node_t *alloc_bsp_node(void) {
+	bsp_node_t *node = NULL;
+	check_mem(node = calloc(1, sizeof(bsp_node_t)));
+	return node;
+error:
+	return NULL;
+}
+
+void free_bsp_node(bsp_node_t *node) {
+	kl_destroy(poly, node->polygons);
+	free_bsp_node(node->front);
+	free_bsp_node(node->back);
+}
+
 
 int main(int argc, char **argv) {
 	check(argc >= 2, "Need a filename");
