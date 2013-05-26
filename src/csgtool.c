@@ -27,19 +27,49 @@ void free_bsp_node(bsp_node_t *node) {
 	free_bsp_node(node->back);
 }
 
+void bsp_subdivide(poly_t *divider, poly_t *poly,
+				   klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,
+				   klist_t(poly) *front, klist_t(poly) *back) {
+	log_warn("TODO: subdivide @ %p: %p", divider, poly);
+}
+
+bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
+	if(node->divider == NULL)
+		node->divider = clone_poly(kl_val(kl_begin(polygons)));
+	klist_t(poly) *front = kl_init(poly);
+	klist_t(poly) *back  = kl_init(poly);
+
+	check_mem(node->divider);
+
+	kliter_t(poly) *iter = kl_begin(polygons);
+	poly_t *poly = NULL;
+	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
+		poly = kl_val(iter);
+		bsp_subdivide(node->divider, poly, node->polygons, node->polygons, front, back);
+	}
+
+	return node;
+error:
+	kl_destroy(poly, front);
+	kl_destroy(poly, back);
+	return NULL;
+}
+
 
 int main(int argc, char **argv) {
 	char *file = NULL;
 	stl_object *file_stl = NULL;
+	bsp_node_t *file_bsp = NULL;
 	klist_t(poly) *polygons = kl_init(poly);
 	check(argc >= 2, "Need a filename");
 
 	file = argv[1];
 	file_stl = stl_read_file(file, 0);
 	check(file_stl != NULL, "Failed to read stl from '%s'", file);
-
-
 	log_info("Loaded file: %s %d facets", file, file_stl->facet_count);
+
+	file_bsp = alloc_bsp_node();
+	check_mem(file_bsp);
 
 	for(int i = 0; i < file_stl->facet_count; i++) {
 		stl_facet *face = &file_stl->facets[i];
@@ -61,6 +91,8 @@ int main(int argc, char **argv) {
 		printf("Adding %d/%d\r", i+1, file_stl->facet_count);
 	}
 	putchar('\n');
+
+	check(bsp_build(file_bsp, polygons) != NULL, "Failed to build bsp tree from %zd polygons", polygons->size);
 
 	kl_destroy(poly, polygons);
 	stl_free(file_stl);
