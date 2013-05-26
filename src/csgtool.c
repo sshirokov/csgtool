@@ -7,7 +7,7 @@
 
 typedef struct s_bsp_node {
 	klist_t(poly) *polygons;
-	struct s_bsp_node *divider;
+	poly_t *divider;
 
 	struct s_bsp_node *front;
 	struct s_bsp_node *back;
