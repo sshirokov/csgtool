@@ -16,6 +16,7 @@ typedef struct s_bsp_node {
 bsp_node_t *alloc_bsp_node(void) {
 	bsp_node_t *node = NULL;
 	check_mem(node = calloc(1, sizeof(bsp_node_t)));
+	node->polygons = kl_init(poly);
 	return node;
 error:
 	return NULL;
@@ -30,7 +31,20 @@ void free_bsp_node(bsp_node_t *node) {
 void bsp_subdivide(poly_t *divider, poly_t *poly,
 				   klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,
 				   klist_t(poly) *front, klist_t(poly) *back) {
-	log_warn("TODO: subdivide @ %p: %p", divider, poly);
+	switch(poly_classify_poly(divider, poly)) {
+	case FRONT:
+		log_info("%p => %p: FRONT", divider, poly);
+		break;
+	case BACK:
+		log_info("%p => %p: BACK", divider, poly);
+		break;
+	case COPLANAR:
+		log_info("%p => %p: COPLANAR", divider, poly);
+		break;
+	case SPANNING:
+		log_info("%p => %p: SPANNING", divider, poly);
+		break;
+	}
 }
 
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
@@ -47,6 +61,9 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 		poly = kl_val(iter);
 		bsp_subdivide(node->divider, poly, node->polygons, node->polygons, front, back);
 	}
+
+	log_info("bsp_build(): %zd COPLANAR, %zd front, %zd back", node->polygons->size, front->size, back->size);
+	// TODO: Construct node->front and node->back trees from their polysets
 
 	return node;
 error:
@@ -87,10 +104,7 @@ int main(int argc, char **argv) {
 			*kl_pushp(float3, poly->vertices) = f;
 		}
 		poly_update(poly);
-
-		printf("Adding %d/%d\r", i+1, file_stl->facet_count);
 	}
-	putchar('\n');
 
 	check(bsp_build(file_bsp, polygons) != NULL, "Failed to build bsp tree from %zd polygons", polygons->size);
 
