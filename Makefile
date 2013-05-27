@@ -3,13 +3,12 @@ ROOT = $(shell pwd)
 TARGET = csgtool
 
 INCLUDE += -I$(ROOT)/src
-HEADERS = $(shell find $(INCLUDE) -name '*.h')
 SOURCES = $(shell find $(ROOT)/src -name '*.c')
 
 OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
-CFLAGS = -g $(INCLUDE) $(OPTFLAGS) -Wall -Werror
-LIBS = $(OPTLIBS) -lm
+CFLAGS = -g $(INCLUDE) -Wall -Werror $(OPTFLAGS)
+LIBS = -lm $(OPTLIBS)
 
 .DEFAULT_GOAL = all
 all: $(TARGET)
@@ -19,7 +18,7 @@ clean:
 
 .PHONY: all clean
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) $(TARGET).o
 	$(CC) $(CFLAGS) -o $@.new $(LIBS) $^
 	mv $@.new $@
 
