@@ -14,7 +14,7 @@ LIBS = -lm $(OPTLIBS)
 all: $(TARGET)
 
 clean:
-	rm -rf $(OBJS) $(TARGET) $(TARGET).new
+	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new
 
 .PHONY: all clean
 
