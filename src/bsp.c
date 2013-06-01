@@ -51,6 +51,13 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 	klist_t(poly) *front = kl_init(poly);
 	klist_t(poly) *back  = kl_init(poly);
 
+	if(node == NULL) {
+		// Allocate a node if we weren't given one. It's the nice
+		// thing to do for people.
+		node = alloc_bsp_node();
+		check_mem(node);
+	}
+
 	if(node->divider == NULL) {
 		// Add the divider to the list of coplanar polygons
 		// and advance the iterator to the next polygon
