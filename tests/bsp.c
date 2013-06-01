@@ -40,7 +40,8 @@ void test_bsp__initialize(void) {
 	*kl_pushp(poly, polygons) = poly;
 
 	poly = alloc_poly();
-	// 1st
+
+	// 2nd
 	f = calloc(1, sizeof(float3));
 	(*f)[0] = -0.5;
 	(*f)[1] = 0.0;
