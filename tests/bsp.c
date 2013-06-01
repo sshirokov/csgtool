@@ -1,5 +1,6 @@
 #include "clar.h"
 
+#include "stl.h"
 #include "bsp.h"
 
 bsp_node_t *bsp = NULL;
@@ -37,6 +38,37 @@ void test_bsp__initialize(void) {
 
 void test_bsp__cleanup(void) {
 	// TODO: free_bsp() is a segfault, let's not do that at all
+}
+
+void test_bsp__cube_bsp_can_return_poly_list_of_equal_length(void) {
+	// We test that when we get a list of polygons from a BSP tree of a cube
+	// and assert that we have the same number of polygons as when we started.
+	//
+	// A cube is nice here because no faces need to be split, so polygon
+	// counts before and after remain the same.
+	char cube_path[] = CLAR_FIXTURE_PATH "cube.stl";
+	stl_object *stl_cube = stl_read_file(cube_path, 0);
+	klist_t(poly) *cube_polys = kl_init(poly);
+	cl_assert(stl_cube != NULL);
+	cl_assert(stl_cube->facet_count > 0);
+
+	for(int i = 0; i < stl_cube->facet_count; i++) {
+		stl_facet *face = &stl_cube->facets[i];
+		poly_t *poly = poly_make_triangle(face->vertices[0], face->vertices[1], face->vertices[2]);
+		*kl_pushp(poly, cube_polys) = poly;
+		cl_assert(poly);
+	}
+
+	bsp_node_t *cube_bsp = alloc_bsp_node();
+	cl_assert(cube_bsp != NULL);
+	cl_assert(bsp_build(cube_bsp, cube_polys) == cube_bsp);
+	klist_t(poly) *results = bsp_to_polygons(cube_bsp, NULL);
+
+	cl_assert_equal_i(results->size, stl_cube->facet_count);
+
+	if(stl_cube) stl_free(stl_cube);
+	if(results) kl_destroy(poly, results);
+	kl_destroy(poly, cube_polys);
 }
 
 void test_bsp__root_has_poly(void) {

@@ -96,3 +96,36 @@ error:
 	kl_destroy(poly, back);
 	return NULL;
 }
+
+int bsp_copy_node_polygons(bsp_node_t *node, klist_t(poly) *dst) {
+	int copied = 0;
+	kliter_t(poly) *iter = kl_begin(node->polygons);
+	for(;iter != kl_end(node->polygons); iter = kl_next(iter)) {
+		poly_t *copy = clone_poly(kl_val(iter));
+		check_mem(copy);
+		*kl_pushp(poly, dst) = copy;
+		copied++;
+	}
+	return copied;
+error:
+	return -1;
+}
+
+klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, klist_t(poly) *dst) {
+	klist_t(poly) *polygons = dst ? dst : kl_init(poly);
+
+	if(tree->back != NULL)
+		bsp_to_polygons(tree->back, polygons);
+
+	int rc = bsp_copy_node_polygons(tree, polygons);
+	check(rc == tree->polygons->size, "bsp_copy_node_polygons() did not copy all polygons");
+
+	if(tree->front != NULL)
+		bsp_to_polygons(tree->front, polygons);
+
+	return polygons;
+error:
+	// Only clean up the polygons list if we initialized it on error
+	if(dst == NULL) kl_destroy(poly, polygons);
+	return NULL;
+}
