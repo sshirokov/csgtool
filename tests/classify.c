@@ -29,7 +29,7 @@ void test_classify__initialize(void) {
 	poly = make_triangle(vs[0], vs[1], vs[2]);
 	cl_assert_(poly != NULL, "Out of memory");
 
-	float3 splitvs[] = {{0.0, 1.0, 0,0},
+	float3 splitvs[] = {{0.0, 1.0, 0.0},
 						{0.0, -1.0, 0.0},
 						{0.0, 0.0, 1.0}};
 	poly_perp = make_triangle(splitvs[0], splitvs[1], splitvs[2]);
@@ -81,4 +81,22 @@ void test_classify__polygon_spanning(void) {
 	int rc = 0;
 	rc = poly_classify_poly(poly_perp, poly);
 	cl_assert_equal_i(rc, SPANNING);
+}
+
+void test_classify__jaws_polys_clone_coplanar(void) {
+	cl_assert_(jaws_stl->facet_count > 0, "Mr.Jaws should have some faces.");
+	for(size_t i = 0; i < jaws_stl->facet_count; i++) {
+		int rc = 0;
+		stl_facet *face = &jaws_stl->facets[i];
+		poly_t *poly = make_triangle(face->vertices[0], face->vertices[1], face->vertices[2]);
+		poly_t *clone;
+		cl_assert(poly != NULL);
+		cl_assert(clone = clone_poly(poly));
+
+		rc = poly_classify_poly(poly, clone);
+		cl_assert_equal_i(rc, COPLANAR);
+
+		free_poly(clone);
+		free_poly(poly);
+	}
 }
