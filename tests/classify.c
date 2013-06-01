@@ -11,28 +11,17 @@ poly_t *poly_clone = NULL;
 char jaws[] = CLAR_FIXTURE_PATH "jaws.stl";
 stl_object *jaws_stl = NULL;
 
-poly_t *make_triangle(float3 a, float3 b, float3 c) {
-	poly_t *p = alloc_poly();
-	if(p == NULL) return NULL;
-	*kl_pushp(float3, p->vertices) = clone_f3(a);
-	*kl_pushp(float3, p->vertices) = clone_f3(b);
-	*kl_pushp(float3, p->vertices) = clone_f3(c);
-	poly_update(p);
-	return p;
-}
-
-
 void test_classify__initialize(void) {
 	float3 vs[] = {{-1.0, -1.0, 0.0},
 				   {1.0, -1.0, 0.0},
 				   {0.0, 1.0, 0.0}};
-	poly = make_triangle(vs[0], vs[1], vs[2]);
+	poly = poly_make_triangle(vs[0], vs[1], vs[2]);
 	cl_assert_(poly != NULL, "Out of memory");
 
 	float3 splitvs[] = {{0.0, 1.0, 0.0},
 						{0.0, -1.0, 0.0},
 						{0.0, 0.0, 1.0}};
-	poly_perp = make_triangle(splitvs[0], splitvs[1], splitvs[2]);
+	poly_perp = poly_make_triangle(splitvs[0], splitvs[1], splitvs[2]);
 	cl_assert_(poly_perp, "Out of memory");
 
 	poly_clone = clone_poly(poly);
@@ -108,7 +97,7 @@ void test_classify__jaws_polys_clone_coplanar(void) {
 	for(size_t i = 0; i < jaws_stl->facet_count; i++) {
 		int rc = 0;
 		stl_facet *face = &jaws_stl->facets[i];
-		poly_t *poly = make_triangle(face->vertices[0], face->vertices[1], face->vertices[2]);
+		poly_t *poly = poly_make_triangle(face->vertices[0], face->vertices[1], face->vertices[2]);
 		poly_t *clone;
 		cl_assert(poly != NULL);
 		cl_assert(clone = clone_poly(poly));
