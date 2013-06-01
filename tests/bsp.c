@@ -24,6 +24,13 @@ void test_bsp__initialize(void) {
 	cl_assert_(poly != NULL, "Out of memory");
 	*kl_pushp(poly, polygons) = poly;
 
+	float3 fs3[] = {{-0.5, 0.0, 0.5},
+				   {0.5, 0.0, 0.5},
+				   {0.0, 0.5, 0.5}};
+	poly = poly_make_triangle(fs3[0], fs3[1], fs3[2]);
+	cl_assert_(poly != NULL, "Out of memory");
+	*kl_pushp(poly, polygons) = poly;
+
 	cl_assert_(bsp != NULL, "Out of memory");
 	cl_assert_(bsp_build(bsp, polygons) != NULL, "Failed to build bsp tree");
 }
@@ -37,5 +44,11 @@ void test_bsp__root_has_poly(void) {
 }
 
 void test_bsp__root_has_back_poly(void) {
+	cl_assert_(bsp->back != NULL, "No back tree.");
 	cl_assert_equal_i(bsp->back->polygons->size, 1);
+}
+
+void test_bsp__root_has_front_poly(void) {
+	cl_assert_(bsp->front != NULL, "No front tree.");
+	cl_assert_equal_i(bsp->front->polygons->size, 1);
 }
