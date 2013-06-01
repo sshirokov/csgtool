@@ -169,3 +169,23 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 error:
 	return NULL;
 }
+
+poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
+	poly_t *p = NULL;
+	float3 *f = NULL;
+	check_mem(p = alloc_poly());
+
+	check_mem(f = clone_f3(a));
+	*kl_pushp(float3, p->vertices) = f;
+	check_mem(f = clone_f3(b));
+	*kl_pushp(float3, p->vertices) = f;
+	check_mem(f = clone_f3(c));
+	*kl_pushp(float3, p->vertices) = f;
+
+	check(poly_update(p) == 0, "Failed to update polygon(%p) from (%f, %f, %f) (%f, %f, %f) (%f, %f, %f)",
+		  p, FLOAT3_FORMAT(a), FLOAT3_FORMAT(b), FLOAT3_FORMAT(c));
+	return p;
+error:
+	if(p) free_poly(p);
+	return NULL;
+}
