@@ -81,19 +81,13 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 	for(;vIter != kl_end(other->vertices); vIter = kl_next(vIter)) {
 		switch(poly_classify_vertex(this, *kl_val(vIter))) {
 		case FRONT:
-			log_info("Incrementing front of %p, now %d", this, front);
 			front += 1;
 			break;
 		case BACK:
-			log_info("Incrementing back of %p, now %d", this, back);
 			back += 1;
-			break;
-		default:
-			log_info("Not front or back: %d/%d", front, back);
 			break;
 		}
 	}
-	log_info("poly(%p, %zd), front %d, back %d", this, this->vertices->size, front, back);
 	if(front > 0 && back == 0)  return FRONT;
 	if(back > 0 && front == 0)  return BACK;
 	if(front == 0 && back == 0) return COPLANAR;
