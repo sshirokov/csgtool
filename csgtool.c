@@ -66,10 +66,17 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 
 	check_mem(node->divider);
 
+	// Add the divider to the list of coplanar polygons
 	kliter_t(poly) *iter = kl_begin(polygons);
+	*kl_pushp(poly, node->polygons) = kl_val(iter);
+
+
 	poly_t *poly = NULL;
 	int rc = 0;
-	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
+	// We iterate from kl_next(iter) [the second poly]  because we have
+	// already chosen to add the first node, which we have cloned into node->divider
+	// to the list of node->polygons, which is considered coplanar to this node.
+	for(iter = kl_next(iter); iter != kl_end(polygons); iter = kl_next(iter)) {
 		poly = kl_val(iter);
 		rc = bsp_subdivide(node->divider, poly, node->polygons, node->polygons, front, back);
 		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
