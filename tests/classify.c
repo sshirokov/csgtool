@@ -60,3 +60,19 @@ void test_classify__polygon_self_dupe_coplanar(void) {
 	int side = poly_classify_poly(poly, poly_clone);
 	cl_assert_equal_i(side, COPLANAR);
 }
+
+void test_classify__polygon_tilted_dupe_coplanar(void) {
+	int rc = 0;
+
+	poly_t *another = clone_poly(poly);
+	(*kl_val(kl_begin(another->vertices)))[2] += 0.6;
+	cl_must_pass(poly_update(another));
+	poly_t *another_clone = clone_poly(another);
+	cl_must_pass(poly_update(another_clone));
+
+	rc = poly_classify_poly(another, another_clone);
+	cl_assert_equal_i(rc, COPLANAR);
+
+	if(another) free_poly(another);
+	if(another_clone) free_poly(another_clone);
+}
