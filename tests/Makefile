@@ -21,7 +21,7 @@ CFLAGS=-g -I../src -I. -I$(CLAR_PATH) -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE
 .PHONY: clean test
 
 # App sources
-SOURCES = $(shell find $(TEST_DIRECTORY)/../src -name '*.c')
+SOURCES = $(shell find "$(TEST_DIRECTORY)/../src" -name '*.c')
 LIBS = -lm
 
 # Tests
