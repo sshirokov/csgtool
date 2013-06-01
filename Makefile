@@ -3,7 +3,7 @@ ROOT = $(shell pwd)
 TARGET = csgtool
 
 INCLUDE += -I$(ROOT)/src
-SOURCES = $(shell find $(ROOT)/src -name '*.c')
+SOURCES = $(wildcard $(ROOT)/src/*.c)
 
 OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)

@@ -21,11 +21,11 @@ CFLAGS=-g -I../src -I. -I$(CLAR_PATH) -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE
 .PHONY: clean test
 
 # App sources
-SOURCES = $(shell find "$(TEST_DIRECTORY)/../src" -name '*.c')
+SOURCES = $(wildcard $(TEST_DIRECTORY)/../src/*.c)
 LIBS = -lm
 
 # Tests
-TESTS = $(shell find . -depth 1 -name '*.c')
+TESTS = $(wildcard $(TEST_DIRECTORY)/*.c)
 
 # list the objects that go into our test
 objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS)) $(patsubst %.c,%.o,$(SOURCES))
