@@ -117,11 +117,15 @@ klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, klist_t(poly) *dst) {
 	if(tree->back != NULL)
 		bsp_to_polygons(tree->back, polygons);
 
-	bsp_copy_node_polygons(tree, polygons);
+	int rc = bsp_copy_node_polygons(tree, polygons);
+	check(rc == tree->polygons->size, "bsp_copy_node_polygons() did not copy all polygons");
 
 	if(tree->front != NULL)
 		bsp_to_polygons(tree->front, polygons);
 
-
 	return polygons;
+error:
+	// Only clean up the polygons list if we initialized it on error
+	if(dst == NULL) kl_destroy(poly, polygons);
+	return NULL;
 }
