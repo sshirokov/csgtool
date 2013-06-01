@@ -3,11 +3,11 @@ ROOT = $(shell pwd)
 TARGET = csgtool
 
 INCLUDE += -I$(ROOT)/src
-SOURCES = $(shell find $(ROOT)/src -name '*.c')
+SOURCES = $(wildcard $(ROOT)/src/*.c)
 
 OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
-CFLAGS = -g $(INCLUDE) -Wall -Werror $(OPTFLAGS)
+CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 LIBS = -lm $(OPTLIBS)
 
 .DEFAULT_GOAL = all

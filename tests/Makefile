@@ -16,18 +16,23 @@ TEST_DIRECTORY    := $(abspath $(dir $(CURRENT_MAKEFILE)))
 CLAR_PATH         := $(TEST_DIRECTORY)/clar/
 CLAR_FIXTURE_PATH := $(TEST_DIRECTORY)/fixtures/
 
-CFLAGS=-g -I../src -I. -I$(CLAR_PATH) -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
+CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH) -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
 
 .PHONY: clean test
 
-TESTS = $(TEST_DIRECTORY)/*.c
+# App sources
+SOURCES = $(wildcard $(TEST_DIRECTORY)/../src/*.c)
+LIBS = -lm
+
+# Tests
+TESTS = $(wildcard $(TEST_DIRECTORY)/*.c)
 
 # list the objects that go into our test
-objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS))
+objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS)) $(patsubst %.c,%.o,$(SOURCES))
 
 # build the test executable itself
 clar_test: $(objects) clar.suite $(TEST_DIRECTORY)/clar_test.h  $(CLAR_PATH)clar.c
-	$(CC) $(CFLAGS) -o $@ "$(CLAR_PATH)clar.c" $(objects)
+	$(CC) $(LIBS) $(CFLAGS) -o $@ "$(CLAR_PATH)clar.c" $(objects)
 
 # test object files depend on clar macros
 $(objects) : $(CLAR_PATH)clar.h

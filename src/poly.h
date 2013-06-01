@@ -1,4 +1,4 @@
-#include <string.h>
+#include <strings.h>
 #include "dbg.h"
 #include "klist.h"
 #include "vector.h"
