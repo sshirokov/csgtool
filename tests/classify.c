@@ -5,6 +5,7 @@
 #include "poly.h"
 
 poly_t *poly = NULL;
+poly_t *poly_perp = NULL;
 poly_t *poly_clone = NULL;
 
 char jaws[] = CLAR_FIXTURE_PATH "jaws.stl";
@@ -27,8 +28,12 @@ void test_classify__initialize(void) {
 				   {0.0, 1.0, 0.0}};
 	poly = make_triangle(vs[0], vs[1], vs[2]);
 	cl_assert_(poly != NULL, "Out of memory");
-	float total = poly->normal[0] + poly->normal[1] + poly->normal[2];
-	cl_assert_(total > 0.0, "Normal should not be null");
+
+	float3 splitvs[] = {{0.0, 1.0, 0,0},
+						{0.0, -1.0, 0.0},
+						{0.0, 0.0, 1.0}};
+	poly_perp = make_triangle(splitvs[0], splitvs[1], splitvs[2]);
+	cl_assert_(poly_perp, "Out of memory");
 
 	poly_clone = clone_poly(poly);
 	cl_assert_(poly_clone != NULL, "Failed to clone polygon.");
@@ -70,4 +75,10 @@ void test_classify__polygon_tilted_dupe_coplanar(void) {
 
 	if(another) free_poly(another);
 	if(another_clone) free_poly(another_clone);
+}
+
+void test_classify__polygon_spanning(void) {
+	int rc = 0;
+	rc = poly_classify_poly(poly_perp, poly);
+	cl_assert_equal_i(rc, SPANNING);
 }
