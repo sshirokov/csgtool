@@ -96,3 +96,9 @@ error:
 	kl_destroy(poly, back);
 	return NULL;
 }
+
+klist_t(poly) *bsp_to_polygons(bsp_node_t *tree) {
+	klist_t(poly) *polygons = kl_init(poly);
+
+	return polygons;
+}
