@@ -10,38 +10,23 @@ poly_t *poly_clone = NULL;
 char jaws[] = CLAR_FIXTURE_PATH "jaws.stl";
 stl_object *jaws_stl = NULL;
 
+poly_t *make_triangle(float3 a, float3 b, float3 c) {
+	poly_t *p = alloc_poly();
+	if(p == NULL) return NULL;
+	*kl_pushp(float3, p->vertices) = clone_f3(a);
+	*kl_pushp(float3, p->vertices) = clone_f3(b);
+	*kl_pushp(float3, p->vertices) = clone_f3(c);
+	poly_update(p);
+	return p;
+}
+
 
 void test_classify__initialize(void) {
-	poly = alloc_poly();
+	float3 vs[] = {{-1.0, -1.0, 0.0},
+				   {1.0, -1.0, 0.0},
+				   {0.0, 1.0, 0.0}};
+	poly = make_triangle(vs[0], vs[1], vs[2]);
 	cl_assert_(poly != NULL, "Out of memory");
-
-	float3 *f = NULL;
-	// Build a triangle, facing +z on the x,y axis
-	// The floats will be freed by the poly deallocator
-	// (-1, -1, 0)
-	f = calloc(1, sizeof(float3));
-	(*f)[0] = -1.0;
-	(*f)[1] = -1.0;
-	(*f)[2] = 0.0;
-	*kl_pushp(float3, poly->vertices) = f;
-
-	// (1, -1, 0)
-	f = calloc(1, sizeof(float3));
-	(*f)[0] = 1.0;
-	(*f)[1] = -1.0;
-	(*f)[2] = 0.0;
-	*kl_pushp(float3, poly->vertices) = f;
-
-	// (0, 1, 0)
-	f = calloc(1, sizeof(float3));
-	(*f)[0] = 0.0;
-	(*f)[1] = 1.0;
-	(*f)[2] = 0.0;
-	*kl_pushp(float3, poly->vertices) = f;
-
-	int rc = poly_update(poly);
-	cl_must_pass_(rc, "Failed to update polygon.");
-
 	float total = poly->normal[0] + poly->normal[1] + poly->normal[2];
 	cl_assert_(total > 0.0, "Normal should not be null");
 
