@@ -97,8 +97,31 @@ error:
 	return NULL;
 }
 
-klist_t(poly) *bsp_to_polygons(bsp_node_t *tree) {
-	klist_t(poly) *polygons = kl_init(poly);
+int bsp_copy_node_polygons(bsp_node_t *node, klist_t(poly) *dst) {
+	int copied = 0;
+	kliter_t(poly) *iter = kl_begin(node->polygons);
+	for(;iter != kl_end(node->polygons); iter = kl_next(iter)) {
+		poly_t *copy = clone_poly(kl_val(iter));
+		check_mem(copy);
+		*kl_pushp(poly, dst) = copy;
+		copied++;
+	}
+	return copied;
+error:
+	return -1;
+}
+
+klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, klist_t(poly) *dst) {
+	klist_t(poly) *polygons = dst ? dst : kl_init(poly);
+
+	if(tree->back != NULL)
+		bsp_to_polygons(tree->back, polygons);
+
+	bsp_copy_node_polygons(tree, polygons);
+
+	if(tree->front != NULL)
+		bsp_to_polygons(tree->front, polygons);
+
 
 	return polygons;
 }
