@@ -116,7 +116,7 @@ int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *
 		}
 		else if(poly->vertices->size > 3){
 			// Start with the third vertex and build triangles
-			// in in the form (v0, v_prev, v_cur) with v_cur
+			// in in the form (v0, v_prev, v_cur)
 			kliter_t(float3) *v_cur = kl_next(kl_next(kl_begin(poly->vertices)));
 			kliter_t(float3) *v_prev = kl_next(kl_begin(poly->vertices));
 			for(;v_cur != kl_end(poly->vertices); v_cur = kl_next(v_cur), v_prev = kl_next(v_prev)) {
