@@ -20,7 +20,7 @@ CFLAGS=-g -I../src -I. -I$(CLAR_PATH) -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE
 
 .PHONY: clean test
 
-TESTS = $(TEST_DIRECTORY)/*.c
+TESTS = $(shell find . -depth 1 -name '*.c')
 
 # list the objects that go into our test
 objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS))
