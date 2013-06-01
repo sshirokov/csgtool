@@ -14,6 +14,7 @@ LIBS = -lm $(OPTLIBS)
 all: $(TARGET)
 
 clean:
+	make -C tests clean
 	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new
 
 test:
