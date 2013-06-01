@@ -1,10 +1,15 @@
 #include "clar.h"
 
+#include "stl.h"
 #include "vector.h"
 #include "poly.h"
 
 poly_t *poly = NULL;
 poly_t *poly_clone = NULL;
+
+char jaws[] = CLAR_FIXTURE_PATH "jaws.stl";
+stl_object *jaws_stl = NULL;
+
 
 void test_classify__initialize(void) {
 	poly = alloc_poly();
@@ -42,11 +47,16 @@ void test_classify__initialize(void) {
 
 	poly_clone = clone_poly(poly);
 	cl_assert_(poly_clone != NULL, "Failed to clone polygon.");
+
+	// Load up the jaws model
+	jaws_stl = stl_read_file(jaws, 0);
+	cl_assert_(jaws_stl != NULL, "Failed to parse jaws.");
 }
 
 void test_classify__cleanup(void) {
 	if(poly) free_poly(poly);
 	if(poly_clone) free_poly(poly_clone);
+	if(jaws_stl) stl_free(jaws_stl);
 }
 
 void test_classify__polygon_vertices_coplanar(void) {
