@@ -70,6 +70,10 @@ void test_classify__polygon_tilted_dupe_coplanar(void) {
 	poly_t *another_clone = clone_poly(another);
 	cl_must_pass(poly_update(another_clone));
 
+	// Are we sane?
+	rc = poly_classify_poly(poly, another);
+	cl_assert_(rc != COPLANAR, "Polys should not be coplanar when one vertex is lifted off Z");
+
 	rc = poly_classify_poly(another, another_clone);
 	cl_assert_equal_i(rc, COPLANAR);
 
