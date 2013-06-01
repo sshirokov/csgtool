@@ -83,6 +83,22 @@ void test_classify__polygon_spanning(void) {
 	cl_assert_equal_i(rc, SPANNING);
 }
 
+void test_classify__polygon_split(void) {
+	poly_t *front_back = poly_split(poly_perp, poly);
+	cl_assert(front_back != NULL);
+
+	int rc = 0;
+	rc = poly_classify_poly(poly_perp, &front_back[0]);
+	cl_assert_(rc == FRONT, "Front poly of polygon split is not in the front.");
+	rc = poly_classify_poly(poly_perp, &front_back[1]);
+	cl_assert_(rc == BACK, "Back poly of polygon split is not in the back.");
+
+	if(front_back != NULL) {
+		if(&front_back[0]) free_poly(&front_back[0]);
+		if(&front_back[1]) free_poly(&front_back[1]);
+	}
+}
+
 void test_classify__jaws_polys_clone_coplanar(void) {
 	cl_assert_(jaws_stl->facet_count > 0, "Mr.Jaws should have some faces.");
 	for(size_t i = 0; i < jaws_stl->facet_count; i++) {
