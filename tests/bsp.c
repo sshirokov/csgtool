@@ -32,6 +32,13 @@ void test_bsp__initialize(void) {
 	cl_assert_(poly != NULL, "Out of memory");
 	*kl_pushp(poly, polygons) = poly;
 
+ 	float3 fs4[] = {{0.0, 0.0, -1.0},
+					{0.0, 0.0, 1.0},
+					{0.0, 1.0, 0.0}};
+	poly = poly_make_triangle(fs4[0], fs4[1], fs4[2]);
+	cl_assert_(poly != NULL, "Out of memory");
+	*kl_pushp(poly, polygons) = poly;
+
 	cl_assert_(bsp != NULL, "Out of memory");
 	cl_assert_(bsp_build(bsp, polygons) != NULL, "Failed to build bsp tree");
 }
@@ -78,9 +85,33 @@ void test_bsp__root_has_poly(void) {
 void test_bsp__root_has_back_poly(void) {
 	cl_assert_(bsp->back != NULL, "No back tree.");
 	cl_assert_equal_i(bsp->back->polygons->size, 1);
+
+	bsp_node_t *front_tree = bsp->back->front;
+	cl_assert_(front_tree != NULL, "No back->front tree.");
+	cl_assert_equal_i(front_tree->polygons->size, 1);
+
+	cl_assert_(front_tree->front == NULL, "Too many front trees.");
+
+	bsp_node_t *back_tree = bsp->back->back;
+	cl_assert_(back_tree != NULL, "No back->back tree.");
+	cl_assert_equal_i(back_tree->polygons->size, 1);
+
+	cl_assert_(back_tree->back == NULL, "Too many back trees.");
 }
 
 void test_bsp__root_has_front_poly(void) {
 	cl_assert_(bsp->front != NULL, "No front tree.");
 	cl_assert_equal_i(bsp->front->polygons->size, 1);
+
+	bsp_node_t *back_tree = bsp->front->back;
+	cl_assert_(back_tree != NULL, "No front->back tree.");
+	cl_assert_equal_i(back_tree->polygons->size, 1);
+
+	cl_assert_(back_tree->back == NULL, "Too many back trees.");
+
+	bsp_node_t *front_tree = bsp->front->front;
+	cl_assert_(front_tree != NULL, "No front->front tree.");
+	cl_assert_equal_i(front_tree->polygons->size, 1);
+
+	cl_assert_(front_tree->back == NULL, "Too many front trees.");
 }
