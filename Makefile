@@ -16,7 +16,10 @@ all: $(TARGET)
 clean:
 	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new
 
-.PHONY: all clean
+test:
+	@make -C tests clean test
+
+.PHONY: all clean test
 
 $(TARGET): $(OBJS) $(TARGET).o
 	$(CC) $(CFLAGS) -o $@.new $(LIBS) $^
