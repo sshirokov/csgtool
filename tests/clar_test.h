@@ -10,7 +10,4 @@
 /* Import the standard clar helper functions */
 #include "clar.h"
 
-/* Your custom shared includes / defines here */
-extern int global_test_counter;
-
 #endif
