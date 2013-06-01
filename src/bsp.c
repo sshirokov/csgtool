@@ -140,14 +140,16 @@ error:
 klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, int make_triangles, klist_t(poly) *dst) {
 	klist_t(poly) *polygons = dst ? dst : kl_init(poly);
 
-	if(tree->back != NULL)
+	if(tree->back != NULL) {
 		bsp_to_polygons(tree->back, make_triangles, polygons);
+	}
 
 	int rc = bsp_copy_node_polygons(tree, make_triangles, polygons);
 	check(rc == tree->polygons->size, "bsp_copy_node_polygons() did not copy all polygons");
 
-	if(tree->front != NULL)
+	if(tree->front != NULL) {
 		bsp_to_polygons(tree->front, make_triangles, polygons);
+	}
 
 	return polygons;
 error:
