@@ -127,7 +127,7 @@ void test_bsp__tree_can_produce_triangles_from_quads(void) {
 	poly_t *poly = poly_make_triangle(quad_verts[0], quad_verts[1], quad_verts[2]);
 	cl_assert_(poly != NULL, "Can't make triangle for test");
 
-	float3 *f3rc = *kl_pushp(poly, poly->vertices) = clone_f3(quad_verts[3]);
+	float3 *f3rc = *kl_pushp(float3, poly->vertices) = clone_f3(quad_verts[3]);
 	cl_assert_(f3rc != NULL, "Failed to clone vertex into quad");
 	poly_update(poly);
 
