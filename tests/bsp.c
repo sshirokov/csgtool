@@ -69,7 +69,7 @@ void test_bsp__cube_bsp_can_return_poly_list_of_equal_length(void) {
 	bsp_node_t *cube_bsp = alloc_bsp_node();
 	cl_assert(cube_bsp != NULL);
 	cl_assert(bsp_build(cube_bsp, cube_polys) == cube_bsp);
-	klist_t(poly) *results = bsp_to_polygons(cube_bsp, NULL);
+	klist_t(poly) *results = bsp_to_polygons(cube_bsp, 0, NULL);
 
 	cl_assert_equal_i(results->size, stl_cube->facet_count);
 
@@ -114,4 +114,34 @@ void test_bsp__root_has_front_poly(void) {
 	cl_assert_equal_i(front_tree->polygons->size, 1);
 
 	cl_assert_(front_tree->back == NULL, "Too many front trees.");
+}
+
+void test_bsp__tree_can_produce_triangles_from_quads(void) {
+	klist_t(poly) *quad = kl_init(poly);
+	// I'll make a quad by making a triangle with a missing
+	// vertex, then pushing the extra vertex after and recomputing
+	float3 quad_verts[] = {{-1.0, 1.0, 0.0},
+						  {-1.0, -1.0, 0.0},
+						  {1.0, -1.0, 0.0},
+						  {1.0, 1.0, 0.0}};
+	poly_t *poly = poly_make_triangle(quad_verts[0], quad_verts[1], quad_verts[2]);
+	cl_assert_(poly != NULL, "Can't make triangle for test");
+
+	float3 *f3rc = *kl_pushp(poly, poly->vertices) = clone_f3(quad_verts[3]);
+	cl_assert_(f3rc != NULL, "Failed to clone vertex into quad");
+	poly_update(poly);
+
+	// Build a tree of the quad
+	klist_t(poly) *lpoly = kl_init(poly);
+	*kl_pushp(poly, lpoly) = poly;
+	bsp_node_t *quad_bsp = bsp_build(NULL, lpoly);
+	cl_assert(quad_bsp);
+
+	klist_t(poly) *tris = bsp_to_polygons(quad_bsp, 1, NULL);
+	cl_assert_equal_i(tris->size, 2);
+
+	kl_destroy(poly, quad);
+	kl_destroy(poly, lpoly);
+	if(tris) kl_destroy(poly, tris);
+	if(poly) free_poly(poly);
 }

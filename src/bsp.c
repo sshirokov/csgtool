@@ -104,13 +104,32 @@ error:
 	return NULL;
 }
 
-int bsp_copy_node_polygons(bsp_node_t *node, klist_t(poly) *dst) {
+int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *dst) {
 	int copied = 0;
 	kliter_t(poly) *iter = kl_begin(node->polygons);
 	for(;iter != kl_end(node->polygons); iter = kl_next(iter)) {
-		poly_t *copy = clone_poly(kl_val(iter));
-		check_mem(copy);
-		*kl_pushp(poly, dst) = copy;
+		poly_t *poly = kl_val(iter);
+		if(!make_triangles || poly->vertices->size == 3) {
+			poly_t *copy = clone_poly(poly);
+			check_mem(copy);
+			*kl_pushp(poly, dst) = copy;
+		}
+		else if(poly->vertices->size > 3){
+			// Start with the third vertex and build triangles
+			// in in the form (v0, v_prev, v_cur) with v_cur
+			kliter_t(float3) *v_cur = kl_next(kl_next(kl_begin(poly->vertices)));
+			kliter_t(float3) *v_prev = kl_next(kl_begin(poly->vertices));
+			for(;v_cur != kl_end(poly->vertices); v_cur = kl_next(v_cur), v_prev = kl_next(v_prev)) {
+				poly_t *tri = poly_make_triangle(*kl_val(kl_begin(poly->vertices)),
+												 *kl_val(v_prev),
+												 *kl_val(v_cur));
+				check_mem(tri);
+				*kl_pushp(poly, dst) = tri;
+			}
+		}
+		else {
+			sentinel("polygon(%p) has less than three(%zd) vertices.", poly, poly->vertices->size);
+		}
 		copied++;
 	}
 	return copied;
@@ -118,17 +137,17 @@ error:
 	return -1;
 }
 
-klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, klist_t(poly) *dst) {
+klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, int make_triangles, klist_t(poly) *dst) {
 	klist_t(poly) *polygons = dst ? dst : kl_init(poly);
 
 	if(tree->back != NULL)
-		bsp_to_polygons(tree->back, polygons);
+		bsp_to_polygons(tree->back, make_triangles, polygons);
 
-	int rc = bsp_copy_node_polygons(tree, polygons);
+	int rc = bsp_copy_node_polygons(tree, make_triangles, polygons);
 	check(rc == tree->polygons->size, "bsp_copy_node_polygons() did not copy all polygons");
 
 	if(tree->front != NULL)
-		bsp_to_polygons(tree->front, polygons);
+		bsp_to_polygons(tree->front, make_triangles, polygons);
 
 	return polygons;
 error:

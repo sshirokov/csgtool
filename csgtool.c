@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
 	check(bsp_build(file_bsp, polygons) != NULL, "Failed to build bsp tree from %zd polygons", polygons->size);
 
-	klist_t(poly) *bpolys = bsp_to_polygons(file_bsp, NULL);
+	klist_t(poly) *bpolys = bsp_to_polygons(file_bsp, 0, NULL);
 
 	log_info("bsp_to_polygons: %zd polys", bpolys->size);
 

@@ -20,6 +20,6 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  klist_t(poly) *front, klist_t(poly) *back);
 
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons);
-klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, klist_t(poly) *dst);
+klist_t(poly) *bsp_to_polygons(bsp_node_t *tree,  int make_triangles, klist_t(poly) *dst);
 
 #endif
