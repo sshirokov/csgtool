@@ -18,6 +18,8 @@ clean:
 	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new
 
 test:
+	@echo "=> Configured compiler:"
+	$(CC) -v
 	@make -C tests clean test
 
 .PHONY: all clean test

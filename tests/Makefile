@@ -47,5 +47,4 @@ clean:
 
 # run tests
 test: clar_test
-	$(CC) -v
 	./clar_test
