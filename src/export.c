@@ -14,7 +14,7 @@ stl_object *stl_from_polys(klist_t(poly) *polygons) {
 
 		kliter_t(float3) *viter = kl_begin(poly->vertices);
 		for(int i = 0; i < 3; i++, viter = kl_next(viter)) {
-			memcpy(&facet->vertices[0], kl_val(viter), sizeof(float3));
+			memcpy(&facet->vertices[i], kl_val(viter), sizeof(float3));
 		}
 	}
 
