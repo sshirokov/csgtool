@@ -3,31 +3,29 @@
 #include "stl.h"
 #include "bsp.h"
 
-stl_object *stl = NULL;
-bsp_node_t *bsp_tree = NULL;
+char cube_stl_path[] = CLAR_FIXTURE_PATH "cube.stl";
+stl_object *cube_stl = NULL;
+klist_t(poly) *cube_polys = NULL;
+bsp_node_t *cube_tree = NULL;
 
 void test_export__initialize(void) {
-	// I'll make a quad by making a triangle with a missing
-	// vertex, then pushing the extra vertex after and recomputing
-	float3 quad_verts[] = {{-1.0, 1.0, 0.0},
-						  {-1.0, -1.0, 0.0},
-						  {1.0, -1.0, 0.0},
-						  {1.0, 1.0, 0.0}};
-	poly_t *poly = poly_make_triangle(quad_verts[0], quad_verts[1], quad_verts[2]);
-	cl_assert_(poly != NULL, "Can't make triangle for test");
+	cube_stl = stl_read_file(cube_stl_path, 1);
+	cl_assert_(cube_stl != NULL, "Failed to read cube.");
+	cl_assert_(cube_stl->facet_count >= 12, "Cube should be >= 12 facets.");
 
-	float3 *f3rc = *kl_pushp(float3, poly->vertices) = clone_f3(quad_verts[3]);
-	cl_assert_(f3rc != NULL, "Failed to clone vertex into quad");
-	poly_update(poly);
-
-	// Build a tree of the quad
-	klist_t(poly) *lpoly = kl_init(poly);
-	*kl_pushp(poly, lpoly) = poly;
-	bsp_tree = bsp_build(NULL, lpoly);
-	cl_assert(bsp_tree);
+	for(int i = 0; i < cube_stl->facet_count; i++) {
+		poly_t *poly = poly_make_triangle(cube_stl->facets[i].vertices[0],
+										  cube_stl->facets[i].vertices[1],
+										  cube_stl->facets[i].vertices[2]);
+		cl_assert(poly != NULL);
+		*kl_pushp(poly, cube_polys) = poly;
+	}
+	cube_tree = bsp_build(NULL, cube_polys);
+	cl_assert(cube_tree);
 }
 
 void test_export__cleanup(void) {
-	if(stl) stl_free(stl);
+	if(cube_stl) stl_free(cube_stl);
+	if(cube_polys) kl_destroy(poly, cube_polys);
 	// TODO: free_bsp(bsp)
 }
