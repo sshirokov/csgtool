@@ -7,7 +7,7 @@ SOURCES = $(wildcard $(ROOT)/src/*.c)
 
 OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
-CFLAGS = -g -std=gnu99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
+CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS) -D_POSIX_SOURCE
 LIBS = -lm $(OPTLIBS)
 
 .DEFAULT_GOAL = all
