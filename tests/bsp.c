@@ -143,5 +143,4 @@ void test_bsp__tree_can_produce_triangles_from_quads(void) {
 	kl_destroy(poly, quad);
 	kl_destroy(poly, lpoly);
 	if(tris) kl_destroy(poly, tris);
-	if(poly) free_poly(poly);
 }
