@@ -4,6 +4,7 @@
 
 #include "stl.h"
 #include "bsp.h"
+#include "export.h"
 
 int main(int argc, char **argv) {
 	char *file = NULL;
@@ -40,9 +41,12 @@ int main(int argc, char **argv) {
 
 	check(bsp_build(file_bsp, polygons) != NULL, "Failed to build bsp tree from %zd polygons", polygons->size);
 
-	klist_t(poly) *bpolys = bsp_to_polygons(file_bsp, 0, NULL);
-
+	klist_t(poly) *bpolys = bsp_to_polygons(file_bsp, 1, NULL);
+	check(bpolys->size > 0, "Failed to get polygons out of tree.");
 	log_info("bsp_to_polygons: %zd polys", bpolys->size);
+
+	stl_object *out = stl_from_polys(bpolys);
+	check(stl_write_file(out, "/tmp/out.stl") == 0, "Failed to write STL");
 
 	kl_destroy(poly, bpolys);
 
