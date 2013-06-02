@@ -9,6 +9,7 @@ OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
 CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS) $(LIBS)
 LIBS = -lm $(OPTLIBS)
+LIBS_posix = -lm
 
 .DEFAULT_GOAL = all
 all: $(TARGET)
