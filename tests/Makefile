@@ -16,7 +16,7 @@ TEST_DIRECTORY    := $(abspath $(dir $(CURRENT_MAKEFILE)))
 CLAR_PATH         := $(TEST_DIRECTORY)/clar/
 CLAR_FIXTURE_PATH := $(TEST_DIRECTORY)/fixtures/
 
-CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH)  -Wall -Werror -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
+CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH)  -Wall -Werror -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\" -D_GNU_SOURCE
 
 .PHONY: clean test
 
@@ -32,7 +32,7 @@ objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS)) $(patsubst %.c,%.o,$(S
 
 # build the test executable itself
 clar_test: $(objects) clar.suite $(TEST_DIRECTORY)/clar_test.h  $(CLAR_PATH)clar.c
-	$(CC) $(LIBS) $(CFLAGS) -o $@ "$(CLAR_PATH)clar.c" $(objects)
+	$(CC) $(CFLAGS) "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
 
 # test object files depend on clar macros
 $(objects) : $(CLAR_PATH)clar.h

@@ -7,8 +7,8 @@ SOURCES = $(wildcard $(ROOT)/src/*.c)
 
 OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
-CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 LIBS = -lm $(OPTLIBS)
+CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 
 .DEFAULT_GOAL = all
 all: $(TARGET)
@@ -23,7 +23,7 @@ test:
 .PHONY: all clean test
 
 $(TARGET): $(OBJS) $(TARGET).o
-	$(CC) $(CFLAGS) -o $@.new $(LIBS) $^
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@.new
 	mv $@.new $@
 
 %.o: %.c
