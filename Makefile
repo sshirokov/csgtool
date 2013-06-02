@@ -24,7 +24,7 @@ test:
 .PHONY: all clean test
 
 $(TARGET): $(OBJS) $(TARGET).o
-	$(CC) $(CFLAGS) -o $@.new $(LIBS) $^
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@.new
 	mv $@.new $@
 
 %.o: %.c
