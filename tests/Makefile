@@ -16,7 +16,7 @@ TEST_DIRECTORY    := $(abspath $(dir $(CURRENT_MAKEFILE)))
 CLAR_PATH         := $(TEST_DIRECTORY)/clar/
 CLAR_FIXTURE_PATH := $(TEST_DIRECTORY)/fixtures/
 
-CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH)  -Wall -Werror -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
+CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH)  -Wall -Werror -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\" -D_POSIX_SOURCE
 
 .PHONY: clean test
 
