@@ -32,7 +32,7 @@ objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS)) $(patsubst %.c,%.o,$(S
 
 # build the test executable itself
 clar_test: $(objects) clar.suite $(TEST_DIRECTORY)/clar_test.h  $(CLAR_PATH)clar.c
-	$(CC) $(LIBS) $(CFLAGS) -o $@ "$(CLAR_PATH)clar.c" $(objects)
+	$(CC) $(CFLAGS) -c "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
 
 # test object files depend on clar macros
 $(objects) : $(CLAR_PATH)clar.h
