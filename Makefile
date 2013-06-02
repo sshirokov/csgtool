@@ -27,4 +27,4 @@ $(TARGET): $(OBJS) $(TARGET).o
 	mv $@.new $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $^
+	$(CC) $(CFLAGS) -o $@ $(LIBS) -c $^
