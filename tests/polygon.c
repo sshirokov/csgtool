@@ -37,12 +37,11 @@ void test_polygon__cleanup(void) {
 }
 
 void test_polygon__inverting_top_makes_bottom_front(void) {
-	// Invert the top, which should then consider the bottom
-	// in front of it.
-	cl_assert_(poly_invert(top) != NULL, "Failed to invert top.");
-	cl_assert_equal_i(poly_classify_poly(top, bottom), FRONT);
-
-	// Make sure the vertex order is correct
-	poly_update(top);
 	cl_assert_equal_i(poly_classify_poly(top, bottom), BACK);
+	poly_t *p = poly_invert(top);
+	cl_assert_(p == top, "poly_invert() should return identity");
+
+	cl_assert_equal_i(poly_classify_poly(top, bottom), FRONT);
+	poly_update(top);
+	cl_assert_equal_i(poly_classify_poly(top, bottom), FRONT);
 }

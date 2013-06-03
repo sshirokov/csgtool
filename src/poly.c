@@ -193,7 +193,8 @@ error:
 void _reverse_vertices(kliter_t(float3) *begin, kliter_t(float3) *end, klist_t(float3) *dst) {
 	if(begin != end) {
 		_reverse_vertices(kl_next(begin), end, dst);
-		*kl_pushp(float3, dst) = kl_val(begin);
+		// TODO: What the fuck is error testing!?
+		*kl_pushp(float3, dst) = clone_f3(*kl_val(begin));
 	}
 }
 
