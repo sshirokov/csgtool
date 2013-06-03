@@ -189,3 +189,11 @@ error:
 	if(p) free_poly(p);
 	return NULL;
 }
+
+poly_t *poly_invert(poly_t *poly) {
+	check(0, "TODO: Placehoder for code.");
+
+	return poly;
+error:
+	return NULL;
+}
