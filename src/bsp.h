@@ -21,5 +21,6 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons);
 klist_t(poly) *bsp_to_polygons(bsp_node_t *tree,  int make_triangles, klist_t(poly) *dst);
+bsp_node_t *bsp_invert(bsp_node_t *tree);
 
 #endif

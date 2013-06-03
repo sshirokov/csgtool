@@ -163,3 +163,8 @@ error:
 	if(dst == NULL) kl_destroy(poly, polygons);
 	return NULL;
 }
+
+bsp_node_t *bsp_invert(bsp_node_t *tree) {
+	log_warn("TODO: Not implemented.");
+	return tree;
+}
