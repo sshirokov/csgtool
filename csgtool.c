@@ -18,29 +18,8 @@ int main(int argc, char **argv) {
 	check(file_stl != NULL, "Failed to read stl from '%s'", file);
 	log_info("Loaded file: %s %d facets", file, file_stl->facet_count);
 
-	file_bsp = alloc_bsp_node();
+	file_bsp = stl_to_bsp(file_stl);
 	check_mem(file_bsp);
-
-	for(int i = 0; i < file_stl->facet_count; i++) {
-		stl_facet *face = &file_stl->facets[i];
-		poly_t *poly = NULL;
-
-		check(poly = alloc_poly(), "Failed to allocate polygon %d", i);
-		*kl_pushp(poly, polygons) = poly;
-
-		// Copy each vertex, using a fresh pointer
-		// and letting the poly deallocator deal with it
-		float3 *f = NULL;
-		for(int v = 0; v < 3; v++) {
-			check_mem(f = malloc(sizeof(float3)));
-			memcpy(f, face->vertices[v], sizeof(float3));
-			*kl_pushp(float3, poly->vertices) = f;
-		}
-		poly_update(poly);
-	}
-
-	check(bsp_build(file_bsp, polygons) != NULL, "Failed to build bsp tree from %zd polygons", polygons->size);
-
 
 	stl_object *out = bsp_to_stl(file_bsp);
 	check(stl_write_file(out, "/tmp/out.stl") == 0, "Failed to write STL");

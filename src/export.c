@@ -43,3 +43,30 @@ error:
 	if(stl) stl_free(stl);
 	return NULL;
 }
+
+bsp_node_t *stl_to_bsp(stl_object *stl) {
+	bsp_node_t *tree = NULL;
+	klist_t(poly) *polys = kl_init(poly);
+	poly_t *poly = NULL;
+
+	for(int i = 0; i < stl->facet_count; i++) {
+		poly = poly_make_triangle(stl->facets[i].vertices[0],
+								  stl->facets[i].vertices[1],
+								  stl->facets[i].vertices[2]);
+		check_mem(polys);
+		*kl_pushp(poly, polys) = poly;
+	}
+	check(polys->size == stl->facet_count, "Wrong number of faces generated.");
+
+	tree = bsp_build(NULL, polys);
+	check_mem(tree);
+
+	kl_destroy(poly, polys);
+	return tree;
+error:
+	if(polys != NULL) kl_destroy(poly, polys);
+	if(tree != NULL) {
+		log_warn("TODO: free_bsp()");
+	}
+	return NULL;
+}
