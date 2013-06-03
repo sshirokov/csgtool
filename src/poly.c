@@ -189,3 +189,28 @@ error:
 	if(p) free_poly(p);
 	return NULL;
 }
+
+void _reverse_vertices(kliter_t(float3) *begin, kliter_t(float3) *end, klist_t(float3) *dst) {
+	if(begin != end) {
+		_reverse_vertices(kl_next(begin), end, dst);
+		// TODO: What the fuck is error testing!?
+		*kl_pushp(float3, dst) = clone_f3(*kl_val(begin));
+	}
+}
+
+poly_t *poly_invert(poly_t *poly) {
+	f3_scale(&poly->normal, -1.0);
+	poly->w *= -1.0;
+
+	klist_t(float3) *r_vertices = kl_init(float3);
+	_reverse_vertices(kl_begin(poly->vertices), kl_end(poly->vertices), r_vertices);
+	check(r_vertices->size == poly->vertices->size, "wrong number of verticeis: %zd != %zd", r_vertices->size, poly->vertices->size);
+
+	kl_destroy(float3, poly->vertices);
+	poly->vertices = r_vertices;
+
+	return poly;
+error:
+	kl_destroy(float3, r_vertices);
+	return NULL;
+}

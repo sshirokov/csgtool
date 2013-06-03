@@ -25,6 +25,7 @@ void free_poly(poly_t *p);
 
 poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);
+poly_t *poly_invert(poly_t *poly);
 
 int poly_classify_vertex(poly_t *poly, float3 v);
 int poly_classify_poly(poly_t *this, poly_t *other);
