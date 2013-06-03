@@ -200,7 +200,7 @@ error:
 	return NULL;
 }
 
-klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polys) {
+klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 	klist_t(poly) *result = kl_init(poly);
 	kliter_t(poly) *iter = NULL;
 	poly_t *p = NULL;
@@ -213,7 +213,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polys) {
 		// Sort this node's polygons into the front or back
 		klist_t(poly) *node_front = kl_init(poly);
 		klist_t(poly) *node_back = kl_init(poly);
-		for(iter = kl_begin(node->polygons); iter != kl_end(node->polygons); iter = kl_next(iter)) {
+		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
 			rc = bsp_subdivide(node->divider, kl_val(iter), node_front, node_back, node_front, node_back);
 			check(rc != -1, "Failed to subdivide poly %p", kl_val(iter));
 		}
@@ -245,6 +245,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polys) {
 				*kl_pushp(poly, result_back) = p;
 			}
 		}
+
 		// Copy the entire front list into the result
 		for(iter = kl_begin(result_front); iter != kl_end(result_front); iter = kl_next(iter)) {
 			p = clone_poly(kl_val(iter));
@@ -268,8 +269,8 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polys) {
 		kl_destroy(poly, result_back);
 	}
 	else {
-		// If we don't have a divider we just copy out our polygons on the node
-		for(iter = kl_begin(node->polygons); iter != kl_end(node->polygons); iter = kl_next(iter)) {
+		// If we don't have a divider we just copy out the polygons
+		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
 			check_mem(p = clone_poly(kl_val(iter)));
 			*kl_pushp(poly, result) = p;
 		}
