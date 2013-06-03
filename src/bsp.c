@@ -165,6 +165,37 @@ error:
 }
 
 bsp_node_t *bsp_invert(bsp_node_t *tree) {
-	log_warn("TODO: Not implemented.");
+	// Invert every polygon in this node
+	poly_t *poly = NULL;
+	kliter_t(poly) *iter = kl_begin(tree->polygons);
+	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
+		poly = poly_invert(kl_val(iter));
+		check(poly != NULL, "Failed to invert polygon %p", kl_val(iter));
+	}
+
+	// Invert the divider
+	if(tree->divider) {
+		poly = poly_invert(tree->divider);
+		check(poly != NULL, "Failed to inverts bsp_node_t(%p)->divider(%p)", tree, tree->divider);
+	}
+
+	// Invert the front and back trees
+	bsp_node_t *node;
+	if(tree->front) {
+		node = bsp_invert(tree->front);
+		check(node != NULL, "Failed to invert back tree of bsp_node_t(%p)", tree->front);
+	}
+	if(tree->back) {
+		node = bsp_invert(tree->back);
+		check(node != NULL, "Failed to invert back tree of bsp_node_t(%p)", tree->back);
+	}
+
+	// Swap front and back trees
+	node = tree->front;
+	tree->front = tree->back;
+	tree->back = node;
+
 	return tree;
+error:
+	return NULL;
 }
