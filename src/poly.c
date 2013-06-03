@@ -191,9 +191,10 @@ error:
 }
 
 poly_t *poly_invert(poly_t *poly) {
-	check(0, "TODO: Placehoder for code.");
+	f3_scale(&poly->normal, -1.0);
+	poly->w *= -1.0;
+
+	// TODO: Reverse the vertex list
 
 	return poly;
-error:
-	return NULL;
 }
