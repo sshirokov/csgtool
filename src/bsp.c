@@ -19,18 +19,22 @@ void free_bsp_node(bsp_node_t *node) {
 int bsp_subdivide(poly_t *divider, poly_t *poly,
 				   klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,
 				   klist_t(poly) *front, klist_t(poly) *back) {
+	poly_t *copy = NULL;
 	switch(poly_classify_poly(divider, poly)) {
 	case FRONT:
-		*kl_pushp(poly, front) = poly;
+		check_mem(copy = clone_poly(poly));
+		*kl_pushp(poly, front) = copy;
 		break;
 	case BACK:
-		*kl_pushp(poly, back) = poly;
+		check_mem(copy = clone_poly(poly));
+		*kl_pushp(poly, back) = copy;
 		break;
 	case COPLANAR:
+		check_mem(copy = clone_poly(poly));
 		if(f3_dot(divider->normal, poly->normal) > 0)
-			*kl_pushp(poly, coplanar_front) = poly;
+			*kl_pushp(poly, coplanar_front) = copy;
 		else
-			*kl_pushp(poly, coplanar_back) = poly;
+			*kl_pushp(poly, coplanar_back) = copy;
 		break;
 	case SPANNING: {
 		poly_t *front_back = NULL;
@@ -50,6 +54,7 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 	kliter_t(poly) *iter = kl_begin(polygons);
 	klist_t(poly) *front = kl_init(poly);
 	klist_t(poly) *back  = kl_init(poly);
+	poly_t *poly = NULL;
 
 	if(node == NULL) {
 		// Allocate a node if we weren't given one. It's the nice
@@ -64,15 +69,15 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 		// if we have not yet picked the divider for this node.
 		// This avoids having to rely on an explicit
 		// test of this node against itself in the loop below.
-	   *kl_pushp(poly, node->polygons) = kl_val(iter);
-	   iter = kl_next(iter);
+		check_mem(poly = clone_poly(kl_val(iter)));
+		*kl_pushp(poly, node->polygons) = poly;
+		iter = kl_next(iter);
 
 		node->divider = clone_poly(kl_val(kl_begin(polygons)));
 		check_mem(node->divider);
 	}
 
 
-	poly_t *poly = NULL;
 	int rc = 0;
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		poly = kl_val(iter);
@@ -156,5 +161,41 @@ klist_t(poly) *bsp_to_polygons(bsp_node_t *tree, int make_triangles, klist_t(pol
 error:
 	// Only clean up the polygons list if we initialized it on error
 	if(dst == NULL) kl_destroy(poly, polygons);
+	return NULL;
+}
+
+bsp_node_t *bsp_invert(bsp_node_t *tree) {
+	// Invert every polygon in this node
+	poly_t *poly = NULL;
+	kliter_t(poly) *iter = kl_begin(tree->polygons);
+	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
+		poly = poly_invert(kl_val(iter));
+		check(poly != NULL, "Failed to invert polygon %p", kl_val(iter));
+	}
+
+	// Invert the divider
+	if(tree->divider) {
+		poly = poly_invert(tree->divider);
+		check(poly != NULL, "Failed to inverts bsp_node_t(%p)->divider(%p)", tree, tree->divider);
+	}
+
+	// Invert the front and back trees
+	bsp_node_t *node;
+	if(tree->front) {
+		node = bsp_invert(tree->front);
+		check(node != NULL, "Failed to invert back tree of bsp_node_t(%p)", tree->front);
+	}
+	if(tree->back) {
+		node = bsp_invert(tree->back);
+		check(node != NULL, "Failed to invert back tree of bsp_node_t(%p)", tree->back);
+	}
+
+	// Swap front and back trees
+	node = tree->front;
+	tree->front = tree->back;
+	tree->back = node;
+
+	return tree;
+error:
 	return NULL;
 }

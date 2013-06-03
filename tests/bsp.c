@@ -6,6 +6,9 @@
 bsp_node_t *bsp = NULL;
 klist_t(poly) *polygons;
 
+char cube_stl_file[] = CLAR_FIXTURE_PATH "cube.stl";
+bsp_node_t *cube_bsp = NULL;
+
 void test_bsp__initialize(void) {
 	bsp = alloc_bsp_node();
 	poly_t *poly = NULL;
@@ -41,10 +44,47 @@ void test_bsp__initialize(void) {
 
 	cl_assert_(bsp != NULL, "Out of memory");
 	cl_assert_(bsp_build(bsp, polygons) != NULL, "Failed to build bsp tree");
+
+	stl_object *stl_cube = stl_read_file(cube_stl_file, 1);
+	cl_assert(stl_cube != NULL);
+	klist_t(poly) *cube_polys = kl_init(poly);
+	for(int i = 0; i < stl_cube->facet_count; i++) {
+		poly_t *p = poly_make_triangle(stl_cube->facets[i].vertices[0],
+									   stl_cube->facets[i].vertices[1],
+									   stl_cube->facets[i].vertices[2]);
+		cl_assert(p != NULL);
+		*kl_pushp(poly, cube_polys) = p;
+	}
+	cube_bsp = bsp_build(NULL, cube_polys);
+	kl_destroy(poly, cube_polys);
+	cl_assert(cube_bsp != NULL);
 }
 
 void test_bsp__cleanup(void) {
 	// TODO: free_bsp() is a segfault, let's not do that at all
+}
+
+void test_bsp__cube_can_invert(void) {
+	float3 point = {0.0, 0.0, 0.5};
+	kliter_t(poly) *iter = NULL;
+
+	// Make sure that all polygons consider the point in the center
+	// behind them.
+	klist_t(poly) *polys = bsp_to_polygons(cube_bsp, 0, NULL);
+	for(iter = kl_begin(polys); iter < kl_end(polys); iter = kl_next(iter)) {
+		cl_assert_equal_i(poly_classify_vertex(kl_val(iter), point), BACK);
+	}
+	kl_destroy(poly, polys);
+
+	// INVERT
+	cl_assert(bsp_invert(cube_bsp) == cube_bsp);
+
+	// Repeat the test and expect the center to now be FRONT
+	polys = bsp_to_polygons(cube_bsp, 0, NULL);
+	for(iter = kl_begin(polys); iter < kl_end(polys); iter = kl_next(iter)) {
+		cl_assert_equal_i(poly_classify_vertex(kl_val(iter), point), FRONT);
+	}
+	kl_destroy(poly, polys);
 }
 
 void test_bsp__cube_bsp_can_return_poly_list_of_equal_length(void) {
