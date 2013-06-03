@@ -285,6 +285,8 @@ error:
 bsp_node_t *bsp_clip(bsp_node_t *us, bsp_node_t *them) {
 	klist_t(poly) *new_polys = bsp_clip_polygons(them, us->polygons);
 	check(new_polys != NULL, "Failed to generate new poly list in bsp_clip(%p, %p)", us, them);
+	kl_destroy(poly, us->polygons);
+	us->polygons = new_polys;
 
 	if(us->front)
 		check(bsp_clip(us->front, them) != NULL, "Failed to clip the front tree %p of %p", us->front, us);
