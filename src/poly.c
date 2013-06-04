@@ -72,6 +72,16 @@ int poly_vertex_count(poly_t *poly) {
 	return poly->vertices->size;
 }
 
+// Add a vertex to the end of the polygon vertex list
+int poly_push_vertex(poly_t *poly, float3 v) {
+	float3 *f = clone_f3(v);
+	check_mem(f);
+	*kl_pushp(float3, poly->vertices) = f;
+	return poly_update(poly);
+error:
+	return -1;
+}
+
 int poly_classify_vertex(poly_t *poly, float3 v) {
 	float side = f3_dot(poly->normal, v) - poly->w;
 	if(side < -EPSILON) return BACK;
