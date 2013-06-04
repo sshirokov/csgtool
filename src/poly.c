@@ -46,7 +46,7 @@ error:
 
 int poly_update(poly_t *poly) {
 	check(poly_vertex_count(poly) > 2,
-		  "poly_update(Polyon(%p)): has only %zd verticies.",
+		  "poly_update(Polyon(%p)): has only %d verticies.",
 		  poly, poly_vertex_count(poly));
 
 	kliter_t(float3) *v_iter = kl_begin(poly->vertices);
