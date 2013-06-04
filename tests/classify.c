@@ -33,8 +33,8 @@ void test_classify__initialize(void) {
 }
 
 void test_classify__cleanup(void) {
-	if(poly) free_poly(poly);
-	if(poly_clone) free_poly(poly_clone);
+	if(poly) free_poly(poly, 1);
+	if(poly_clone) free_poly(poly_clone, 1);
 	if(jaws_stl) stl_free(jaws_stl);
 }
 
@@ -66,8 +66,8 @@ void test_classify__polygon_tilted_dupe_coplanar(void) {
 	rc = poly_classify_poly(another, another_clone);
 	cl_assert_equal_i(rc, COPLANAR);
 
-	if(another) free_poly(another);
-	if(another_clone) free_poly(another_clone);
+	if(another) free_poly(another, 1);
+	if(another_clone) free_poly(another_clone, 1);
 }
 
 void test_classify__polygon_spanning(void) {
@@ -87,8 +87,9 @@ void test_classify__polygon_split(void) {
 	cl_assert_(rc == BACK, "Back poly of polygon split is not in the back.");
 
 	if(front_back != NULL) {
-		if(&front_back[0]) free_poly(&front_back[0]);
-		if(&front_back[1]) free_poly(&front_back[1]);
+		free_poly(&front_back[0], 0);
+		free_poly(&front_back[1], 0);
+		free(front_back);
 	}
 }
 
@@ -105,7 +106,7 @@ void test_classify__jaws_polys_clone_coplanar(void) {
 		rc = poly_classify_poly(poly, clone);
 		cl_assert_equal_i(rc, COPLANAR);
 
-		free_poly(clone);
-		free_poly(poly);
+		free_poly(clone, 1);
+		free_poly(poly, 1);
 	}
 }

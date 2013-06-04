@@ -38,9 +38,23 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		break;
 	case SPANNING: {
 		poly_t *front_back = NULL;
+		poly_t *clone = NULL;
 		check_mem(front_back = poly_split(divider, poly));
-		*kl_pushp(poly, front) = &front_back[0];
-		*kl_pushp(poly, back)  = &front_back[1];
+
+		clone = clone_poly(&front_back[0]);
+		check_mem(clone);
+		*kl_pushp(poly, front) = clone;
+
+		clone = clone_poly(&front_back[1]);
+		check_mem(clone);
+		*kl_pushp(poly, back)  = clone;
+
+		// We clone individual polygons so we have
+		// individually free-able pointers, we no longer
+		// need this buffer of polygons.
+		free_poly(&front_back[0], 0);
+		free_poly(&front_back[1], 0);
+		free(front_back);
 		break;
 	}
 	}
@@ -197,5 +211,104 @@ bsp_node_t *bsp_invert(bsp_node_t *tree) {
 
 	return tree;
 error:
+	return NULL;
+}
+
+klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
+	klist_t(poly) *result = kl_init(poly);
+	kliter_t(poly) *iter = NULL;
+	poly_t *p = NULL;
+	int rc = -1;
+
+	if(node->divider != NULL) {
+		klist_t(poly) *result_front = NULL;
+		klist_t(poly) *result_back = NULL;
+
+		// Sort this node's polygons into the front or back
+		klist_t(poly) *node_front = kl_init(poly);
+		klist_t(poly) *node_back = kl_init(poly);
+		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
+			rc = bsp_subdivide(node->divider, kl_val(iter), node_front, node_back, node_front, node_back);
+			check(rc != -1, "Failed to subdivide poly %p", kl_val(iter));
+		}
+
+		// Recur to the front tree, or copy my current front nodes to result.
+		if(node->front) {
+			result_front = bsp_clip_polygons(node->front, node_front);
+			check(result_front != NULL, "Failed to clip front tree");
+		}
+		else {
+			result_front = kl_init(poly);
+			for(iter = kl_begin(node_front); iter != kl_end(node_front); iter = kl_next(iter)) {
+				p = clone_poly(kl_val(iter));
+				check_mem(p);
+				*kl_pushp(poly, result_front) = p;
+			}
+		}
+
+		// Repeat for the back tree
+		if(node->back) {
+			result_back = bsp_clip_polygons(node->back, node_back);
+			check(result_back != NULL, "Failed to clip back tree");
+		}
+		else {
+			result_back = kl_init(poly);
+			for(iter = kl_begin(node_back); iter != kl_end(node_back); iter = kl_next(iter)) {
+				p = clone_poly(kl_val(iter));
+				check_mem(p);
+				*kl_pushp(poly, result_back) = p;
+			}
+		}
+
+		// Copy the entire front list into the result
+		for(iter = kl_begin(result_front); iter != kl_end(result_front); iter = kl_next(iter)) {
+			p = clone_poly(kl_val(iter));
+			check_mem(p);
+			*kl_pushp(poly, result) = p;
+		}
+		// Concat the back list if we have a back tree
+		if(node->back != NULL) {
+			for(iter = kl_begin(result_back); iter != kl_end(result_back); iter = kl_next(iter)) {
+				p = clone_poly(kl_val(iter));
+				check_mem(p);
+				*kl_pushp(poly, result) = p;
+			}
+		}
+
+		// Clean up the temporary lists
+		kl_destroy(poly, node_front);
+		kl_destroy(poly, node_back);
+		// Clean up the result halves, now that they're copied into `result`
+		kl_destroy(poly, result_front);
+		kl_destroy(poly, result_back);
+	}
+	else {
+		// If we don't have a divider we just copy out the polygons
+		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
+			check_mem(p = clone_poly(kl_val(iter)));
+			*kl_pushp(poly, result) = p;
+		}
+	}
+
+	return result;
+error:
+	if(result) kl_destroy(poly, result);
+	return NULL;
+}
+
+bsp_node_t *bsp_clip(bsp_node_t *us, bsp_node_t *them) {
+	klist_t(poly) *new_polys = bsp_clip_polygons(them, us->polygons);
+	check(new_polys != NULL, "Failed to generate new poly list in bsp_clip(%p, %p)", us, them);
+	kl_destroy(poly, us->polygons);
+	us->polygons = new_polys;
+
+	if(us->front)
+		check(bsp_clip(us->front, them) != NULL, "Failed to clip the front tree %p of %p", us->front, us);
+	if(us->back)
+		check(bsp_clip(us->back, them) != NULL, "Failed to clip the back tree %p of %p", us->back, us);
+
+	return us;
+error:
+	if(new_polys) kl_destroy(poly, new_polys);
 	return NULL;
 }
