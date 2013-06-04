@@ -107,73 +107,60 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 
 poly_t *poly_split(poly_t *divider, poly_t *poly) {
 	poly_t *front_back = NULL;
-	klist_t(float3) *front = kl_init(float3);
-	klist_t(float3) *back  = kl_init(float3);
-
+	poly_t *front, *back;
 	check_mem(front_back = calloc(2, sizeof(poly_t)));
 
-	kliter_t(float3) *v_cur = kl_begin(poly->vertices);
-	kliter_t(float3) *v_next = v_cur;
-	int c_cur, c_next;
-	float3 *clone = NULL;
+	// Aliases for easier access
+	front = &front_back[0];
+	back =  &front_back[1];
 
-	for(; v_cur != kl_end(poly->vertices); v_cur = kl_next(v_cur)) {
-		// Get v_next to be the next vertext, looping to the beginning
-		v_next = kl_next(v_next);
-		if(v_next == kl_end(poly->vertices))
-			v_next = kl_begin(poly->vertices);
+	// Current and next vertex
+	float3 v_cur = FLOAT3_INIT;
+	float3 v_next = FLOAT3_INIT;
+	// Classifications of the above
+	int c_cur, c_next;
+	// Loop indexes
+	int i, j;
+	int count = poly_vertex_count(poly);
+	for(i = 0; i < count; i++) {
+		j = (i + 1) % count;
+		for(int k = 0; k < 3; j++) {
+			v_cur[k]  = poly->vertices[i][k];
+			v_next[k] = poly->vertices[j][k];
+		}
 
 		// Classify the first and next vertex
-		c_cur  = poly_classify_vertex(divider, *kl_val(v_cur));
-		c_next = poly_classify_vertex(divider, *kl_val(v_next));
+		c_cur  = poly_classify_vertex(divider, v_cur);
+		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			clone = clone_f3(*kl_val(v_cur));
-			check_mem(clone);
-			*kl_pushp(float3, front) = clone;
+			poly_push_vertex(front, v_cur);
 		}
 		if(c_cur != FRONT) {
-			clone = clone_f3(*kl_val(v_cur));
-			check_mem(clone);
-			*kl_pushp(float3, back)  = clone;
+			poly_push_vertex(front, v_next);
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
 		if((c_cur | c_next) == SPANNING) {
 			float3 diff = FLOAT3_INIT;
-			f3_sub(&diff, *kl_val(v_next), *kl_val(v_cur));
+			f3_sub(&diff, v_next, v_cur);
 
 			float t = divider->w;
-			t = t - f3_dot(divider->normal, *kl_val(v_cur));
+			t = t - f3_dot(divider->normal, v_cur);
 			t = t / f3_dot(divider->normal, diff);
 
-			float3 mid_f = FLOAT3_INIT;
-			memcpy(&mid_f, kl_val(v_cur), sizeof(float3));
-			f3_interpolate(&mid_f, *kl_val(v_cur), *kl_val(v_next), t);
+			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
+			f3_interpolate(&mid_f, v_cur, v_next, t);
 
-			clone = clone_f3(mid_f);
-			check_mem(clone);
-			*kl_pushp(float3, front) = clone;
-			clone = clone_f3(mid_f);
-			check_mem(clone);
-			*kl_pushp(float3, back)  = clone;
+			check(poly_push_vertex(front, mid_f) == 0,
+				  "Failed to push midpoint to front poly(%p)", front);
+			check(poly_push_vertex(back, mid_f) == 0,
+				  "Failed to push midpoint to back poly(%p):", back);
 		}
 	}
 
-	// Init our front and back polys
-	// and destroy their vertex lists
-	// which we'll reassign from the duplicated
-	// lists here
-	for(int i = 0; i < 2; i++) {
-		poly_init(&front_back[i]);
-		kl_destroy(float3, front_back[i].vertices);
-	}
-
-	front_back[0].vertices = front;
-	front_back[1].vertices = back;
-
-	for(int j = 0; j < 2; j++) {
-		poly_update(&front_back[j]);
+	for(int l = 0; l < 2; l++) {
+		poly_update(&front_back[l]);
 	}
 
 	return front_back;
