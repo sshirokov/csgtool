@@ -13,32 +13,22 @@ error:
 
 void free_poly(poly_t *p, int free_self) {
 	if(p == NULL) return;
-	if(p->vertices != NULL) kl_destroy(float3, p->vertices);
 	if(free_self) free(p);
 }
 
 poly_t *poly_init(poly_t *poly) {
-	bzero(poly, sizeof(poly_t));
-	poly->vertices = kl_init(float3);
+	poly->normal[0]  = 0.0;
+	poly->normal[1]  = 0.0;
+	poly->normal[2]  = 0.0;
+	poly->w          = 0.0;
+	poly->vertex_count = 0;
 	return poly;
 }
 
 poly_t *clone_poly(poly_t *poly) {
 	poly_t *copy = NULL;
 	check_mem(copy = alloc_poly());
-
-	// Copy the simple stuff
-	copy->w = poly->w;
-	memcpy(copy->normal, poly->normal, sizeof(float3));
-
-	// Copy each vertex in poly's list
-	kliter_t(float3) *vIter;
-	float3 *clone;
-	for(vIter = kl_begin(poly->vertices); vIter != kl_end(poly->vertices); vIter = kl_next(vIter)) {
-		check_mem(clone = clone_f3(*kl_val(vIter)));
-		*kl_pushp(float3, copy->vertices) = clone;
-	}
-
+	memcpy(copy, poly, sizeof(poly_t));
 	return copy;
 error:
 	return NULL;
@@ -49,10 +39,9 @@ int poly_update(poly_t *poly) {
 		  "poly_update(Polyon(%p)): has only %d verticies.",
 		  poly, poly_vertex_count(poly));
 
-	kliter_t(float3) *v_iter = kl_begin(poly->vertices);
-	float3 *a = kl_val(v_iter);
-	float3 *b = kl_val(v_iter = kl_next(v_iter));
-	float3 *c = kl_val(v_iter = kl_next(v_iter));
+	float3 *a = &poly->vertices[0];
+	float3 *b = &poly->vertices[1];
+	float3 *c = &poly->vertices[2];
 
 	float3 b_a;
 	float3 c_a;
@@ -69,14 +58,19 @@ error:
 }
 
 int poly_vertex_count(poly_t *poly) {
-	return poly->vertices->size;
+	return poly->vertex_count;
 }
 
 // Add a vertex to the end of the polygon vertex list
 int poly_push_vertex(poly_t *poly, float3 v) {
-	float3 *f = clone_f3(v);
-	check_mem(f);
-	*kl_pushp(float3, poly->vertices) = f;
+	check(poly->vertex_count < POLY_MAX_VERTS, "Poly(%p) tried to add %d verts.",
+		  poly, poly->vertex_count + 1);
+
+	poly->vertices[poly->vertex_count][0] = v[0];
+	poly->vertices[poly->vertex_count][1] = v[1];
+	poly->vertices[poly->vertex_count][2] = v[2];
+	poly->vertex_count++;
+
 	return poly_update(poly);
 error:
 	return -1;
@@ -95,9 +89,8 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 	front = 0;
 	back = 0;
 
-	kliter_t(float3) *vIter = kl_begin(other->vertices);
-	for(;vIter != kl_end(other->vertices); vIter = kl_next(vIter)) {
-		switch(poly_classify_vertex(this, *kl_val(vIter))) {
+	for(int i = 0; i < poly_vertex_count(other); i++) {
+		switch(poly_classify_vertex(this, other->vertices[i])) {
 		case FRONT:
 			front += 1;
 			break;
