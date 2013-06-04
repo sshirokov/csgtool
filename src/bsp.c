@@ -261,6 +261,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 			}
 		}
 
+		// TODO: MASSIVE LEAK
 		// Clean up the temporary lists
 //		kl_destroy(poly, node_front);
 //		kl_destroy(poly, node_back);
