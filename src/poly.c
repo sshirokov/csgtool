@@ -39,7 +39,7 @@ error:
 }
 
 void free_poly(poly_t *p) {
-	kl_destroy(float3, p->vertices);
+	if(p->vertices != NULL) kl_destroy(float3, p->vertices);
 }
 
 int poly_update(poly_t *poly) {
