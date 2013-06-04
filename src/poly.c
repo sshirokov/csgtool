@@ -45,9 +45,9 @@ error:
 }
 
 int poly_update(poly_t *poly) {
-	check(poly->vertices->size > 2,
+	check(poly_vertex_count(poly) > 2,
 		  "poly_update(Polyon(%p)): has only %zd verticies.",
-		  poly, poly->vertices->size);
+		  poly, poly_vertex_count(poly));
 
 	kliter_t(float3) *v_iter = kl_begin(poly->vertices);
 	float3 *a = kl_val(v_iter);
@@ -66,6 +66,10 @@ int poly_update(poly_t *poly) {
 	return 0;
 error:
 	return -1;
+}
+
+int poly_vertex_count(poly_t *poly) {
+	return poly->vertices->size;
 }
 
 int poly_classify_vertex(poly_t *poly, float3 v) {

@@ -9,7 +9,7 @@ stl_object *stl_from_polys(klist_t(poly) *polygons) {
 	poly_t *poly = NULL;
 	for(; iter != kl_end(polygons); iter = kl_next(iter), facet++) {
 		poly = kl_val(iter);
-		check(poly->vertices->size == 3, "Polygon is not a triangle.");
+		check(poly_vertex_count(poly) == 3, "Polygon is not a triangle.");
 		memcpy(facet->normal, poly->normal, sizeof(float3));
 
 		kliter_t(float3) *viter = kl_begin(poly->vertices);

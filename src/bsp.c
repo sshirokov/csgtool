@@ -129,12 +129,12 @@ int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *
 	kliter_t(poly) *iter = kl_begin(node->polygons);
 	for(;iter != kl_end(node->polygons); iter = kl_next(iter)) {
 		poly_t *poly = kl_val(iter);
-		if(!make_triangles || poly->vertices->size == 3) {
+		if(!make_triangles || poly_vertex_count(poly) == 3) {
 			poly_t *copy = clone_poly(poly);
 			check_mem(copy);
 			*kl_pushp(poly, dst) = copy;
 		}
-		else if(poly->vertices->size > 3){
+		else if(poly_vertex_count(poly) > 3){
 			// Start with the third vertex and build triangles
 			// in in the form (v0, v_prev, v_cur)
 			kliter_t(float3) *v_cur = kl_next(kl_next(kl_begin(poly->vertices)));
