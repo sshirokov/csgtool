@@ -38,9 +38,23 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		break;
 	case SPANNING: {
 		poly_t *front_back = NULL;
+		poly_t *clone = NULL;
 		check_mem(front_back = poly_split(divider, poly));
-		*kl_pushp(poly, front) = &front_back[0];
-		*kl_pushp(poly, back)  = &front_back[1];
+
+		clone = clone_poly(&front_back[0]);
+		check_mem(clone);
+		*kl_pushp(poly, front) = clone;
+
+		clone = clone_poly(&front_back[1]);
+		check_mem(clone);
+		*kl_pushp(poly, back)  = clone;
+
+		// We clone individual polygons so we have
+		// individually free-able pointers, we no longer
+		// need this buffer of polygons.
+		free_poly(&front_back[0], 0);
+		free_poly(&front_back[1], 0);
+		free(front_back);
 		break;
 	}
 	}
@@ -261,13 +275,12 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 			}
 		}
 
-		// TODO: MASSIVE LEAK
 		// Clean up the temporary lists
-//		kl_destroy(poly, node_front);
-//		kl_destroy(poly, node_back);
+		kl_destroy(poly, node_front);
+		kl_destroy(poly, node_back);
 		// Clean up the result halves, now that they're copied into `result`
-//		kl_destroy(poly, result_front);
-//		kl_destroy(poly, result_back);
+		kl_destroy(poly, result_front);
+		kl_destroy(poly, result_back);
 	}
 	else {
 		// If we don't have a divider we just copy out the polygons

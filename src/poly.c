@@ -11,6 +11,12 @@ error:
 	return NULL;
 }
 
+void free_poly(poly_t *p, int free_self) {
+	if(p == NULL) return;
+	if(p->vertices != NULL) kl_destroy(float3, p->vertices);
+	if(free_self) free(p);
+}
+
 poly_t *poly_init(poly_t *poly) {
 	bzero(poly, sizeof(poly_t));
 	poly->vertices = kl_init(float3);
@@ -36,10 +42,6 @@ poly_t *clone_poly(poly_t *poly) {
 	return copy;
 error:
 	return NULL;
-}
-
-void free_poly(poly_t *p) {
-	if(p->vertices != NULL) kl_destroy(float3, p->vertices);
 }
 
 int poly_update(poly_t *poly) {
@@ -188,7 +190,7 @@ poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
 		  p, FLOAT3_FORMAT(a), FLOAT3_FORMAT(b), FLOAT3_FORMAT(c));
 	return p;
 error:
-	if(p) free_poly(p);
+	if(p) free_poly(p, 1);
 	return NULL;
 }
 

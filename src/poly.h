@@ -21,7 +21,7 @@ typedef struct s_poly {
 poly_t *alloc_poly(void);
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c);
 poly_t *clone_poly(poly_t *poly);
-void free_poly(poly_t *p);
+void free_poly(poly_t *p, int free_self);
 
 poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);
@@ -32,7 +32,7 @@ int poly_classify_poly(poly_t *this, poly_t *other);
 
 poly_t *poly_split(poly_t *divider, poly_t *poly);
 
-#define mp_poly_free(x) free(kl_val(x))
+#define mp_poly_free(x) free_poly(kl_val(x), 1)
 KLIST_INIT(poly, poly_t*, mp_poly_free)
 
 #endif
