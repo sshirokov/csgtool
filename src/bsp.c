@@ -148,7 +148,7 @@ int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *
 			}
 		}
 		else {
-			sentinel("polygon(%p) has less than three(%d) vertices.", poly, poly->vertices->size);
+			sentinel("polygon(%p) has less than three(%d) vertices.", poly, poly_vertex_count(poly));
 		}
 		copied++;
 	}
