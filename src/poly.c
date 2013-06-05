@@ -178,9 +178,9 @@ poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
 
 	check(poly_push_vertex(p, a) == 0,
 		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
-	check(poly_push_vertex(p, a) == 0,
+	check(poly_push_vertex(p, b) == 0,
 		  "Failed to add vertex b to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(b));
-	check(poly_push_vertex(p, a) == 0,
+	check(poly_push_vertex(p, c) == 0,
 		  "Failed to add vertex c to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(c));
 
 	return p;
