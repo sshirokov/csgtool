@@ -54,7 +54,7 @@ bsp_node_t *stl_to_bsp(stl_object *stl) {
 	}
 	check(polys->size == stl->facet_count, "Wrong number of faces generated.");
 
-	tree = bsp_build(NULL, polys);
+	tree = bsp_build(NULL, polys, 1);
 	check_mem(tree);
 
 	kl_destroy(poly, polys);

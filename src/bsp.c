@@ -106,11 +106,43 @@ error:
 	return -1;
 }
 
-bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
-	kliter_t(poly) *iter = kl_begin(polygons);
-	klist_t(poly) *front = kl_init(poly);
-	klist_t(poly) *back  = kl_init(poly);
+bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons, int copy) {
+	poly_t **polys = NULL;
+	check_mem(polys = malloc(sizeof(poly_t*) * polygons->size));
+
+	kliter_t(poly) *iter = NULL;
+	int i = 0;
+	for(iter = kl_begin(polygons); iter != kl_end(polygons); i++, iter = kl_next(iter)) {
+		poly_t *poly = NULL;
+		poly = copy ? clone_poly(kl_val(iter)) : kl_val(iter);
+		check(poly != NULL, "Failed to make poly array. Item %d is NULL in list %p. (Copy: %s)",
+			  i, polygons, copy ? "true" : "false");
+		polys[i] = poly;
+	}
+
+	check((node = bsp_build_array(node, polys, polygons->size)),
+		  "Failed to build node from list(%p) of %zd polys", polygons, polygons->size);
+	free(polys);
+
+	return node;
+error:
+	if(polys) free(polys);
+	return NULL;
+}
+bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys) {
+	int rc = 0;
+
+	// Polygon lists and counters
+	int n_coplanar = 0;
+	int n_front = 0;
+	int n_back = 0;
+	poly_t **coplanar = NULL;
+	poly_t **front_p  = NULL;
+	poly_t **back_p   = NULL;
+
+	// Iterators
 	poly_t *poly = NULL;
+	size_t poly_i = 0;
 
 	if(node == NULL) {
 		// Allocate a node if we weren't given one. It's the nice
@@ -125,28 +157,19 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 		// if we have not yet picked the divider for this node.
 		// This avoids having to rely on an explicit
 		// test of this node against itself in the loop below.
-		check_mem(poly = clone_poly(kl_val(iter)));
-		*kl_pushp(poly, node->polygons) = poly;
-		iter = kl_next(iter);
+		*kl_pushp(poly, node->polygons) = polygons[0];
+		poly_i += 1;
 
-		node->divider = clone_poly(kl_val(kl_begin(polygons)));
+		node->divider = clone_poly(polygons[0]);
 		check_mem(node->divider);
 	}
 
 
-	int rc = 0;
-
-	int n_coplanar = 0;
-	int n_front = 0;
-	int n_back = 0;
-	poly_t **coplanar = NULL;
-	poly_t **front_p  = NULL;
-	poly_t **back_p   = NULL;
-	check_mem(coplanar = malloc(sizeof(poly_t*) * polygons->size));
-	check_mem(front_p = malloc(sizeof(poly_t*) * polygons->size * 2));
-	check_mem(back_p = malloc(sizeof(poly_t*) * polygons->size * 2));
-	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
-		poly = kl_val(iter);
+	check_mem(coplanar = malloc(sizeof(poly_t*) * n_polys));
+	check_mem(front_p = malloc(sizeof(poly_t*) * n_polys));
+	check_mem(back_p = malloc(sizeof(poly_t*) * n_polys));
+	for(; poly_i < n_polys; poly_i++) {
+		poly = polygons[poly_i];
 		rc = bsp_subdivide(node->divider, poly,
 						   coplanar, &n_coplanar,
 						   coplanar, &n_coplanar,
@@ -155,47 +178,37 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
 	}
 
-	// XXX: Putting the arrays back into lists as a midpoint in the port
-	// Reset pointers back to the base
-	poly_t *clone = NULL;
-
+	// Store the coplanar nodes in this node's polygon list
+	// and free the container, letting the list destructor
+	// clean up
 	int i = 0;
 	for(i = 0; i < n_coplanar; i++) {
-		clone = clone_poly(coplanar[i]);
-		*kl_pushp(poly, node->polygons) = clone;
-	}
-	for(i = 0; i < n_front; i++) {
-		clone = clone_poly(front_p[i]);
-		*kl_pushp(poly, front) = clone;
-	}
-	for(i = 0; i < n_back; i++) {
-		clone = clone_poly(back_p[i]);
-		*kl_pushp(poly, back) = clone;
+		*kl_pushp(poly, node->polygons) = coplanar[i];
 	}
 	free(coplanar);
-	free(front_p);
-	free(back_p);
+	coplanar = NULL;
 
-
-	if((front->size > 0)) {
-		// log_info("\tBuilding front of %p->%p", node, node->front);
+	if((n_front > 0)) {
 		if(node->front == NULL) node->front = alloc_bsp_node();
 		check_mem(node->front);
-		check(bsp_build(node->front, front) != NULL,
-			  "Failed to build front tree of bsp_node(%p)", node);
+		check(bsp_build_array(node->front, front_p, n_front) != NULL,
+			  "Failed to build front tree of bsp_node_array(%p)", node);
 	}
-	if((back->size > 0)) {
-		// log_info("\tBuilding back of %p->%p", node, node->back);
+	if((n_back > 0)) {
 		if(node->back == NULL) node->back = alloc_bsp_node();
 		check_mem(node->back);
-		check(bsp_build(node->back, back) != NULL,
+		check(bsp_build_array(node->back, back_p, n_back) != NULL,
 			  "Failed to build back tree of bsp_node(%p)", node);
 	}
+	free(front_p);
+	free(back_p);
+	front_p = back_p = NULL;
 
 	return node;
 error:
-	kl_destroy(poly, front);
-	kl_destroy(poly, back);
+	if(coplanar) free(coplanar);
+	if(back_p) free(back_p);
+	if(front_p) free(front_p);
 	return NULL;
 }
 
