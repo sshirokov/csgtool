@@ -39,7 +39,7 @@ void test_classify__cleanup(void) {
 }
 
 void test_classify__polygon_vertices_coplanar(void) {
-	float3 *v = kl_val(kl_begin(poly->vertices));
+	float3 *v = &poly->vertices[0];
 
 	int side = poly_classify_vertex(poly, *v);
 	cl_assert_equal_i(side, COPLANAR);
@@ -54,7 +54,7 @@ void test_classify__polygon_tilted_dupe_coplanar(void) {
 	int rc = 0;
 
 	poly_t *another = clone_poly(poly);
-	(*kl_val(kl_begin(another->vertices)))[2] += 0.6;
+	another->vertices[0][2] += 0.6;
 	cl_must_pass(poly_update(another));
 	poly_t *another_clone = clone_poly(another);
 	cl_must_pass(poly_update(another_clone));
