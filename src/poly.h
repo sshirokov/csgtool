@@ -12,7 +12,7 @@
 #define BACK 2
 #define SPANNING 3
 
-#define POLY_MAX_VERTS 100
+#define POLY_MAX_VERTS 40
 
 typedef struct s_poly {
 	float3 vertices[POLY_MAX_VERTS];
