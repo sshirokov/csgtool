@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "bsp.h"
 #include "dbg.h"
 
@@ -21,7 +23,54 @@ void free_bsp_tree(bsp_node_t *tree) {
 	free_bsp_tree(tree);
 }
 
+// Put the polygon in the the appropriate list
+// and increment the counter assosiated with it.
+// A polygon can end up in muliple lists, not not
+// all of them.
 int bsp_subdivide(poly_t *divider, poly_t *poly,
+				  poly_t **coplanar_front, int *n_cp_front,
+				  poly_t **coplanar_back,  int *n_cp_back,
+				  poly_t **front,          int *n_front,
+				  poly_t **back,           int *n_back) {
+	switch(poly_classify_poly(divider, poly)) {
+	case FRONT:
+		front[*n_front] = poly;
+		*n_front += 1;
+		break;
+	case BACK:
+		back[*n_back] = poly;
+		*n_back += 1;
+		break;
+	case COPLANAR:
+		if(f3_dot(divider->normal, poly->normal) > 0) {
+			coplanar_front[*n_cp_front] = poly;
+			*n_cp_front += 1;
+		}
+		else {
+			coplanar_back[*n_cp_back] = poly;
+			*n_cp_back += 1;
+		}
+		break;
+	case SPANNING: {
+		poly_t *f = NULL;
+		poly_t *b = NULL;
+		check(poly_split(divider, poly, &f, &b) == 0,
+			  "Failed to split polygon(%p) with divider(%p)", poly, divider);
+		front[*n_front] = f;
+		*n_front += 1;
+
+		back[*n_back] = b;
+		*n_back += 1;
+		break;
+	}
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
+int _bsp_subdivide(poly_t *divider, poly_t *poly,
 				   klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,
 				   klist_t(poly) *front, klist_t(poly) *back) {
 	poly_t *copy = NULL;
@@ -86,11 +135,47 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 
 
 	int rc = 0;
+
+	int n_coplanar = 0;
+	int n_front = 0;
+	int n_back = 0;
+	poly_t **coplanar = NULL;
+	poly_t **front_p  = NULL;
+	poly_t **back_p   = NULL;
+	check_mem(coplanar = malloc(sizeof(poly_t*) * polygons->size));
+	check_mem(front_p = malloc(sizeof(poly_t*) * polygons->size * 2));
+	check_mem(back_p = malloc(sizeof(poly_t*) * polygons->size * 2));
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		poly = kl_val(iter);
-		rc = bsp_subdivide(node->divider, poly, node->polygons, node->polygons, front, back);
+		rc = bsp_subdivide(node->divider, poly,
+						   coplanar, &n_coplanar,
+						   coplanar, &n_coplanar,
+						   front_p, &n_front,
+						   back_p, &n_back);
 		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
 	}
+
+	// XXX: Putting the arrays back into lists as a midpoint in the port
+	// Reset pointers back to the base
+	poly_t *clone = NULL;
+
+	int i = 0;
+	for(i = 0; i < n_coplanar; i++) {
+		clone = clone_poly(coplanar[i]);
+		*kl_pushp(poly, node->polygons) = clone;
+	}
+	for(i = 0; i < n_front; i++) {
+		clone = clone_poly(front_p[i]);
+		*kl_pushp(poly, front) = clone;
+	}
+	for(i = 0; i < n_back; i++) {
+		clone = clone_poly(back_p[i]);
+		*kl_pushp(poly, back) = clone;
+	}
+	free(coplanar);
+	free(front_p);
+	free(back_p);
+
 
 	if((front->size > 0)) {
 		// log_info("\tBuilding front of %p->%p", node, node->front);
@@ -218,7 +303,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 		klist_t(poly) *node_front = kl_init(poly);
 		klist_t(poly) *node_back = kl_init(poly);
 		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
-			rc = bsp_subdivide(node->divider, kl_val(iter), node_front, node_back, node_front, node_back);
+			rc = _bsp_subdivide(node->divider, kl_val(iter), node_front, node_back, node_front, node_back);
 			check(rc != -1, "Failed to subdivide poly %p", kl_val(iter));
 		}
 
