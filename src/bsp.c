@@ -99,9 +99,6 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons) {
 		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
 	}
 
-	// Leaving this trace here just because I've toggled it a lot
-	// log_info("bsp_build(%zd): %zd COPLANAR, %zd front, %zd back", polygons->size, node->polygons->size, front->size, back->size);
-
 	if((front->size > 0)) {
 		// log_info("\tBuilding front of %p->%p", node, node->front);
 		if(node->front == NULL) node->front = alloc_bsp_node();
