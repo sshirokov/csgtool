@@ -11,11 +11,7 @@ stl_object *stl_from_polys(klist_t(poly) *polygons) {
 		poly = kl_val(iter);
 		check(poly_vertex_count(poly) == 3, "Polygon is not a triangle.");
 		memcpy(facet->normal, poly->normal, sizeof(float3));
-
-		kliter_t(float3) *viter = kl_begin(poly->vertices);
-		for(int i = 0; i < 3; i++, viter = kl_next(viter)) {
-			memcpy(&facet->vertices[i], kl_val(viter), sizeof(float3));
-		}
+		memcpy(facet->vertices, poly->vertices, sizeof(facet->vertices));
 	}
 
 	return stl;
