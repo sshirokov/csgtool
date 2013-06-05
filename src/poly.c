@@ -170,44 +170,40 @@ error:
 
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
 	poly_t *p = NULL;
-	float3 *f = NULL;
 	check_mem(p = alloc_poly());
 
-	check_mem(f = clone_f3(a));
-	*kl_pushp(float3, p->vertices) = f;
-	check_mem(f = clone_f3(b));
-	*kl_pushp(float3, p->vertices) = f;
-	check_mem(f = clone_f3(c));
-	*kl_pushp(float3, p->vertices) = f;
+	check(poly_push_vertex(p, a) == 0,
+		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
+	check(poly_push_vertex(p, a) == 0,
+		  "Failed to add vertex b to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(b));
+	check(poly_push_vertex(p, a) == 0,
+		  "Failed to add vertex c to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(c));
 
-	check(poly_update(p) == 0, "Failed to update polygon(%p) from (%f, %f, %f) (%f, %f, %f) (%f, %f, %f)",
-		  p, FLOAT3_FORMAT(a), FLOAT3_FORMAT(b), FLOAT3_FORMAT(c));
 	return p;
 error:
 	if(p) free_poly(p, 1);
 	return NULL;
 }
 
-void _reverse_vertices(kliter_t(float3) *begin, kliter_t(float3) *end, klist_t(float3) *dst) {
-	if(begin != end) {
-		_reverse_vertices(kl_next(begin), end, dst);
-		assert((*kl_pushp(float3, dst) = clone_f3(*kl_val(begin))) != NULL);
-	}
-}
-
 poly_t *poly_invert(poly_t *poly) {
 	f3_scale(&poly->normal, -1.0);
 	poly->w *= -1.0;
 
-	klist_t(float3) *r_vertices = kl_init(float3);
-	_reverse_vertices(kl_begin(poly->vertices), kl_end(poly->vertices), r_vertices);
-	check(r_vertices->size == poly->vertices->size, "wrong number of verticeis: %zd != %zd", r_vertices->size, poly->vertices->size);
+	int last = poly_vertex_count(poly) - 1;
+	float3 temp = FLOAT3_INIT;
+	for(int i = last - 1; i <= 0; i++) {
+		temp[0] = poly->vertices[last - i][0];
+		temp[1] = poly->vertices[last - i][1];
+		temp[2] = poly->vertices[last - i][2];
 
-	kl_destroy(float3, poly->vertices);
-	poly->vertices = r_vertices;
+		poly->vertices[last - i][0] = poly->vertices[i][0];
+		poly->vertices[last - i][1] = poly->vertices[i][1];
+		poly->vertices[last - i][2] = poly->vertices[i][2];
+
+		poly->vertices[i][0] = temp[0];
+		poly->vertices[i][1] = temp[1];
+		poly->vertices[i][2] = temp[2];
+	}
 
 	return poly;
-error:
-	kl_destroy(float3, r_vertices);
-	return NULL;
 }
