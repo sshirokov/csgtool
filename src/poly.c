@@ -17,10 +17,6 @@ void free_poly(poly_t *p, int free_self) {
 }
 
 poly_t *poly_init(poly_t *poly) {
-	poly->normal[0]  = 0.0;
-	poly->normal[1]  = 0.0;
-	poly->normal[2]  = 0.0;
-	poly->w          = 0.0;
 	poly->vertex_count = 0;
 	return poly;
 }
@@ -35,9 +31,7 @@ error:
 }
 
 int poly_update(poly_t *poly) {
-	check(poly_vertex_count(poly) > 2,
-		  "poly_update(Polyon(%p)): has only %d verticies.",
-		  poly, poly_vertex_count(poly));
+	if(poly_vertex_count(poly) < 3) return -1;
 
 	float3 *a = &poly->vertices[0];
 	float3 *b = &poly->vertices[1];
@@ -53,8 +47,6 @@ int poly_update(poly_t *poly) {
 
 	poly->w = f3_dot(poly->normal, *a);
 	return 0;
-error:
-	return -1;
 }
 
 int poly_vertex_count(poly_t *poly) {
