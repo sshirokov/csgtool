@@ -42,24 +42,12 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 			*kl_pushp(poly, coplanar_back) = copy;
 		break;
 	case SPANNING: {
-		poly_t *front_back = NULL;
-		poly_t *clone = NULL;
-		check_mem(front_back = poly_split(divider, poly));
-
-		clone = clone_poly(&front_back[0]);
-		check_mem(clone);
-		*kl_pushp(poly, front) = clone;
-
-		clone = clone_poly(&front_back[1]);
-		check_mem(clone);
-		*kl_pushp(poly, back)  = clone;
-
-		// We clone individual polygons so we have
-		// individually free-able pointers, we no longer
-		// need this buffer of polygons.
-		free_poly(&front_back[0], 0);
-		free_poly(&front_back[1], 0);
-		free(front_back);
+		poly_t *f = NULL;
+		poly_t *b = NULL;
+		check(poly_split(divider, poly, &f, &b) == 0,
+			  "Failed to split polygon(%p) with divider(%p)", poly, divider);
+		*kl_pushp(poly, front) = f;
+		*kl_pushp(poly, back)  = b;
 		break;
 	}
 	}
