@@ -141,7 +141,7 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 			poly_push_vertex(front, v_cur);
 		}
 		if(c_cur != FRONT) {
-			poly_push_vertex(front, v_next);
+			poly_push_vertex(back, v_cur);
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
