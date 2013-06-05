@@ -101,14 +101,14 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 	return SPANNING;
 }
 
-poly_t *poly_split(poly_t *divider, poly_t *poly) {
-	poly_t *front_back = NULL;
-	poly_t *front, *back;
-	check_mem(front_back = calloc(2, sizeof(poly_t)));
-
-	// Aliases for easier access
-	front = &front_back[0];
-	back =  &front_back[1];
+int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
+	// Create polygons if we were not passed allocated ones
+	if(*front == NULL) {
+		*front = alloc_poly();
+	}
+	if(*back == NULL) {
+		*back = alloc_poly();
+	}
 
 	// Current and next vertex
 	float3 v_cur = FLOAT3_INIT;
@@ -130,10 +130,10 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			poly_push_vertex(front, v_cur);
+			poly_push_vertex(*front, v_cur);
 		}
 		if(c_cur != FRONT) {
-			poly_push_vertex(back, v_cur);
+			poly_push_vertex(*back, v_cur);
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
@@ -148,20 +148,16 @@ poly_t *poly_split(poly_t *divider, poly_t *poly) {
 			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
 			f3_interpolate(&mid_f, v_cur, v_next, t);
 
-			check(poly_push_vertex(front, mid_f) == 0,
+			check(poly_push_vertex(*front, mid_f) == 0,
 				  "Failed to push midpoint to front poly(%p)", front);
-			check(poly_push_vertex(back, mid_f) == 0,
+			check(poly_push_vertex(*back, mid_f) == 0,
 				  "Failed to push midpoint to back poly(%p):", back);
 		}
 	}
 
-	for(int l = 0; l < 2; l++) {
-		poly_update(&front_back[l]);
-	}
-
-	return front_back;
+	return 0;
 error:
-	return NULL;
+	return -1;
 }
 
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
