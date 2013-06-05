@@ -3,7 +3,7 @@
 #include "poly.h"
 
 poly_t *alloc_poly(void) {
-	poly_t *poly = calloc(1, sizeof(poly_t));
+	poly_t *poly = malloc(sizeof(poly_t));
 	check_mem(poly);
 	poly_init(poly);
 	return poly;
