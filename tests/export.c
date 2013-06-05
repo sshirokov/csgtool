@@ -22,7 +22,7 @@ void test_export__initialize(void) {
 		cl_assert(poly != NULL);
 		*kl_pushp(poly, cube_polys) = poly;
 	}
-	cube_tree = bsp_build(NULL, cube_polys);
+	cube_tree = bsp_build(NULL, cube_polys, 1);
 	cl_assert(cube_tree);
 }
 

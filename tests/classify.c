@@ -77,20 +77,19 @@ void test_classify__polygon_spanning(void) {
 }
 
 void test_classify__polygon_split(void) {
-	poly_t *front_back = poly_split(poly_perp, poly);
-	cl_assert(front_back != NULL);
+	poly_t *front = NULL;
+	poly_t *back = NULL;
+
+	cl_must_pass(poly_split(poly_perp, poly, &front, &back));
 
 	int rc = 0;
-	rc = poly_classify_poly(poly_perp, &front_back[0]);
+	rc = poly_classify_poly(poly_perp, front);
 	cl_assert_(rc == FRONT, "Front poly of polygon split is not in the front.");
-	rc = poly_classify_poly(poly_perp, &front_back[1]);
+	rc = poly_classify_poly(poly_perp, back);
 	cl_assert_(rc == BACK, "Back poly of polygon split is not in the back.");
 
-	if(front_back != NULL) {
-		free_poly(&front_back[0], 0);
-		free_poly(&front_back[1], 0);
-		free(front_back);
-	}
+	free_poly(front, 1);
+	free_poly(back, 1);
 }
 
 void test_classify__jaws_polys_clone_coplanar(void) {

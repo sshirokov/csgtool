@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 	log_info("Clip3: %p", bsp_clip(file2_bsp, file_bsp));
 	klist_t(poly) *tree2_polys = bsp_to_polygons(file2_bsp, 0, NULL);
 	log_info("Got %zd polys from tree2", tree2_polys->size);
-	bsp_node_t *result = bsp_build(file_bsp, tree2_polys);
+	bsp_node_t *result = bsp_build(file_bsp, tree2_polys, 1);
 	log_info("Invert: %p", bsp_invert(result));
 	log_info("Bsp node result: %p", result);
 

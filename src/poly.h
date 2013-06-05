@@ -37,7 +37,7 @@ int poly_push_vertex(poly_t *poly, float3 v);
 int poly_classify_vertex(poly_t *poly, float3 v);
 int poly_classify_poly(poly_t *this, poly_t *other);
 
-poly_t *poly_split(poly_t *divider, poly_t *poly);
+int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back);
 
 #define mp_poly_free(x) free_poly(kl_val(x), 1)
 KLIST_INIT(poly, poly_t*, mp_poly_free)
