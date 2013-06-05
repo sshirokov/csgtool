@@ -14,6 +14,7 @@ typedef struct s_bsp_node {
 
 bsp_node_t *alloc_bsp_node(void);
 void free_bsp_node(bsp_node_t *node);
+void free_bsp_tree(bsp_node_t *tree);
 
 int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,

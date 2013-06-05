@@ -11,9 +11,14 @@ error:
 }
 
 void free_bsp_node(bsp_node_t *node) {
+	if(node == NULL) return;
 	kl_destroy(poly, node->polygons);
-	free_bsp_node(node->front);
-	free_bsp_node(node->back);
+}
+
+void free_bsp_tree(bsp_node_t *tree) {
+	free_bsp_tree(tree->front);
+	free_bsp_tree(tree->back);
+	free_bsp_tree(tree);
 }
 
 int bsp_subdivide(poly_t *divider, poly_t *poly,
