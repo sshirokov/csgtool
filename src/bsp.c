@@ -25,7 +25,7 @@ void free_bsp_tree(bsp_node_t *tree) {
 
 // Put the polygon in the the appropriate list
 // and increment the counter assosiated with it.
-// A polygon can end up in muliple lists, not not
+// A polygon can end up in muliple lists, but not
 // all of them.
 int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  poly_t **coplanar_front, int *n_cp_front,
