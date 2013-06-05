@@ -12,8 +12,12 @@
 #define BACK 2
 #define SPANNING 3
 
+#define POLY_MAX_VERTS 40
+
 typedef struct s_poly {
-	klist_t(float3) *vertices;
+	float3 vertices[POLY_MAX_VERTS];
+	int vertex_count;
+
 	float3 normal;
 	float w;
 } poly_t;

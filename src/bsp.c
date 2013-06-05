@@ -129,20 +129,20 @@ int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *
 	kliter_t(poly) *iter = kl_begin(node->polygons);
 	for(;iter != kl_end(node->polygons); iter = kl_next(iter)) {
 		poly_t *poly = kl_val(iter);
-		if(!make_triangles || poly_vertex_count(poly) == 3) {
+		int vertex_count = poly_vertex_count(poly);
+		if(!make_triangles || vertex_count == 3) {
 			poly_t *copy = clone_poly(poly);
 			check_mem(copy);
 			*kl_pushp(poly, dst) = copy;
 		}
-		else if(poly_vertex_count(poly) > 3){
+		else if(vertex_count > 3){
 			// Start with the third vertex and build triangles
 			// in in the form (v0, v_prev, v_cur)
-			kliter_t(float3) *v_cur = kl_next(kl_next(kl_begin(poly->vertices)));
-			kliter_t(float3) *v_prev = kl_next(kl_begin(poly->vertices));
-			for(;v_cur != kl_end(poly->vertices); v_cur = kl_next(v_cur), v_prev = kl_next(v_prev)) {
-				poly_t *tri = poly_make_triangle(*kl_val(kl_begin(poly->vertices)),
-												 *kl_val(v_prev),
-												 *kl_val(v_cur));
+			float3 *v_cur, *v_prev;
+			for(int i = 2; i < vertex_count; i++) {
+				v_cur = &poly->vertices[i];
+				v_prev = &poly->vertices[i - 1];
+				poly_t *tri = poly_make_triangle(poly->vertices[0], *v_prev, *v_cur);
 				check_mem(tri);
 				*kl_pushp(poly, dst) = tri;
 			}

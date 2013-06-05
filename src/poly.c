@@ -3,7 +3,7 @@
 #include "poly.h"
 
 poly_t *alloc_poly(void) {
-	poly_t *poly = calloc(1, sizeof(poly_t));
+	poly_t *poly = malloc(sizeof(poly_t));
 	check_mem(poly);
 	poly_init(poly);
 	return poly;
@@ -13,46 +13,29 @@ error:
 
 void free_poly(poly_t *p, int free_self) {
 	if(p == NULL) return;
-	if(p->vertices != NULL) kl_destroy(float3, p->vertices);
 	if(free_self) free(p);
 }
 
 poly_t *poly_init(poly_t *poly) {
-	bzero(poly, sizeof(poly_t));
-	poly->vertices = kl_init(float3);
+	poly->vertex_count = 0;
 	return poly;
 }
 
 poly_t *clone_poly(poly_t *poly) {
 	poly_t *copy = NULL;
 	check_mem(copy = alloc_poly());
-
-	// Copy the simple stuff
-	copy->w = poly->w;
-	memcpy(copy->normal, poly->normal, sizeof(float3));
-
-	// Copy each vertex in poly's list
-	kliter_t(float3) *vIter;
-	float3 *clone;
-	for(vIter = kl_begin(poly->vertices); vIter != kl_end(poly->vertices); vIter = kl_next(vIter)) {
-		check_mem(clone = clone_f3(*kl_val(vIter)));
-		*kl_pushp(float3, copy->vertices) = clone;
-	}
-
+	memcpy(copy, poly, sizeof(poly_t));
 	return copy;
 error:
 	return NULL;
 }
 
 int poly_update(poly_t *poly) {
-	check(poly_vertex_count(poly) > 2,
-		  "poly_update(Polyon(%p)): has only %d verticies.",
-		  poly, poly_vertex_count(poly));
+	if(poly_vertex_count(poly) < 3) return -1;
 
-	kliter_t(float3) *v_iter = kl_begin(poly->vertices);
-	float3 *a = kl_val(v_iter);
-	float3 *b = kl_val(v_iter = kl_next(v_iter));
-	float3 *c = kl_val(v_iter = kl_next(v_iter));
+	float3 *a = &poly->vertices[0];
+	float3 *b = &poly->vertices[1];
+	float3 *c = &poly->vertices[2];
 
 	float3 b_a;
 	float3 c_a;
@@ -64,20 +47,27 @@ int poly_update(poly_t *poly) {
 
 	poly->w = f3_dot(poly->normal, *a);
 	return 0;
-error:
-	return -1;
 }
 
 int poly_vertex_count(poly_t *poly) {
-	return poly->vertices->size;
+	return poly->vertex_count;
 }
 
 // Add a vertex to the end of the polygon vertex list
 int poly_push_vertex(poly_t *poly, float3 v) {
-	float3 *f = clone_f3(v);
-	check_mem(f);
-	*kl_pushp(float3, poly->vertices) = f;
-	return poly_update(poly);
+	check(poly->vertex_count < POLY_MAX_VERTS, "Poly(%p) tried to add %d verts.", poly, poly->vertex_count + 1);
+
+	// Dat assignment copy
+	poly->vertices[poly->vertex_count][0] = v[0];
+	poly->vertices[poly->vertex_count][1] = v[1];
+	poly->vertices[poly->vertex_count][2] = v[2];
+
+	// Update the poly if we can
+	if(++poly->vertex_count > 2) {
+		check(poly_update(poly) == 0, "Failed to update polygon during poly_push_vertex(%p)", poly);
+	}
+
+	return 0;
 error:
 	return -1;
 }
@@ -95,9 +85,8 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 	front = 0;
 	back = 0;
 
-	kliter_t(float3) *vIter = kl_begin(other->vertices);
-	for(;vIter != kl_end(other->vertices); vIter = kl_next(vIter)) {
-		switch(poly_classify_vertex(this, *kl_val(vIter))) {
+	for(int i = 0; i < poly_vertex_count(other); i++) {
+		switch(poly_classify_vertex(this, other->vertices[i])) {
 		case FRONT:
 			front += 1;
 			break;
@@ -114,73 +103,60 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 
 poly_t *poly_split(poly_t *divider, poly_t *poly) {
 	poly_t *front_back = NULL;
-	klist_t(float3) *front = kl_init(float3);
-	klist_t(float3) *back  = kl_init(float3);
-
+	poly_t *front, *back;
 	check_mem(front_back = calloc(2, sizeof(poly_t)));
 
-	kliter_t(float3) *v_cur = kl_begin(poly->vertices);
-	kliter_t(float3) *v_next = v_cur;
-	int c_cur, c_next;
-	float3 *clone = NULL;
+	// Aliases for easier access
+	front = &front_back[0];
+	back =  &front_back[1];
 
-	for(; v_cur != kl_end(poly->vertices); v_cur = kl_next(v_cur)) {
-		// Get v_next to be the next vertext, looping to the beginning
-		v_next = kl_next(v_next);
-		if(v_next == kl_end(poly->vertices))
-			v_next = kl_begin(poly->vertices);
+	// Current and next vertex
+	float3 v_cur = FLOAT3_INIT;
+	float3 v_next = FLOAT3_INIT;
+	// Classifications of the above
+	int c_cur, c_next;
+	// Loop indexes
+	int i, j;
+	int count = poly_vertex_count(poly);
+	for(i = 0; i < count; i++) {
+		j = (i + 1) % count;
+		for(int k = 0; k < 3; k++) {
+			v_cur[k]  = poly->vertices[i][k];
+			v_next[k] = poly->vertices[j][k];
+		}
 
 		// Classify the first and next vertex
-		c_cur  = poly_classify_vertex(divider, *kl_val(v_cur));
-		c_next = poly_classify_vertex(divider, *kl_val(v_next));
+		c_cur  = poly_classify_vertex(divider, v_cur);
+		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			clone = clone_f3(*kl_val(v_cur));
-			check_mem(clone);
-			*kl_pushp(float3, front) = clone;
+			poly_push_vertex(front, v_cur);
 		}
 		if(c_cur != FRONT) {
-			clone = clone_f3(*kl_val(v_cur));
-			check_mem(clone);
-			*kl_pushp(float3, back)  = clone;
+			poly_push_vertex(back, v_cur);
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
 		if((c_cur | c_next) == SPANNING) {
 			float3 diff = FLOAT3_INIT;
-			f3_sub(&diff, *kl_val(v_next), *kl_val(v_cur));
+			f3_sub(&diff, v_next, v_cur);
 
 			float t = divider->w;
-			t = t - f3_dot(divider->normal, *kl_val(v_cur));
+			t = t - f3_dot(divider->normal, v_cur);
 			t = t / f3_dot(divider->normal, diff);
 
-			float3 mid_f = FLOAT3_INIT;
-			memcpy(&mid_f, kl_val(v_cur), sizeof(float3));
-			f3_interpolate(&mid_f, *kl_val(v_cur), *kl_val(v_next), t);
+			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
+			f3_interpolate(&mid_f, v_cur, v_next, t);
 
-			clone = clone_f3(mid_f);
-			check_mem(clone);
-			*kl_pushp(float3, front) = clone;
-			clone = clone_f3(mid_f);
-			check_mem(clone);
-			*kl_pushp(float3, back)  = clone;
+			check(poly_push_vertex(front, mid_f) == 0,
+				  "Failed to push midpoint to front poly(%p)", front);
+			check(poly_push_vertex(back, mid_f) == 0,
+				  "Failed to push midpoint to back poly(%p):", back);
 		}
 	}
 
-	// Init our front and back polys
-	// and destroy their vertex lists
-	// which we'll reassign from the duplicated
-	// lists here
-	for(int i = 0; i < 2; i++) {
-		poly_init(&front_back[i]);
-		kl_destroy(float3, front_back[i].vertices);
-	}
-
-	front_back[0].vertices = front;
-	front_back[1].vertices = back;
-
-	for(int j = 0; j < 2; j++) {
-		poly_update(&front_back[j]);
+	for(int l = 0; l < 2; l++) {
+		poly_update(&front_back[l]);
 	}
 
 	return front_back;
@@ -190,44 +166,43 @@ error:
 
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
 	poly_t *p = NULL;
-	float3 *f = NULL;
 	check_mem(p = alloc_poly());
 
-	check_mem(f = clone_f3(a));
-	*kl_pushp(float3, p->vertices) = f;
-	check_mem(f = clone_f3(b));
-	*kl_pushp(float3, p->vertices) = f;
-	check_mem(f = clone_f3(c));
-	*kl_pushp(float3, p->vertices) = f;
+	check(poly_push_vertex(p, a) == 0,
+		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
+	check(poly_push_vertex(p, b) == 0,
+		  "Failed to add vertex b to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(b));
+	check(poly_push_vertex(p, c) == 0,
+		  "Failed to add vertex c to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(c));
 
-	check(poly_update(p) == 0, "Failed to update polygon(%p) from (%f, %f, %f) (%f, %f, %f) (%f, %f, %f)",
-		  p, FLOAT3_FORMAT(a), FLOAT3_FORMAT(b), FLOAT3_FORMAT(c));
 	return p;
 error:
 	if(p) free_poly(p, 1);
 	return NULL;
 }
 
-void _reverse_vertices(kliter_t(float3) *begin, kliter_t(float3) *end, klist_t(float3) *dst) {
-	if(begin != end) {
-		_reverse_vertices(kl_next(begin), end, dst);
-		assert((*kl_pushp(float3, dst) = clone_f3(*kl_val(begin))) != NULL);
-	}
-}
-
 poly_t *poly_invert(poly_t *poly) {
 	f3_scale(&poly->normal, -1.0);
 	poly->w *= -1.0;
 
-	klist_t(float3) *r_vertices = kl_init(float3);
-	_reverse_vertices(kl_begin(poly->vertices), kl_end(poly->vertices), r_vertices);
-	check(r_vertices->size == poly->vertices->size, "wrong number of verticeis: %zd != %zd", r_vertices->size, poly->vertices->size);
+	// We walk the list from the back to the midway point
+	// and flip the opposite ends to reverse the poly list.
+	int last = poly_vertex_count(poly) - 1;
+	int first = 0;
+	float3 temp = FLOAT3_INIT;
+	for(; first < last; first++, last--) {
+		temp[0] = poly->vertices[last][0];
+		temp[1] = poly->vertices[last][1];
+		temp[2] = poly->vertices[last][2];
 
-	kl_destroy(float3, poly->vertices);
-	poly->vertices = r_vertices;
+		poly->vertices[last][0] = poly->vertices[first][0];
+		poly->vertices[last][1] = poly->vertices[first][1];
+		poly->vertices[last][2] = poly->vertices[first][2];
+
+		poly->vertices[first][0] = temp[0];
+		poly->vertices[first][1] = temp[1];
+		poly->vertices[first][2] = temp[2];
+	}
 
 	return poly;
-error:
-	kl_destroy(float3, r_vertices);
-	return NULL;
 }
