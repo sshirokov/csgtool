@@ -193,7 +193,9 @@ poly_t *poly_invert(poly_t *poly) {
 	f3_scale(&poly->normal, -1.0);
 	poly->w *= -1.0;
 
-	int last = poly_vertex_count(poly) - 1;
+	// We walk the list from the back to the midway point
+	// and flip the opposite ends to reverse the poly list.
+	int last = (poly_vertex_count(poly) - 1) / 2;
 	float3 temp = FLOAT3_INIT;
 	for(int i = last - 1; i <= 0; i++) {
 		temp[0] = poly->vertices[last - i][0];
