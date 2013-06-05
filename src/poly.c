@@ -195,20 +195,21 @@ poly_t *poly_invert(poly_t *poly) {
 
 	// We walk the list from the back to the midway point
 	// and flip the opposite ends to reverse the poly list.
-	int last = (poly_vertex_count(poly) - 1) / 2;
+	int last = poly_vertex_count(poly) - 1;
+	int first = 0;
 	float3 temp = FLOAT3_INIT;
-	for(int i = last - 1; i <= 0; i++) {
-		temp[0] = poly->vertices[last - i][0];
-		temp[1] = poly->vertices[last - i][1];
-		temp[2] = poly->vertices[last - i][2];
+	for(; first < last; first++, last--) {
+		temp[0] = poly->vertices[last][0];
+		temp[1] = poly->vertices[last][1];
+		temp[2] = poly->vertices[last][2];
 
-		poly->vertices[last - i][0] = poly->vertices[i][0];
-		poly->vertices[last - i][1] = poly->vertices[i][1];
-		poly->vertices[last - i][2] = poly->vertices[i][2];
+		poly->vertices[last][0] = poly->vertices[first][0];
+		poly->vertices[last][1] = poly->vertices[first][1];
+		poly->vertices[last][2] = poly->vertices[first][2];
 
-		poly->vertices[i][0] = temp[0];
-		poly->vertices[i][1] = temp[1];
-		poly->vertices[i][2] = temp[2];
+		poly->vertices[first][0] = temp[0];
+		poly->vertices[first][1] = temp[1];
+		poly->vertices[first][2] = temp[2];
 	}
 
 	return poly;
