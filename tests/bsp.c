@@ -185,3 +185,28 @@ void test_bsp__tree_can_produce_triangles_from_quads(void) {
 	kl_destroy(poly, lpoly);
 	if(tris) kl_destroy(poly, tris);
 }
+
+void test_bsp__tree_can_clip_polygons(void) {
+	klist_t(poly) *polys = kl_init(poly);
+	float3 tr1[] = {{-0.2, 0.0, 0.0},
+					{0.2, 0.0, 0.0},
+					{0.0, 0.2, 0.0}};
+	float3 tr2[] = {{-0.2, 0.0, 100.0},
+					{0.2, 0.0, 100.0},
+					{0.0, 0.2, 1000.0}};
+
+	*kl_pushp(poly, polys) = poly_make_triangle(tr1[0], tr1[1], tr1[2]);
+	*kl_pushp(poly, polys) = poly_make_triangle(tr2[0], tr2[1], tr2[2]);
+	cl_assert_equal_i(polys->size, 2);
+
+	klist_t(poly) *clipped = bsp_clip_polygons(cube_bsp, polys, NULL);
+
+	cl_assert_equal_i(clipped->size, 1);
+
+	// Make sure we clipped the poly inside the cube, and kept
+	// the poly outside
+	float3 *v = &kl_val(kl_begin(clipped))->vertices[0];
+	cl_assert_((*v)[2] >= 99.0, "Should have kept the vertex outside the cube, not inside.");
+
+	kl_destroy(poly, polys);
+}
