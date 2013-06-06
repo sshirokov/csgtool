@@ -270,7 +270,7 @@ error:
 }
 
 klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
-	klist_t(poly) *result = kl_init(poly);
+	klist_t(poly) *result = NULL;
 	kliter_t(poly) *iter = NULL;
 	poly_t *p = NULL;
 	int rc = -1;
@@ -281,10 +281,9 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 	int n_back = 0;
 
 	// Let's end this quick if there's nothing to do.
-	if(polygons->size == 0) return result;
+	if(polygons->size == 0) return kl_init(poly);
 
 	if(node->divider != NULL) {
-		klist_t(poly) *result_front = NULL;
 		klist_t(poly) *result_back = NULL;
 
 		check_mem(front_array = malloc(sizeof(poly_t*) * polygons->size));
@@ -307,16 +306,16 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 				check_mem(copy);
 				*kl_pushp(poly, node_front) = copy;
 			}
-			result_front = bsp_clip_polygons(node->front, node_front);
+			result = bsp_clip_polygons(node->front, node_front);
 			kl_destroy(poly, node_front);
-			check(result_front != NULL, "Failed to clip front tree");
+			check(result != NULL, "Failed to clip front tree");
 		}
 		else {
-			result_front = kl_init(poly);
+			result = kl_init(poly);
 			for(i = 0; i < n_front; i++) {
 				copy = clone_poly(front_array[i]);
 				check_mem(copy);
-				*kl_pushp(poly, result_front) = copy;
+				*kl_pushp(poly, result) = copy;
 			}
 		}
 
@@ -341,12 +340,6 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 			}
 		}
 
-		// Copy the entire front list into the result
-		for(iter = kl_begin(result_front); iter != kl_end(result_front); iter = kl_next(iter)) {
-			p = clone_poly(kl_val(iter));
-			check_mem(p);
-			*kl_pushp(poly, result) = p;
-		}
 		// Concat the back list if we have a back tree
 		if(node->back != NULL) {
 			for(iter = kl_begin(result_back); iter != kl_end(result_back); iter = kl_next(iter)) {
@@ -359,7 +352,6 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 		if(front_array) free(front_array);
 		if(back_array) free(back_array);
 		// Clean up the result halves, now that they're copied into `result`
-		kl_destroy(poly, result_front);
 		kl_destroy(poly, result_back);
 	}
 	else {
