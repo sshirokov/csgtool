@@ -384,7 +384,7 @@ error:
 // the members of bsp_node_t
 //
 // Instead of clipping the nodes recursively
-// I compute a flat poly list from out tree
+// I compute a flat poly list from our tree
 // and clip that list against the remote tree directly.
 // I then use the resulting list to construct a fresh
 // BSP tree, free the components of us, reassign the
