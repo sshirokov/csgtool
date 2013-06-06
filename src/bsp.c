@@ -118,6 +118,8 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 		check_mem(node);
 	}
 
+	if(n_polys == 0) return node;
+
 	if(node->divider == NULL) {
 		// Add the divider to the list of coplanar polygons
 		// and advance the iterator to the next polygon
