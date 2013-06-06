@@ -16,9 +16,6 @@ bsp_node_t *alloc_bsp_node(void);
 void free_bsp_node(bsp_node_t *node);
 void free_bsp_tree(bsp_node_t *tree);
 
-int _bsp_subdivide(poly_t *divider, poly_t *poly,
-				  klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,
-				  klist_t(poly) *front, klist_t(poly) *back);
 int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  poly_t **coplanar_front, int *n_cp_front,
 				  poly_t **coplanar_back,  int *n_cp_back,
