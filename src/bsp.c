@@ -70,42 +70,6 @@ error:
 	return -1;
 }
 
-int _bsp_subdivide(poly_t *divider, poly_t *poly,
-				   klist_t(poly) *coplanar_front, klist_t(poly) *coplanar_back,
-				   klist_t(poly) *front, klist_t(poly) *back) {
-	poly_t *copy = NULL;
-	switch(poly_classify_poly(divider, poly)) {
-	case FRONT:
-		check_mem(copy = clone_poly(poly));
-		*kl_pushp(poly, front) = copy;
-		break;
-	case BACK:
-		check_mem(copy = clone_poly(poly));
-		*kl_pushp(poly, back) = copy;
-		break;
-	case COPLANAR:
-		check_mem(copy = clone_poly(poly));
-		if(f3_dot(divider->normal, poly->normal) > 0)
-			*kl_pushp(poly, coplanar_front) = copy;
-		else
-			*kl_pushp(poly, coplanar_back) = copy;
-		break;
-	case SPANNING: {
-		poly_t *f = NULL;
-		poly_t *b = NULL;
-		check(poly_split(divider, poly, &f, &b) == 0,
-			  "Failed to split polygon(%p) with divider(%p)", poly, divider);
-		*kl_pushp(poly, front) = f;
-		*kl_pushp(poly, back)  = b;
-		break;
-	}
-	}
-
-	return 0;
-error:
-	return -1;
-}
-
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons, int copy) {
 	poly_t **polys = NULL;
 	check_mem(polys = malloc(sizeof(poly_t*) * polygons->size));
@@ -308,17 +272,44 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 	poly_t *p = NULL;
 	int rc = -1;
 
+	poly_t **front_array = NULL;
+	poly_t **back_array = NULL;
+	int n_front = 0;
+	int n_back = 0;
+
+	// Let's end this quick if there's nothing to do.
+	if(polygons->size == 0) return result;
+
 	if(node->divider != NULL) {
 		klist_t(poly) *result_front = NULL;
 		klist_t(poly) *result_back = NULL;
+
+		check_mem(front_array = malloc(sizeof(poly_t*) * polygons->size));
+		check_mem(back_array = malloc(sizeof(poly_t*) * polygons->size));
 
 		// Sort this node's polygons into the front or back
 		klist_t(poly) *node_front = kl_init(poly);
 		klist_t(poly) *node_back = kl_init(poly);
 		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
-			rc = _bsp_subdivide(node->divider, kl_val(iter), node_front, node_back, node_front, node_back);
+			rc = bsp_subdivide(node->divider, kl_val(iter),
+							   front_array, &n_front, back_array, &n_back,
+							   front_array, &n_front, back_array, &n_back);
 			check(rc != -1, "Failed to subdivide poly %p", kl_val(iter));
 		}
+
+		int i;
+		poly_t *copy = NULL;
+		for(i = 0; i < n_front; i++) {
+			copy = clone_poly(front_array[i]);
+			check_mem(copy);
+			*kl_pushp(poly, node_front) = copy;
+		}
+		for(i = 0; i < n_back; i++) {
+			copy = clone_poly(back_array[i]);
+			check_mem(copy);
+			*kl_pushp(poly, node_back) = copy;
+		}
+
 
 		// Recur to the front tree, or copy my current front nodes to result.
 		if(node->front) {
@@ -363,6 +354,8 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 			}
 		}
 
+		if(front_array) free(front_array);
+		if(back_array) free(back_array);
 		// Clean up the temporary lists
 		kl_destroy(poly, node_front);
 		kl_destroy(poly, node_back);
@@ -380,6 +373,8 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 
 	return result;
 error:
+	if(front_array) free(front_array);
+	if(back_array) free(back_array);
 	if(result) kl_destroy(poly, result);
 	return NULL;
 }
