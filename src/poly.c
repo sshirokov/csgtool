@@ -81,11 +81,12 @@ int poly_classify_vertex(poly_t *poly, float3 v) {
 
 int poly_classify_poly(poly_t *this, poly_t *other) {
 	int front, back;
+	int count = poly_vertex_count(other);
 
 	front = 0;
 	back = 0;
 
-	for(int i = 0; i < poly_vertex_count(other); i++) {
+	for(int i = 0; i < count; i++) {
 		switch(poly_classify_vertex(this, other->vertices[i])) {
 		case FRONT:
 			front += 1;
