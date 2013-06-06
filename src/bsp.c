@@ -302,7 +302,113 @@ error:
 	return NULL;
 }
 
+int bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_t in_count, poly_t **result) {
+	int result_count = 0;
+
+	poly_t **sub_front = NULL;
+	poly_t **sub_back  = NULL;
+	int n_front = 0;
+	int n_back = 0;
+	int rc = 0;
+
+	check(result != NULL, "No result pointer in  bsp_clip_polygon_array()");
+
+	// Early terminate if we can't subdivide
+	if(node->divider == NULL) {
+		memcpy(*result, *polygons, sizeof(poly_t*) * in_count);
+		return in_count;
+	}
+
+	check_mem(sub_front = malloc(sizeof(poly_t*) * in_count));
+	check_mem(sub_back = malloc(sizeof(poly_t*) * in_count));
+
+	for(size_t i = 0; i < in_count; i++) {
+		rc = bsp_subdivide(node->divider, polygons[i],
+						   sub_front, &n_front, sub_back, &n_back,
+						   sub_front, &n_front, sub_back, &n_back);
+		check(rc == 0, "Failed to subdivide in clip with %p => [%zd]%p", node->divider, i, polygons[i]);
+	}
+
+	poly_t **result_front = NULL;
+	int result_front_count = 0;
+	poly_t **result_back = NULL;
+	int result_back_count = 0;
+
+	// Recur front if we have one
+	if(node->front) {
+		check_mem(result_front = malloc(sizeof(poly_t*) * n_front * 2));
+		result_front_count = bsp_clip_polygon_array(node->front, sub_front, n_front, result_front);
+		free(sub_front);
+	}
+	else {
+		result_front = sub_front;
+		result_front_count = n_front;
+	}
+
+	// Recur back if we have one
+	if(node->back) {
+		check_mem(result_back = malloc(sizeof(poly_t*) * n_back * 2));
+		result_back_count = bsp_clip_polygon_array(node->back, sub_back, n_back, result_back);
+		free(sub_back);
+	}
+	else {
+		result_back = sub_back;
+		result_back_count = n_back;
+	}
+
+	// Assemble result, where there might be a pretty rockin' leak
+	for(int fi = 0; fi < result_front_count; fi++) {
+		result[result_count++] = result_front[fi];
+	}
+	if(node->back != NULL) {
+		for(int bi = 0; bi < result_back_count; bi++) {
+			result[result_count++] = result_back[bi];
+		}
+	}
+
+	return result_count;
+error:
+	if(sub_front) free(sub_front);
+	if(sub_back) free(sub_back);
+	return -1;
+}
+
 klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
+	poly_t **polys = NULL;
+	int result_count;
+	poly_t **result_array = NULL;
+	poly_t *copy = NULL;
+	klist_t(poly) *result = kl_init(poly);
+
+	check_mem(polys = malloc(sizeof(poly_t*) * polygons->size));
+	check_mem(result_array = malloc(sizeof(poly_t*) * polygons->size * 2));
+
+	// Prepare an array to submit
+	kliter_t(poly) *iter = kl_begin(polygons);
+	for(int i = 0; iter != kl_end(polygons); i++, iter = kl_next(iter)) {
+		copy = clone_poly(kl_val(iter));
+		polys[i] = copy;
+	}
+
+	// Compute
+	result_count = bsp_clip_polygon_array(node, polys, polygons->size, result_array);
+
+	// Create a list from the result
+	for(int i = 0; i < result_count; i++) {
+		*kl_pushp(poly, result) = result_array[i];
+	}
+	free(polys);
+	free(result_array);
+
+	return result;
+error:
+	if(polys) free(polys);
+	if(result_array) free(result_array);
+	kl_destroy(poly, result);
+	return NULL;
+}
+
+klist_t(poly) *_bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 	klist_t(poly) *result = kl_init(poly);
 	kliter_t(poly) *iter = NULL;
 	poly_t *p = NULL;
