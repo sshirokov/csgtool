@@ -277,6 +277,9 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons) {
 	int n_front = 0;
 	int n_back = 0;
 
+	// Let's end this quick if there's nothing to do.
+	if(polygons->size == 0) return result;
+
 	if(node->divider != NULL) {
 		klist_t(poly) *result_front = NULL;
 		klist_t(poly) *result_back = NULL;
