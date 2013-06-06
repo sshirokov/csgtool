@@ -29,7 +29,7 @@ void test_export__initialize(void) {
 void test_export__cleanup(void) {
 	if(cube_stl) stl_free(cube_stl);
 	if(cube_polys) kl_destroy(poly, cube_polys);
-	// TODO: free_bsp(bsp)
+	free_bsp_tree(cube_tree);
 }
 
 void test_export__tree_can_export_stl(void) {

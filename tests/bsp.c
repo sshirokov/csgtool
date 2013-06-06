@@ -61,7 +61,7 @@ void test_bsp__initialize(void) {
 }
 
 void test_bsp__cleanup(void) {
-	// TODO: free_bsp() is a segfault, let's not do that at all
+	free_bsp_tree(bsp);
 }
 
 void test_bsp__cube_can_invert(void) {

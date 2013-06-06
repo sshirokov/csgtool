@@ -62,7 +62,7 @@ bsp_node_t *stl_to_bsp(stl_object *stl) {
 error:
 	if(polys != NULL) kl_destroy(poly, polys);
 	if(tree != NULL) {
-		log_warn("TODO: free_bsp()");
+		free_bsp_tree(tree);
 	}
 	return NULL;
 }
