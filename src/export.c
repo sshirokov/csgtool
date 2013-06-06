@@ -9,13 +9,9 @@ stl_object *stl_from_polys(klist_t(poly) *polygons) {
 	poly_t *poly = NULL;
 	for(; iter != kl_end(polygons); iter = kl_next(iter), facet++) {
 		poly = kl_val(iter);
-		check(poly->vertices->size == 3, "Polygon is not a triangle.");
+		check(poly_vertex_count(poly) == 3, "Polygon is not a triangle.");
 		memcpy(facet->normal, poly->normal, sizeof(float3));
-
-		kliter_t(float3) *viter = kl_begin(poly->vertices);
-		for(int i = 0; i < 3; i++, viter = kl_next(viter)) {
-			memcpy(&facet->vertices[i], kl_val(viter), sizeof(float3));
-		}
+		memcpy(facet->vertices, poly->vertices, sizeof(facet->vertices));
 	}
 
 	return stl;
@@ -58,7 +54,7 @@ bsp_node_t *stl_to_bsp(stl_object *stl) {
 	}
 	check(polys->size == stl->facet_count, "Wrong number of faces generated.");
 
-	tree = bsp_build(NULL, polys);
+	tree = bsp_build(NULL, polys, 1);
 	check_mem(tree);
 
 	kl_destroy(poly, polys);

@@ -12,8 +12,12 @@
 #define BACK 2
 #define SPANNING 3
 
+#define POLY_MAX_VERTS 40
+
 typedef struct s_poly {
-	klist_t(float3) *vertices;
+	float3 vertices[POLY_MAX_VERTS];
+	int vertex_count;
+
 	float3 normal;
 	float w;
 } poly_t;
@@ -27,10 +31,13 @@ poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);
 poly_t *poly_invert(poly_t *poly);
 
+int poly_vertex_count(poly_t *poly);
+int poly_push_vertex(poly_t *poly, float3 v);
+
 int poly_classify_vertex(poly_t *poly, float3 v);
 int poly_classify_poly(poly_t *this, poly_t *other);
 
-poly_t *poly_split(poly_t *divider, poly_t *poly);
+int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back);
 
 #define mp_poly_free(x) free_poly(kl_val(x), 1)
 KLIST_INIT(poly, poly_t*, mp_poly_free)

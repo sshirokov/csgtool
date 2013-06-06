@@ -43,7 +43,7 @@ void test_bsp__initialize(void) {
 	*kl_pushp(poly, polygons) = poly;
 
 	cl_assert_(bsp != NULL, "Out of memory");
-	cl_assert_(bsp_build(bsp, polygons) != NULL, "Failed to build bsp tree");
+	cl_assert_(bsp_build(bsp, polygons, 1) != NULL, "Failed to build bsp tree");
 
 	stl_object *stl_cube = stl_read_file(cube_stl_file, 1);
 	cl_assert(stl_cube != NULL);
@@ -55,7 +55,7 @@ void test_bsp__initialize(void) {
 		cl_assert(p != NULL);
 		*kl_pushp(poly, cube_polys) = p;
 	}
-	cube_bsp = bsp_build(NULL, cube_polys);
+	cube_bsp = bsp_build(NULL, cube_polys, 1);
 	kl_destroy(poly, cube_polys);
 	cl_assert(cube_bsp != NULL);
 }
@@ -108,7 +108,7 @@ void test_bsp__cube_bsp_can_return_poly_list_of_equal_length(void) {
 
 	bsp_node_t *cube_bsp = alloc_bsp_node();
 	cl_assert(cube_bsp != NULL);
-	cl_assert(bsp_build(cube_bsp, cube_polys) == cube_bsp);
+	cl_assert(bsp_build(cube_bsp, cube_polys, 1) == cube_bsp);
 	klist_t(poly) *results = bsp_to_polygons(cube_bsp, 0, NULL);
 
 	cl_assert_equal_i(results->size, stl_cube->facet_count);
@@ -167,14 +167,15 @@ void test_bsp__tree_can_produce_triangles_from_quads(void) {
 	poly_t *poly = poly_make_triangle(quad_verts[0], quad_verts[1], quad_verts[2]);
 	cl_assert_(poly != NULL, "Can't make triangle for test");
 
-	float3 *f3rc = *kl_pushp(float3, poly->vertices) = clone_f3(quad_verts[3]);
-	cl_assert_(f3rc != NULL, "Failed to clone vertex into quad");
+	poly_push_vertex(poly, quad_verts[3]);
+
+	cl_assert_(poly_vertex_count(poly) == 4, "Failed to add vertex into quad");
 	poly_update(poly);
 
 	// Build a tree of the quad
 	klist_t(poly) *lpoly = kl_init(poly);
 	*kl_pushp(poly, lpoly) = poly;
-	bsp_node_t *quad_bsp = bsp_build(NULL, lpoly);
+	bsp_node_t *quad_bsp = bsp_build(NULL, lpoly, 1);
 	cl_assert(quad_bsp);
 
 	klist_t(poly) *tris = bsp_to_polygons(quad_bsp, 1, NULL);
