@@ -376,18 +376,30 @@ error:
 }
 
 bsp_node_t *bsp_clip(bsp_node_t *us, bsp_node_t *them) {
-	klist_t(poly) *new_polys = bsp_clip_polygons(them, us->polygons);
-	check(new_polys != NULL, "Failed to generate new poly list in bsp_clip(%p, %p)", us, them);
-	kl_destroy(poly, us->polygons);
-	us->polygons = new_polys;
+	klist_t(poly) *old = NULL;
+	klist_t(poly) *new = NULL;
+	bsp_node_t *new_tree = NULL;
 
-	if(us->front)
-		check(bsp_clip(us->front, them) != NULL, "Failed to clip the front tree %p of %p", us->front, us);
-	if(us->back)
-		check(bsp_clip(us->back, them) != NULL, "Failed to clip the back tree %p of %p", us->back, us);
+	check((old = bsp_to_polygons(us, 0, NULL)) != NULL, "Failed to get old polys");
+	check((new = bsp_clip_polygons(them, old)) != NULL, "Failed to produce new polygon set.");
+	check((new_tree = bsp_build(NULL, new, 1)) != NULL, "Failed to construct new BSP tree.");
+
+	kl_destroy(poly, us->polygons);
+	free_poly(us->divider, 1);
+//  TODO: These segfault
+//	free_bsp_tree(us->front);
+//	free_bsp_tree(us->back);
+
+	us->polygons = new_tree->polygons;
+	us->divider  = new_tree->divider;
+	us->front    = new_tree->front;
+	us->back     = new_tree->back;
+
+	free(new_tree);
 
 	return us;
 error:
-	if(new_polys) kl_destroy(poly, new_polys);
+	if(new != NULL) kl_destroy(poly, new);
+	if(old != NULL) kl_destroy(poly, old);
 	return NULL;
 }
