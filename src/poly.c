@@ -55,7 +55,8 @@ int poly_vertex_count(poly_t *poly) {
 
 // Add a vertex to the end of the polygon vertex list
 int poly_push_vertex(poly_t *poly, float3 v) {
-	check(poly->vertex_count < POLY_MAX_VERTS, "Poly(%p) tried to add %d verts.", poly, poly->vertex_count + 1);
+	// TODO: Don't assert, grow
+	assert(poly->vertex_count < POLY_MAX_VERTS);
 
 	// Dat assignment copy
 	poly->vertices[poly->vertex_count][0] = v[0];
