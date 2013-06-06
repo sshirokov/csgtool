@@ -269,6 +269,73 @@ error:
 	return NULL;
 }
 
+klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_t n_polys, klist_t(poly) *dst) {
+	klist_t(poly) *result = dst != NULL ? dst : kl_init(poly);
+	size_t i;
+	poly_t *p = NULL;
+	int rc = -1;
+
+	poly_t **front_array = NULL;
+	poly_t **back_array = NULL;
+	int n_front = 0;
+	int n_back = 0;
+
+	// Let's end this quick if there's nothing to do.
+	if(n_polys == 0) return result;
+
+	if(node->divider != NULL) {
+		check_mem(front_array = malloc(sizeof(poly_t*) * n_polys));
+		check_mem(back_array = malloc(sizeof(poly_t*) * n_polys));
+		// Sort this node's polygons into the front or back
+		for(i = 0; i < n_polys; i++) {
+			p = polygons[i];
+			rc = bsp_subdivide(node->divider, p,
+							   front_array, &n_front, back_array, &n_back,
+							   front_array, &n_front, back_array, &n_back);
+			check(rc != -1, "Failed to subdivide poly %p", p);
+		}
+
+		int i;
+		poly_t *copy = NULL;
+		// Recur to the front tree, or copy my current front nodes to result.
+		if(node->front) {
+			result = bsp_clip_polygon_array(node->front, front_array, n_front, result);
+			check(result != NULL, "Failed to clip front tree");
+		}
+		else {
+			for(i = 0; i < n_front; i++) {
+				copy = clone_poly(front_array[i]);
+				check_mem(copy);
+				*kl_pushp(poly, result) = copy;
+			}
+		}
+
+		// Repeat for the back tree
+		if(node->back) {
+			result = bsp_clip_polygon_array(node->back, back_array, n_back, result);
+			check(result != NULL, "Failed to clip back tree");
+		}
+
+		if(front_array) free(front_array);
+		if(back_array) free(back_array);
+		// Clean up the result halves, now that they're copied into `result`
+	}
+	else {
+		// If we don't have a divider we just copy out the polygons
+		for(i = 0; i < n_polys; i++) {
+			check_mem(p = clone_poly(polygons[i]));
+			*kl_pushp(poly, result) = p;
+		}
+	}
+
+	return result;
+error:
+	if(front_array) free(front_array);
+	if(back_array) free(back_array);
+	if(result) kl_destroy(poly, result);
+	return NULL;
+}
+
 klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klist_t(poly) *dst) {
 	klist_t(poly) *result = dst != NULL ? dst : kl_init(poly);
 	kliter_t(poly) *iter = NULL;
