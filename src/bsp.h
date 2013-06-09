@@ -30,4 +30,7 @@ bsp_node_t *bsp_invert(bsp_node_t *tree);
 bsp_node_t *bsp_clip(bsp_node_t *us, bsp_node_t *them);
 klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klist_t(poly) *dst);
 
+// CSG Operations
+bsp_node_t *bsp_intersection(bsp_node_t *a, bsp_node_t *b);
+
 #endif
