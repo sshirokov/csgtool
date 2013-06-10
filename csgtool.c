@@ -36,8 +36,15 @@ int main(int argc, char **argv) {
 	// Do something
 	bsp_node_t *result = bsp_intersect(file_bsp, file2_bsp);
 	stl_object *out = bsp_to_stl(result);
-	check(stl_write_file(out, "/tmp/out.stl") == 0, "Failed to write STL");
+	free_bsp_tree(result);
+	check(stl_write_file(out, "/tmp/out.int.stl") == 0, "Failed to write STL");
+	stl_free(out);
 
+	result = bsp_union(file_bsp, file2_bsp);
+	out = bsp_to_stl(result);
+	free_bsp_tree(result);
+	check(stl_write_file(out, "/tmp/out.uni.stl") == 0, "Failed to write STL");
+	stl_free(out);
 
 	stl_free(file_stl);
 	stl_free(file2_stl);
