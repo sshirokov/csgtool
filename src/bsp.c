@@ -481,7 +481,7 @@ error:
 	return NULL;
 }
 
-bsp_node_t *bsp_intersection(bsp_node_t *tree_a, bsp_node_t *tree_b) {
+bsp_node_t *bsp_intersect(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	bsp_node_t *a = NULL;
 	bsp_node_t *b = NULL;
 	bsp_node_t *result = NULL;

@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 	check_mem(file2_bsp);
 
 	// Do something
-	bsp_node_t *result = bsp_intersection(file_bsp, file2_bsp);
+	bsp_node_t *result = bsp_intersect(file_bsp, file2_bsp);
 	stl_object *out = bsp_to_stl(result);
 	check(stl_write_file(out, "/tmp/out.stl") == 0, "Failed to write STL");
 
