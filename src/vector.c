@@ -2,7 +2,11 @@
 
 float3 *clone_f3(float3 f) {
 	float3 *clone = malloc(sizeof(float3));
-	if(clone) memcpy(clone, f, sizeof(float3));
+	if(clone) {
+		(*clone)[0] = f[0];
+		(*clone)[1] = f[1];
+		(*clone)[2] = f[2];
+	}
 	return clone;
 }
 
@@ -30,18 +34,16 @@ float f3_dot(float3 v1, float3 v2) {
 }
 
 float3 *f3_cross(float3 *result, float3 v1, float3 v2) {
-		float3 v1_x_v2 = {
-				v1[1]*v2[2] - v1[2]*v2[1],
-				v1[2]*v2[0] - v1[0]*v2[2],
-				v1[0]*v2[1] - v1[1]*v2[0]
-		};
-		memcpy(result, &v1_x_v2, sizeof(float3));
+		(*result)[0] = v1[1]*v2[2] - v1[2]*v2[1];
+ 		(*result)[1] = v1[2]*v2[0] - v1[0]*v2[2];
+		(*result)[2] = v1[0]*v2[1] - v1[1]*v2[0];
 		return result;
 }
 
 float3 *f3_sub(float3 *result, float3 v1, float3 v2) {
-	float3 r = {v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]};
-	memcpy(result, r, sizeof(float3));
+	(*result)[0] = v1[0] - v2[0];
+	(*result)[1] = v1[1] - v2[1];
+	(*result)[2] = v1[2] - v2[2];
 	return result;
 }
 
