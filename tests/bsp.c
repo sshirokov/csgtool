@@ -212,7 +212,6 @@ void test_bsp__tree_can_clip_polygons(void) {
 }
 
 void test_bsp__tree_can_clip_tree(void) {
-{
 	klist_t(poly) *polys = kl_init(poly);
 	float3 tr1[] = {{-0.2, 0.0, 0.0},
 					{0.2, 0.0, 0.0},
@@ -240,5 +239,4 @@ void test_bsp__tree_can_clip_tree(void) {
 	cl_assert_((*v)[2] >= 99.0, "Should have kept the vertex outside the cube, not inside.");
 
 	kl_destroy(poly, polys);
-}
 }
