@@ -9,11 +9,12 @@ OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
 LIBS = -lm -lcsg $(OPTLIBS)
 CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
+export DYLD_LIBRARY_PATH = $(ROOT)
 
-LIB_TARGET = libcsg.a
-
-ifeq ($(shell uname),Linux)
-LIBTOOL_FLAGS = --mode=compile
+ifeq ($(shell uname),Darwin)
+LIB_TARGET = libcsg.dylib
+else
+LIB_TARGET = libcsg.so
 endif
 
 .DEFAULT_GOAL = all
@@ -33,7 +34,7 @@ $(TARGET): $(OBJS) $(TARGET).o
 	mv $@.new $@
 
 $(LIB_TARGET): $(OBJS)
-	libtool $(LIBTOOL_FLAGS) -static -o $(LIB_TARGET) - $(OBJS)
+	$(CC) -shared $(OBJS) -lm -o $(LIB_TARGET)
 
 %.o: %.c
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $^
