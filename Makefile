@@ -12,6 +12,10 @@ CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 
 LIB_TARGET = libcsg.a
 
+ifeq ($(shell uname),Linux)
+LIBTOOL_FLAGS=--mode=compile
+endif
+
 .DEFAULT_GOAL = all
 all: $(LIB_TARGET) $(TARGET)
 
@@ -29,7 +33,7 @@ $(TARGET): $(OBJS) $(TARGET).o
 	mv $@.new $@
 
 $(LIB_TARGET): $(OBJS)
-	libtool -static -o $(LIB_TARGET) - $(OBJS)
+	libtool $(LIBTOOL_FLAGS) -static -o $(LIB_TARGET) - $(OBJS)
 
 %.o: %.c
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $^
