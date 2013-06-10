@@ -491,14 +491,14 @@ bsp_node_t *bsp_intersection(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	check_mem(b = clone_bsp_tree(tree_b));
 
 	check(bsp_invert(a)  != NULL, "Failed to invert A");
-	check(bsp_clip(b, a) != NULL, "Failed clip(b, a)");
+	check(bsp_clip(b, a) != NULL, "Failed clip(B, A)");
 	check(bsp_invert(b)  != NULL, "Failed to invert B");
-	check(bsp_clip(a, b) != NULL, "Failed to clip(a, b)");
-	check(bsp_clip(b, a) != NULL, "Failed to clio(b, a)");
+	check(bsp_clip(a, b) != NULL, "Failed to clip(A, B)");
+	check(bsp_clip(b, a) != NULL, "Failed to clio(B, A)");
 
 	b_polys = bsp_to_polygons(b, 0, NULL);
-	check(b_polys != NULL, "Failed to get polygons from b");
-	check(bsp_build(a, b_polys, 1) == a, "Failed to add nodes from b into tree a.");
+	check(b_polys != NULL, "Failed to get polygons from B");
+	check(bsp_build(a, b_polys, 1) == a, "Failed to add nodes from B into tree A");
 	check(bsp_invert(a) == a, "Failed to invert tree A");
 
 	// TODO: Build a more balanced trees from the polys of
