@@ -32,6 +32,7 @@ objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS))
 
 # build the test executable itself
 clar_test: $(objects) clar.suite $(TEST_DIRECTORY)/clar_test.h  $(CLAR_PATH)clar.c
+	libtool --help
 	@make -C ../ libcsg.a
 	$(CC) $(CFLAGS) -L../. "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
 
