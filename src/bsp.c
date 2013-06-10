@@ -480,3 +480,40 @@ error:
 	if(old != NULL) kl_destroy(poly, old);
 	return NULL;
 }
+
+bsp_node_t *bsp_intersection(bsp_node_t *tree_a, bsp_node_t *tree_b) {
+	bsp_node_t *a = NULL;
+	bsp_node_t *b = NULL;
+	bsp_node_t *result = NULL;
+	klist_t(poly) *b_polys = NULL;
+
+	check_mem(a = clone_bsp_tree(tree_a));
+	check_mem(b = clone_bsp_tree(tree_b));
+
+	check(bsp_invert(a)  != NULL, "Failed to invert A");
+	check(bsp_clip(b, a) != NULL, "Failed clip(b, a)");
+	check(bsp_invert(b)  != NULL, "Failed to invert B");
+	check(bsp_clip(a, b) != NULL, "Failed to clip(a, b)");
+	check(bsp_clip(b, a) != NULL, "Failed to clio(b, a)");
+
+	b_polys = bsp_to_polygons(b, 0, NULL);
+	check(b_polys != NULL, "Failed to get polygons from b");
+	check(bsp_build(a, b_polys, 1) == a, "Failed to add nodes from b into tree a.");
+	check(bsp_invert(a) == a, "Failed to invert tree A");
+
+	// TODO: Build a more balanced trees from the polys of
+	//       a instead of cloning a tree with potential gaps.
+	result = clone_bsp_tree(a);
+	check_mem(result);
+
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	return result;
+error:
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	if(result != NULL) free_bsp_tree(result);
+	return NULL;
+}
