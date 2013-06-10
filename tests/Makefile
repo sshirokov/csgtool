@@ -22,7 +22,6 @@ CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH)  -Wall -Werror -DCLAR_FIXTURE_PAT
 
 # App sources
 LIB_DIR = $(abspath $(TEST_DIRECTORY)/..)
-SOURCES = $(wildcard $(TEST_DIRECTORY)/../src/*.c)
 LIBS = -lm -lcsg
 
 # Tests
