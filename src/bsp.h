@@ -34,6 +34,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 
 // CSG Operations
 bsp_node_t *bsp_union(bsp_node_t *a, bsp_node_t *b);
+bsp_node_t *bsp_subtract(bsp_node_t *a, bsp_node_t *b);
 bsp_node_t *bsp_intersect(bsp_node_t *a, bsp_node_t *b);
 
 #endif
