@@ -13,7 +13,7 @@ CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 LIB_TARGET = libcsg.a
 
 ifeq ($(shell uname),Linux)
-LIBTOOL_FLAGS=--mode=compile
+LIBTOOL_FLAGS = --mode=compile
 endif
 
 .DEFAULT_GOAL = all
