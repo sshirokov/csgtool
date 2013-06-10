@@ -13,6 +13,8 @@ typedef struct s_bsp_node {
 } bsp_node_t;
 
 bsp_node_t *alloc_bsp_node(void);
+bsp_node_t *clone_bsp_tree(bsp_node_t *tree);
+
 void free_bsp_node(bsp_node_t *node);
 void free_bsp_tree(bsp_node_t *tree);
 

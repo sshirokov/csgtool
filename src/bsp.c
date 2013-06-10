@@ -12,6 +12,36 @@ error:
 	return NULL;
 }
 
+bsp_node_t *clone_bsp_tree(bsp_node_t *tree) {
+	bsp_node_t *copy = alloc_bsp_node();
+	check_mem(copy);
+
+	kliter_t(poly) *iter = kl_begin(tree->polygons);
+	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
+		poly_t *poly_copy = clone_poly(kl_val(iter));
+		check_mem(poly_copy);
+		*kl_pushp(poly, copy->polygons) = poly_copy;
+	}
+
+	free_poly(copy->divider, 1);
+	copy->divider = clone_poly(tree->divider);
+	check_mem(copy->divider);
+
+	if(tree->front != NULL) {
+		copy->front = clone_bsp_tree(tree->front);
+		check_mem(copy->front);
+	}
+	if(tree->back != NULL) {
+		copy->back = clone_bsp_tree(tree->back);
+		check_mem(copy->back);
+	}
+
+	return copy;
+error:
+	if(copy != NULL) free_bsp_tree(copy);
+	return NULL;
+}
+
 void free_bsp_node(bsp_node_t *node) {
 	if(node == NULL) return;
 	kl_destroy(poly, node->polygons);
