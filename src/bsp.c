@@ -307,6 +307,7 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 	poly_t *p = NULL;
 	int rc = -1;
 
+	poly_t **poly_buffer = NULL;
 	poly_t **front_array = NULL;
 	poly_t **back_array = NULL;
 	int n_front = 0;
@@ -316,8 +317,9 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 	if(n_polys == 0) return result;
 
 	if(node->divider != NULL) {
-		check_mem(front_array = malloc(sizeof(poly_t*) * n_polys));
-		check_mem(back_array = malloc(sizeof(poly_t*) * n_polys));
+		check_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 2));
+		front_array = poly_buffer;
+		back_array = poly_buffer + n_polys;
 		// Sort this node's polygons into the front or back
 		for(i = 0; i < n_polys; i++) {
 			p = polygons[i];
@@ -348,8 +350,7 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 			check(result != NULL, "Failed to clip back tree");
 		}
 
-		if(front_array) free(front_array);
-		if(back_array) free(back_array);
+		if(poly_buffer) free(poly_buffer);
 		// Clean up the result halves, now that they're copied into `result`
 	}
 	else {
@@ -362,8 +363,7 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 
 	return result;
 error:
-	if(front_array) free(front_array);
-	if(back_array) free(back_array);
+	if(poly_buffer) free(poly_buffer);
 	if(result) kl_destroy(poly, result);
 	return NULL;
 }
@@ -374,6 +374,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 	poly_t *p = NULL;
 	int rc = -1;
 
+	poly_t **poly_buffer = NULL;
 	poly_t **front_array = NULL;
 	poly_t **back_array = NULL;
 	int n_front = 0;
@@ -383,8 +384,9 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 	if(polygons->size == 0) return result;
 
 	if(node->divider != NULL) {
-		check_mem(front_array = malloc(sizeof(poly_t*) * polygons->size));
-		check_mem(back_array = malloc(sizeof(poly_t*) * polygons->size));
+		check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 2));
+		front_array = poly_buffer;
+		back_array = poly_buffer + polygons->size;
 		// Sort this node's polygons into the front or back
 		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
 			rc = bsp_subdivide(node->divider, kl_val(iter),
@@ -414,8 +416,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 			check(result != NULL, "Failed to clip back tree");
 		}
 
-		if(front_array) free(front_array);
-		if(back_array) free(back_array);
+		if(poly_buffer) free(poly_buffer);
 		// Clean up the result halves, now that they're copied into `result`
 	}
 	else {
@@ -428,8 +429,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 
 	return result;
 error:
-	if(front_array) free(front_array);
-	if(back_array) free(back_array);
+	if(poly_buffer) free(poly_buffer);
 	if(result) kl_destroy(poly, result);
 	return NULL;
 }
