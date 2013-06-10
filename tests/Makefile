@@ -22,17 +22,18 @@ CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH)  -Wall -Werror -DCLAR_FIXTURE_PAT
 
 # App sources
 SOURCES = $(wildcard $(TEST_DIRECTORY)/../src/*.c)
-LIBS = -lm
+LIBS = -lm -lcsg
 
 # Tests
 TESTS = $(wildcard $(TEST_DIRECTORY)/*.c)
 
 # list the objects that go into our test
-objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS)) $(patsubst %.c,%.o,$(SOURCES))
+objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS))
 
 # build the test executable itself
 clar_test: $(objects) clar.suite $(TEST_DIRECTORY)/clar_test.h  $(CLAR_PATH)clar.c
-	$(CC) $(CFLAGS) "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
+	@make -C ../ libcsg.a
+	$(CC) $(CFLAGS) -L../. "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
 
 # test object files depend on clar macros
 $(objects) : $(CLAR_PATH)clar.h
