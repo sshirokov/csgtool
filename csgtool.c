@@ -46,6 +46,12 @@ int main(int argc, char **argv) {
 	check(stl_write_file(out, "/tmp/out.uni.stl") == 0, "Failed to write STL");
 	stl_free(out);
 
+	result = bsp_subtract(file_bsp, file2_bsp);
+	out = bsp_to_stl(result);
+	free_bsp_tree(result);
+	check(stl_write_file(out, "/tmp/out.sub.stl") == 0, "Failed to write STL");
+	stl_free(out);
+
 	stl_free(file_stl);
 	stl_free(file2_stl);
 	log_info("Terminating Success");
