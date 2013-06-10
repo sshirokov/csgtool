@@ -31,7 +31,7 @@ test:
 .PHONY: all clean test
 
 $(TARGET): $(OBJS) $(TARGET).o
-	$(CC) $(CFLAGS) $^ -L. $(LIBS) -o $@.new
+	$(CC) $(CFLAGS) $(TARGET).o -L. $(LIBS) -o $@.new
 	mv $@.new $@
 
 $(LIB_TARGET): $(OBJS)
