@@ -12,6 +12,36 @@ error:
 	return NULL;
 }
 
+bsp_node_t *clone_bsp_tree(bsp_node_t *tree) {
+	bsp_node_t *copy = alloc_bsp_node();
+	check_mem(copy);
+
+	kliter_t(poly) *iter = kl_begin(tree->polygons);
+	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
+		poly_t *poly_copy = clone_poly(kl_val(iter));
+		check_mem(poly_copy);
+		*kl_pushp(poly, copy->polygons) = poly_copy;
+	}
+
+	free_poly(copy->divider, 1);
+	copy->divider = clone_poly(tree->divider);
+	check_mem(copy->divider);
+
+	if(tree->front != NULL) {
+		copy->front = clone_bsp_tree(tree->front);
+		check_mem(copy->front);
+	}
+	if(tree->back != NULL) {
+		copy->back = clone_bsp_tree(tree->back);
+		check_mem(copy->back);
+	}
+
+	return copy;
+error:
+	if(copy != NULL) free_bsp_tree(copy);
+	return NULL;
+}
+
 void free_bsp_node(bsp_node_t *node) {
 	if(node == NULL) return;
 	kl_destroy(poly, node->polygons);
@@ -404,49 +434,122 @@ error:
 	return NULL;
 }
 
-// Warning: Hack level: MEDIUM
-//
-// This method is pretty tightly coupled to
-// the members of bsp_node_t
-//
-// Instead of clipping the nodes recursively
-// I compute a flat poly list from our tree
-// and clip that list against the remote tree directly.
-// I then use the resulting list to construct a fresh
-// BSP tree, free the components of us, reassign the
-// memebers of the new tree into us, and free the struct
-// holding the new tree.
-// I do this to avoid running the clipping loop above
-// more than I have to due to it's hideous allocation
-// strategy by chaining a walk of us on a walk of them.
 bsp_node_t *bsp_clip(bsp_node_t *us, bsp_node_t *them) {
-	klist_t(poly) *old = NULL;
-	klist_t(poly) *new = NULL;
-	bsp_node_t *new_tree = NULL;
-
-	check((old = bsp_to_polygons(us, 0, NULL)) != NULL, "Failed to get old polys");
-	check((new = bsp_clip_polygons(them, old, NULL)) != NULL, "Failed to produce new polygon set.");
-	check((new_tree = bsp_build(NULL, new, 1)) != NULL, "Failed to construct new BSP tree.");
-
-	kl_destroy(poly, old);
-	kl_destroy(poly, new);
-
+	klist_t(poly) *new = bsp_clip_polygons(them, us->polygons, NULL);
 	kl_destroy(poly, us->polygons);
-	free_poly(us->divider, 1);
+	us->polygons = new;
 
-	free_bsp_tree(us->front);
-	free_bsp_tree(us->back);
-
-	us->polygons = new_tree->polygons;
-	us->divider  = new_tree->divider;
-	us->front    = new_tree->front;
-	us->back     = new_tree->back;
-
-	free(new_tree);
+	if(us->front != NULL) bsp_clip(us->front, them);
+	if(us->back != NULL) bsp_clip(us->back, them);
 
 	return us;
+}
+
+bsp_node_t *bsp_subtract(bsp_node_t *tree_a, bsp_node_t *tree_b) {
+	bsp_node_t *a = NULL;
+	bsp_node_t *b = NULL;
+	bsp_node_t *result = NULL;
+	klist_t(poly) *b_polys = NULL;
+
+	check_mem(a = clone_bsp_tree(tree_a));
+	check_mem(b = clone_bsp_tree(tree_b));
+
+	check(bsp_invert(a)  != NULL, "Failed to invert A");
+	check(bsp_clip(a, b) != NULL, "Failed to clip(A, B)");
+	check(bsp_clip(b, a) != NULL, "Failed clip(B, A)");
+	check(bsp_invert(b)  != NULL, "Failed to invert B")
+	check(bsp_clip(b, a) != NULL, "Failed to clio(B, A)");
+	check(bsp_invert(b)  != NULL, "Failed to invert B")
+	b_polys = bsp_to_polygons(b, 0, NULL);
+	check(b_polys != NULL, "Failed to get polygons from B");
+	check(bsp_build(a, b_polys, 1) == a, "Failed to add nodes from B into tree A");
+	check(bsp_invert(a)  != NULL, "Failed to invert A")
+
+	// TODO: Build a more balanced trees from the polys of
+	//       a instead of cloning a tree with potential gaps.
+	result = clone_bsp_tree(a);
+	check_mem(result);
+
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	return result;
 error:
-	if(new != NULL) kl_destroy(poly, new);
-	if(old != NULL) kl_destroy(poly, old);
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	if(result != NULL) free_bsp_tree(result);
+	return NULL;
+}
+
+bsp_node_t *bsp_union(bsp_node_t *tree_a, bsp_node_t *tree_b) {
+	bsp_node_t *a = NULL;
+	bsp_node_t *b = NULL;
+	bsp_node_t *result = NULL;
+	klist_t(poly) *b_polys = NULL;
+
+	check_mem(a = clone_bsp_tree(tree_a));
+	check_mem(b = clone_bsp_tree(tree_b));
+
+	check(bsp_clip(a, b) != NULL, "Failed to clip(A, B)");
+	check(bsp_clip(b, a) != NULL, "Failed clip(B, A)");
+	check(bsp_invert(b)  != NULL, "Failed to invert B")
+	check(bsp_clip(b, a) != NULL, "Failed to clio(B, A)");
+	check(bsp_invert(b)  != NULL, "Failed to invert B")
+	b_polys = bsp_to_polygons(b, 0, NULL);
+	check(b_polys != NULL, "Failed to get polygons from B");
+	check(bsp_build(a, b_polys, 1) == a, "Failed to add nodes from B into tree A");
+
+	// TODO: Build a more balanced trees from the polys of
+	//       a instead of cloning a tree with potential gaps.
+	result = clone_bsp_tree(a);
+	check_mem(result);
+
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	return result;
+error:
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	if(result != NULL) free_bsp_tree(result);
+	return NULL;
+}
+
+bsp_node_t *bsp_intersect(bsp_node_t *tree_a, bsp_node_t *tree_b) {
+	bsp_node_t *a = NULL;
+	bsp_node_t *b = NULL;
+	bsp_node_t *result = NULL;
+	klist_t(poly) *b_polys = NULL;
+
+	check_mem(a = clone_bsp_tree(tree_a));
+	check_mem(b = clone_bsp_tree(tree_b));
+
+	check(bsp_invert(a)  != NULL, "Failed to invert A");
+	check(bsp_clip(b, a) != NULL, "Failed clip(B, A)");
+	check(bsp_invert(b)  != NULL, "Failed to invert B");
+	check(bsp_clip(a, b) != NULL, "Failed to clip(A, B)");
+	check(bsp_clip(b, a) != NULL, "Failed to clio(B, A)");
+
+	b_polys = bsp_to_polygons(b, 0, NULL);
+	check(b_polys != NULL, "Failed to get polygons from B");
+	check(bsp_build(a, b_polys, 1) == a, "Failed to add nodes from B into tree A");
+	check(bsp_invert(a) == a, "Failed to invert tree A");
+
+	// TODO: Build a more balanced trees from the polys of
+	//       a instead of cloning a tree with potential gaps.
+	result = clone_bsp_tree(a);
+	check_mem(result);
+
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	return result;
+error:
+	if(b_polys != NULL) kl_destroy(poly, b_polys);
+	if(a != NULL) free_bsp_tree(a);
+	if(b != NULL) free_bsp_tree(b);
+	if(result != NULL) free_bsp_tree(result);
 	return NULL;
 }
