@@ -19,7 +19,7 @@ LIB_TARGET = libcsg.so
 endif
 
 .DEFAULT_GOAL = all
-all: $(LIB_TARGET) $(TARGET)
+all: $(TARGET)
 
 clean:
 	make -C tests clean
@@ -30,7 +30,7 @@ test:
 
 .PHONY: all clean test
 
-$(TARGET): $(OBJS) $(TARGET).o
+$(TARGET): $(LIB_TARGET) $(TARGET).o
 	$(CC) $(CFLAGS) $(TARGET).o -L. $(LIBS) -o $@.new
 	mv $@.new $@
 
