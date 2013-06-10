@@ -434,51 +434,15 @@ error:
 	return NULL;
 }
 
-// Warning: Hack level: MEDIUM
-//
-// This method is pretty tightly coupled to
-// the members of bsp_node_t
-//
-// Instead of clipping the nodes recursively
-// I compute a flat poly list from our tree
-// and clip that list against the remote tree directly.
-// I then use the resulting list to construct a fresh
-// BSP tree, free the components of us, reassign the
-// memebers of the new tree into us, and free the struct
-// holding the new tree.
-// I do this to avoid running the clipping loop above
-// more than I have to due to it's hideous allocation
-// strategy by chaining a walk of us on a walk of them.
 bsp_node_t *bsp_clip(bsp_node_t *us, bsp_node_t *them) {
-	klist_t(poly) *old = NULL;
-	klist_t(poly) *new = NULL;
-	bsp_node_t *new_tree = NULL;
-
-	check((old = bsp_to_polygons(us, 0, NULL)) != NULL, "Failed to get old polys");
-	check((new = bsp_clip_polygons(them, old, NULL)) != NULL, "Failed to produce new polygon set.");
-	check((new_tree = bsp_build(NULL, new, 1)) != NULL, "Failed to construct new BSP tree.");
-
-	kl_destroy(poly, old);
-	kl_destroy(poly, new);
-
+	klist_t(poly) *new = bsp_clip_polygons(them, us->polygons, NULL);
 	kl_destroy(poly, us->polygons);
-	free_poly(us->divider, 1);
+	us->polygons = new;
 
-	free_bsp_tree(us->front);
-	free_bsp_tree(us->back);
-
-	us->polygons = new_tree->polygons;
-	us->divider  = new_tree->divider;
-	us->front    = new_tree->front;
-	us->back     = new_tree->back;
-
-	free(new_tree);
+	if(us->front != NULL) bsp_clip(us->front, them);
+	if(us->back != NULL) bsp_clip(us->back, them);
 
 	return us;
-error:
-	if(new != NULL) kl_destroy(poly, new);
-	if(old != NULL) kl_destroy(poly, old);
-	return NULL;
 }
 
 bsp_node_t *bsp_subtract(bsp_node_t *tree_a, bsp_node_t *tree_b) {
