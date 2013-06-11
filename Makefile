@@ -29,11 +29,11 @@ test:
 .PHONY: all clean test
 
 $(TARGET): $(TARGET).o $(OBJS)
-	$(CC) $(CFLAGS) $^ -L. $(LIBS) -o $@.new
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@.new
 	mv $@.new $@
 
 $(LIB_TARGET): $(OBJS)
-	$(CC) -shared $(OBJS) -lm -o $(LIB_TARGET)
+	$(CC) -shared $(OBJS) $(LIBS) -o $(LIB_TARGET)
 
 %.o: %.c
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $^
