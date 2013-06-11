@@ -23,7 +23,7 @@ all: $(TARGET)
 
 clean:
 	make -C tests clean
-	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new
+	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new $(LIB_TARGET)
 
 test:
 	@make -C tests clean test
