@@ -30,8 +30,8 @@ test:
 
 .PHONY: all clean test
 
-$(TARGET): $(LIB_TARGET) $(TARGET).o
-	$(CC) $(CFLAGS) $(TARGET).o -L. $(LIBS) -o $@.new
+$(TARGET): $(TARGET).o $(LIB_TARGET)
+	$(CC) $(CFLAGS) $< -L. $(LIBS) -o $@.new
 	mv $@.new $@
 
 $(LIB_TARGET): $(OBJS)
