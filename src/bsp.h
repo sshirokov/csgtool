@@ -4,6 +4,17 @@
 #ifndef __BSP_H
 #define __BSP_H
 
+// This many polygon pointers are allocated
+// on the stack during bsp_clip_polygons and bsp_clip_polygon_array
+// Only when more than this is requested do we reach
+// into the heap for more polygon pointers.
+// Setting this to zero disables the optimization.
+// Exceptionally large values will limit the recursion
+// limit.
+#ifndef STATIC_POLY_BUFFER_SIZE
+#define STATIC_POLY_BUFFER_SIZE 200
+#endif
+
 typedef struct s_bsp_node {
 	klist_t(poly) *polygons;
 	poly_t *divider;
