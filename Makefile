@@ -9,8 +9,6 @@ OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
 LIBS = -lm -lcsg $(OPTLIBS)
 CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
-export DYLD_LIBRARY_PATH = $(ROOT)
-export LD_LIBRARY_PATH = $(ROOT)
 
 ifeq ($(shell uname),Darwin)
 LIB_TARGET = libcsg.dylib
