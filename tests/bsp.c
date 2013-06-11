@@ -212,7 +212,6 @@ void test_bsp__tree_can_clip_polygons(void) {
 }
 
 void test_bsp__tree_can_clip_tree(void) {
-{
 	klist_t(poly) *polys = kl_init(poly);
 	float3 tr1[] = {{-0.2, 0.0, 0.0},
 					{0.2, 0.0, 0.0},
@@ -241,4 +240,21 @@ void test_bsp__tree_can_clip_tree(void) {
 
 	kl_destroy(poly, polys);
 }
+
+void test_bsp__tree_can_clone(void) {
+	bsp_node_t *cube_clone = clone_bsp_tree(cube_bsp);
+
+	cl_assert(cube_clone != NULL);
+
+	klist_t(poly) *clone_polys = bsp_to_polygons(cube_clone, 0, NULL);
+	klist_t(poly) *orig_polys  = bsp_to_polygons(cube_bsp, 0, NULL);
+
+	cl_assert_equal_i(clone_polys->size, orig_polys->size);
+
+	kl_destroy(poly, clone_polys);
+	kl_destroy(poly, orig_polys);
+
+	cl_assert(clone_polys != orig_polys);
+
+	free_bsp_tree(cube_clone);
 }

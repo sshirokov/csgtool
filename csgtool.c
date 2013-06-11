@@ -34,20 +34,23 @@ int main(int argc, char **argv) {
 	check_mem(file2_bsp);
 
 	// Do something
-	log_info("Invert: %p", bsp_invert(file_bsp));
-	log_info("Clip: %p", bsp_clip(file2_bsp, file_bsp));
-	log_info("Invert2: %p", bsp_invert(file2_bsp));
-	log_info("Clip2: %p", bsp_clip(file_bsp, file2_bsp));
-	log_info("Clip3: %p", bsp_clip(file2_bsp, file_bsp));
-	klist_t(poly) *tree2_polys = bsp_to_polygons(file2_bsp, 0, NULL);
-	log_info("Got %zd polys from tree2", tree2_polys->size);
-	bsp_node_t *result = bsp_build(file_bsp, tree2_polys, 1);
-	log_info("Invert: %p", bsp_invert(result));
-	log_info("Bsp node result: %p", result);
-
+	bsp_node_t *result = bsp_intersect(file_bsp, file2_bsp);
 	stl_object *out = bsp_to_stl(result);
-	check(stl_write_file(out, "/tmp/out.stl") == 0, "Failed to write STL");
+	free_bsp_tree(result);
+	check(stl_write_file(out, "/tmp/out.int.stl") == 0, "Failed to write STL");
+	stl_free(out);
 
+	result = bsp_union(file_bsp, file2_bsp);
+	out = bsp_to_stl(result);
+	free_bsp_tree(result);
+	check(stl_write_file(out, "/tmp/out.uni.stl") == 0, "Failed to write STL");
+	stl_free(out);
+
+	result = bsp_subtract(file_bsp, file2_bsp);
+	out = bsp_to_stl(result);
+	free_bsp_tree(result);
+	check(stl_write_file(out, "/tmp/out.sub.stl") == 0, "Failed to write STL");
+	stl_free(out);
 
 	stl_free(file_stl);
 	stl_free(file2_stl);
