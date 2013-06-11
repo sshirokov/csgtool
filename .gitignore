@@ -1,6 +1,7 @@
 # Object files
 *.o
 csgtool
+*.gem
 
 # STL
 *.stl
