@@ -22,6 +22,9 @@ module CSG
 
   attach_function :stl_read_file, [:string, :bool], :pointer
   attach_function :stl_write_file, [:pointer, :string], :int
+
+  attach_function :stl_to_bsp, [:pointer], :pointer
+  attach_function :bsp_to_stl, [:pointer], :pointer
 end
 
 
