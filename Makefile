@@ -7,7 +7,7 @@ SOURCES = $(wildcard $(ROOT)/src/*.c)
 
 OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
-LIBS = -lm -lcsg $(OPTLIBS)
+LIBS = -lm $(OPTLIBS)
 CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 
 ifeq ($(shell uname),Darwin)
@@ -17,7 +17,7 @@ LIB_TARGET = libcsg.so
 endif
 
 .DEFAULT_GOAL = all
-all: $(TARGET)
+all: $(TARGET) $(LIB_TARGET)
 
 clean:
 	make -C tests clean
@@ -28,8 +28,8 @@ test:
 
 .PHONY: all clean test
 
-$(TARGET): $(TARGET).o $(LIB_TARGET)
-	$(CC) $(CFLAGS) $< -L. $(LIBS) -o $@.new
+$(TARGET): $(TARGET).o $(OBJS)
+	$(CC) $(CFLAGS) $^ -L. $(LIBS) -o $@.new
 	mv $@.new $@
 
 $(LIB_TARGET): $(OBJS)
