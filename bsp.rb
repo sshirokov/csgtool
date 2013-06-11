@@ -33,5 +33,20 @@ end
 
 
 
-stl_object = CSG.stl_read_file("nyx.stl", true)
-CSG.stl_write_file(stl_object, "nyx_test.stl")
+object = CSG.stl_read_file(ARGV[0], true)
+object2 = CSG.stl_read_file(ARGV[1], true)
+
+object_bsp = CSG.stl_to_bsp(object)
+object2_bsp = CSG.stl_to_bsp(object2)
+
+intersect_bsp = CSG.bsp_intersect(object_bsp, object2_bsp);
+substract_bsp = CSG.bsp_subtract(object_bsp, object2_bsp);
+union_bsp = CSG.bsp_union(object_bsp, object2_bsp);
+
+i = CSG.bsp_to_stl(intersect_bsp)
+s = CSG.bsp_to_stl(substract_bsp)
+u = CSG.bsp_to_stl(union_bsp)
+
+CSG.stl_write_file(u, "union.stl")
+CSG.stl_write_file(s, "substract.stl")
+CSG.stl_write_file(i, "intersect.stl")
