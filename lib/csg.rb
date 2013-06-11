@@ -3,7 +3,11 @@ require 'ffi'
 module CSG
   module Native
     extend FFI::Library
-    ffi_lib [ 'csg', File.join(File.expand_path("../..", __FILE__), 'libcsg.dylib') ]
+
+    candidates = ['.bundle', '.so', '.dylib', ''].map do |ext|
+      File.join(File.expand_path("../..", __FILE__), 'libcsg' + ext)
+    end
+    ffi_lib ['csg'] + candidates
 
     class STLObject < FFI::ManagedStruct
       layout :header, [:uint8, 80],
