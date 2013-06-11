@@ -1,4 +1,4 @@
-require './lib/csg'
+require 'csg'
 
 object = CSG::Solid.new(:file => ARGV[0])
 object2 = CSG::Solid.new(:file => ARGV[1])
