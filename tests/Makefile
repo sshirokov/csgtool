@@ -21,18 +21,21 @@ CFLAGS=-g -std=c99 -I../src -I. -I$(CLAR_PATH)  -Wall -Werror -DCLAR_FIXTURE_PAT
 .PHONY: clean test
 
 # App sources
-SOURCES = $(wildcard $(TEST_DIRECTORY)/../src/*.c)
-LIBS = -lm
+LIB_DIR = $(abspath $(TEST_DIRECTORY)/..)
+export DYLD_LIBRARY_PATH = $(LIB_DIR)
+export LD_LIBRARY_PATH = $(LIB_DIR)
+LIBS = -lm -lcsg
 
 # Tests
 TESTS = $(wildcard $(TEST_DIRECTORY)/*.c)
 
 # list the objects that go into our test
-objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS)) $(patsubst %.c,%.o,$(SOURCES))
+objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS))
 
 # build the test executable itself
 clar_test: $(objects) clar.suite $(TEST_DIRECTORY)/clar_test.h  $(CLAR_PATH)clar.c
-	$(CC) $(CFLAGS) "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
+	make -C $(LIB_DIR) all
+	$(CC) $(CFLAGS) -L$(LIB_DIR) "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
 
 # test object files depend on clar macros
 $(objects) : $(CLAR_PATH)clar.h
