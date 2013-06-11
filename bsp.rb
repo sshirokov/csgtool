@@ -14,10 +14,14 @@ module CSG
       :attr, :uint16
     end
 
-    class STLObject < FFI::Struct
-      layout :header, [FFI::Type::UINT8, 80],
-      :facet_count, :uint32,
-      :stl_facet, :pointer
+    class STLObject < FFI::ManagedStruct
+      layout :header, [:uint8, 80],
+             :facet_count, :uint32,
+             :stl_facet, :pointer
+
+      def self.release(ptr)
+        CSG::Native.stl_free ptr
+      end
     end
 
     attach_function :stl_read_file, [:string, :bool], :pointer
@@ -37,15 +41,11 @@ end
 
 
 
-object = CSG::Native.stl_read_file(ARGV[0], true)
-object2 = CSG::Native.stl_read_file(ARGV[1], true)
+object = CSG::Native::STLObject.new( CSG::Native.stl_read_file(ARGV[0], true) )
+object2 = CSG::Native::STLObject.new( CSG::Native.stl_read_file(ARGV[1], true) )
 
 object_bsp = CSG::Native.stl_to_bsp(object)
 object2_bsp = CSG::Native.stl_to_bsp(object2)
-
-CSG::Native.stl_free object
-CSG::Native.stl_free object2
-object = object2 = nil
 
 intersect_bsp = CSG::Native.bsp_intersect(object_bsp, object2_bsp);
 substract_bsp = CSG::Native.bsp_subtract(object_bsp, object2_bsp);
