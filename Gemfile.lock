@@ -1,3 +1,9 @@
+PATH
+  remote: .
+  specs:
+    csg (0.0.0)
+      ffi
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -7,4 +13,4 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  ffi
+  csg!
