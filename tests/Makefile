@@ -34,7 +34,7 @@ objects = $(CLAR_PATH)main.o $(patsubst %.c,%.o,$(TESTS))
 
 # build the test executable itself
 clar_test: $(objects) clar.suite $(TEST_DIRECTORY)/clar_test.h  $(CLAR_PATH)clar.c
-	make -C $(LIB_DIR) all
+	make -C $(LIB_DIR) clean all
 	$(CC) $(CFLAGS) -L$(LIB_DIR) "$(CLAR_PATH)clar.c" $(objects) $(LIBS) -o $@
 
 # test object files depend on clar macros
