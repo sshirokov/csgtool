@@ -13,6 +13,10 @@ module CSG
       def self.release(ptr)
         CSG::Native.stl_free ptr
       end
+
+      def write_file(path)
+        CSG::Native.stl_write_file self, path
+      end
     end
 
     class BSPNode < FFI::ManagedStruct
@@ -39,24 +43,37 @@ module CSG
     attach_function :bsp_subtract, [:pointer, :pointer], :pointer
     attach_function :bsp_intersect, [:pointer, :pointer], :pointer
   end
+
+  class Solid
+    attr_reader :tree
+
+    def initialize(opts)
+      if opts[:file]
+        load_from_file opts[:file]
+      elsif opts[:tree]
+        @tree = opts[:tree]
+      end
+      raise ArgumentError.new "Failed to load tree with: #{opts.inspect}" unless @tree
+    end
+
+    def load_from_file(path)
+      File.stat(path) # Stat before load to raise a sane "Does not exist" error
+      stl = CSG::Native::STLObject.new CSG::Native.stl_read_file(path, false)
+      @tree = CSG::Native::BSPNode.new CSG::Native.stl_to_bsp(stl)
+    end
+
+    def to_stl
+      ptr = CSG::Native.bsp_to_stl tree
+      CSG::Native::STLObject.new(ptr)
+    end
+
+    # Build the CSG methods with ManagedStruct wrappers
+    [:intersect, :subtract, :union].each do |name|
+      define_method name do |solid|
+        ptr = CSG::Native.send "bsp_#{name}", tree, solid.tree
+        tree = CSG::Native::BSPNode.new(ptr)
+        CSG::Solid.new :tree => tree
+      end
+    end
+  end
 end
-
-
-
-object = CSG::Native::STLObject.new( CSG::Native.stl_read_file(ARGV[0], true) )
-object2 = CSG::Native::STLObject.new( CSG::Native.stl_read_file(ARGV[1], true) )
-
-object_bsp = CSG::Native::BSPNode.new( CSG::Native.stl_to_bsp(object) )
-object2_bsp = CSG::Native::BSPNode.new( CSG::Native.stl_to_bsp(object2) )
-
-intersect_bsp = CSG::Native::BSPNode.new( CSG::Native.bsp_intersect(object_bsp, object2_bsp) )
-substract_bsp = CSG::Native::BSPNode.new( CSG::Native.bsp_subtract(object_bsp, object2_bsp) )
-union_bsp = CSG::Native::BSPNode.new( CSG::Native.bsp_union(object_bsp, object2_bsp) )
-
-i = CSG::Native::STLObject.new( CSG::Native.bsp_to_stl(intersect_bsp) )
-s = CSG::Native::STLObject.new( CSG::Native.bsp_to_stl(substract_bsp) )
-u = CSG::Native::STLObject.new( CSG::Native.bsp_to_stl(union_bsp) )
-
-CSG::Native.stl_write_file(u, "union.stl")
-CSG::Native.stl_write_file(s, "substract.stl")
-CSG::Native.stl_write_file(i, "intersect.stl")
