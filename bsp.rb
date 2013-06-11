@@ -5,15 +5,6 @@ module CSG
     extend FFI::Library
     ffi_lib 'csg'
 
-    FLOAT3 = FFI::ArrayType.new(FFI::Type::FLOAT, 3)
-    typedef FLOAT3, :float3
-
-    class STLFacet < FFI::Struct
-      layout :normal, :float3,
-      :vertices, FFI::ArrayType.new(CSG::Native::FLOAT3, 3),
-      :attr, :uint16
-    end
-
     class STLObject < FFI::ManagedStruct
       layout :header, [:uint8, 80],
              :facet_count, :uint32,
