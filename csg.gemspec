@@ -8,5 +8,5 @@ Gem::Specification.new do |s|
   s.files       = ["Makefile", "lib/csg.rb"] + Dir['src/**/*.{c,h}']
   s.homepage    = 'https://github.com/sshirokov/csgtool/'
   s.add_runtime_dependency 'ffi'
-  s.extensions = ['ext/extconf.rb']
+  s.extensions = ['ext/Rakefile']
 end
