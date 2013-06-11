@@ -46,6 +46,8 @@ module CSG
     def initialize(opts)
       if opts[:file]
         load_from_file opts[:file]
+      elsif opts[:tree]
+        @tree = opts[:tree]
       end
       raise ArgumentError.new "Failed to load tree with: #{opts.inspect}" unless @tree
     end
@@ -54,6 +56,20 @@ module CSG
       File.stat(path) # Stat before load to raise a sane "Does not exist" error
       stl = CSG::Native::STLObject.new CSG::Native.stl_read_file(path, false)
       @tree = CSG::Native::BSPNode.new CSG::Native.stl_to_bsp(stl)
+    end
+
+    def to_stl
+      ptr = CSG::Native.bsp_to_stl tree
+      CSG::Native::STLObject.new(ptr)
+    end
+
+    # Build the CSG methods with ManagedStruct wrappers
+    [:intersect, :subtract, :union].each do |name|
+      define_method name do |solid|
+        ptr = CSG::Native.send "bsp_#{name}", tree, solid.tree
+        tree = CSG::Native::BSPNode.new(ptr)
+        CSG::Solid.new :tree => tree
+      end
     end
   end
 end
