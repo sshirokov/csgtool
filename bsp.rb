@@ -25,6 +25,10 @@ module CSG
 
   attach_function :stl_to_bsp, [:pointer], :pointer
   attach_function :bsp_to_stl, [:pointer], :pointer
+
+  attach_function :bsp_union, [:pointer, :pointer], :pointer
+  attach_function :bsp_subtract, [:pointer, :pointer], :pointer
+  attach_function :bsp_intersect, [:pointer, :pointer], :pointer
 end
 
 
