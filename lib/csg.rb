@@ -13,6 +13,10 @@ module CSG
       def self.release(ptr)
         CSG::Native.stl_free ptr
       end
+
+      def write_file(path)
+        CSG::Native.stl_write_file self, path
+      end
     end
 
     class BSPNode < FFI::ManagedStruct
