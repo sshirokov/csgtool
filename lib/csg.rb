@@ -39,4 +39,21 @@ module CSG
     attach_function :bsp_subtract, [:pointer, :pointer], :pointer
     attach_function :bsp_intersect, [:pointer, :pointer], :pointer
   end
+
+  class Solid
+    attr_reader :tree
+
+    def initialize(opts)
+      if opts[:file]
+        load_from_file opts[:file]
+      end
+      raise ArgumentError.new "Failed to load tree with: #{opts.inspect}" unless @tree
+    end
+
+    def load_from_file(path)
+      File.stat(path) # Stat before load to raise a sane "Does not exist" error
+      stl = CSG::Native::STLObject.new CSG::Native.stl_read_file(path, false)
+      @tree = CSG::Native::BSPNode.new CSG::Native.stl_to_bsp(stl)
+    end
+  end
 end

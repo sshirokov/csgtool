@@ -1,10 +1,10 @@
 require './lib/csg'
 
-object = CSG::Native::STLObject.new( CSG::Native.stl_read_file(ARGV[0], true) )
-object2 = CSG::Native::STLObject.new( CSG::Native.stl_read_file(ARGV[1], true) )
+object = CSG::Solid.new(:file => ARGV[0])
+object2 = CSG::Solid.new(:file => ARGV[1])
 
-object_bsp = CSG::Native::BSPNode.new( CSG::Native.stl_to_bsp(object) )
-object2_bsp = CSG::Native::BSPNode.new( CSG::Native.stl_to_bsp(object2) )
+object_bsp = object.tree
+object2_bsp = object2.tree
 
 intersect_bsp = CSG::Native::BSPNode.new( CSG::Native.bsp_intersect(object_bsp, object2_bsp) )
 substract_bsp = CSG::Native::BSPNode.new( CSG::Native.bsp_subtract(object_bsp, object2_bsp) )
