@@ -26,7 +26,7 @@ clean:
 test:
 	@make -C tests clean test
 
-.PHONY: all clean test
+.PHONY: all clean test libcsg
 
 $(TARGET): $(TARGET).o $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@.new
@@ -34,6 +34,8 @@ $(TARGET): $(TARGET).o $(OBJS)
 
 $(LIB_TARGET): $(OBJS)
 	$(CC) -shared $(OBJS) $(LIBS) -o $(LIB_TARGET)
+
+libcsg: $(LIB_TARGET)
 
 %.o: %.c
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $^
