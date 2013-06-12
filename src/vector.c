@@ -1,5 +1,5 @@
 #include "vector.h"
-#if defined __SSEE_4_1__
+#if defined __SSE4_1__
 #include <smmintrin.h>
 #endif
 
@@ -32,7 +32,7 @@ float3 *f3_scale(float3 *v, float c) {
 
 
 float f3_dot(float3 v1, float3 v2) {
-#if defined __SSE__4_1
+#if defined __SSE4_1__
 	float result;
 	float arr[4] = { v1[0], v1[1], v1[2], 0.0 };
 	float arr2[4] = { v2[0], v2[1], v2[2], 0.0 };
