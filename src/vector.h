@@ -7,29 +7,30 @@
 #define __VECTOR_H
 
 // Wrappers
-typedef float float3[3];
-#define FLOAT3_INIT {0.0, 0.0, 0.0}
-#define FLOAT3_INIT_MAX {INFINITY, INFINITY, INFINITY}
-#define FLOAT3_INIT_MIN {-INFINITY, -INFINITY, -INFINITY}
-#define FLOAT3_FORMAT(x) (x)[0], (x)[1], (x)[2]
-#define f3X(x) (x)[0]
-#define f3Y(x) (x)[1]
-#define f3Z(x) (x)[2]
+typedef float float4[4];
+#define FLOAT4_INIT {0.0, 0.0, 0.0, 0.0}
+#define FLOAT4_INIT_MAX {INFINITY, INFINITY, INFINITY, INFINITY}
+#define FLOAT4_INIT_MIN {-INFINITY, -INFINITY, -INFINITY, -INFINITY}
+#define FLOAT4_FORMAT(x) (x)[0], (x)[1], (x)[2], (x)[3]
+#define f4X(x) (x)[0]
+#define f4Y(x) (x)[1]
+#define f4Z(x) (x)[2]
+#define f4W(x) (x)[3]
 
-float3 *clone_f3(float3 f);
+float4 *clone_f3(float4 f);
 
 // Vector Updating operations
-float3 *f3_normalize(float3 *v);
-float3 *f3_scale(float3 *f, float c);
+float4 *f4_normalize(float4 *v);
+float4 *f4_scale(float4 *f, float c);
 
 // Non-destructive
-float3 *f3_cross(float3 *result, float3 v1, float3 v2);
-float f3_dot(float3 v1, float3 v2);
-float3 *f3_sub(float3 *result, float3 v1, float3 v2);
-float3 *f3_interpolate(float3 *result, float3 start, float3 v, float alpha);
+float4 *f4_cross(float4 *result, float4 v1, float4 v2);
+float f4_dot(float4 v1, float4 v2);
+float4 *f4_sub(float4 *result, float4 v1, float4 v2);
+float4 *f4_interpolate(float4 *result, float4 start, float4 v, float alpha);
 
 // Containers
-#define mp_float3_free(x) free(kl_val(x))
-KLIST_INIT(float3, float3*, mp_float3_free)
+#define mp_float4_free(x) free(kl_val(x))
+KLIST_INIT(float4, float4*, mp_float4_free)
 
 #endif

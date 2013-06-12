@@ -75,7 +75,7 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		*n_back += 1;
 		break;
 	case COPLANAR:
-		if(f3_dot(divider->normal, poly->normal) > 0) {
+		if(f4_dot(divider->normal, poly->normal) > 0) {
 			coplanar_front[*n_cp_front] = poly;
 			*n_cp_front += 1;
 		}
@@ -225,7 +225,7 @@ int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *
 		else if(vertex_count > 3){
 			// Start with the third vertex and build triangles
 			// in in the form (v0, v_prev, v_cur)
-			float3 *v_cur, *v_prev;
+			float4 *v_cur, *v_prev;
 			for(int i = 2; i < vertex_count; i++) {
 				v_cur = &poly->vertices[i];
 				v_prev = &poly->vertices[i - 1];

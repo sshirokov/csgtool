@@ -15,15 +15,15 @@
 #define POLY_MAX_VERTS 40
 
 typedef struct s_poly {
-	float3 vertices[POLY_MAX_VERTS];
+	float4 vertices[POLY_MAX_VERTS];
 	int vertex_count;
 
-	float3 normal;
+	float4 normal;
 	float w;
 } poly_t;
 
 poly_t *alloc_poly(void);
-poly_t *poly_make_triangle(float3 a, float3 b, float3 c);
+poly_t *poly_make_triangle(float4 a, float4 b, float4 c);
 poly_t *clone_poly(poly_t *poly);
 void free_poly(poly_t *p, int free_self);
 
@@ -32,9 +32,9 @@ int poly_update(poly_t *poly);
 poly_t *poly_invert(poly_t *poly);
 
 int poly_vertex_count(poly_t *poly);
-int poly_push_vertex(poly_t *poly, float3 v);
+int poly_push_vertex(poly_t *poly, float4 v);
 
-int poly_classify_vertex(poly_t *poly, float3 v);
+int poly_classify_vertex(poly_t *poly, float4 v);
 int poly_classify_poly(poly_t *this, poly_t *other);
 
 int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back);

@@ -33,19 +33,19 @@ error:
 int poly_update(poly_t *poly) {
 	if(poly_vertex_count(poly) < 3) return -1;
 
-	float3 *a = &poly->vertices[0];
-	float3 *b = &poly->vertices[1];
-	float3 *c = &poly->vertices[2];
+	float4 *a = &poly->vertices[0];
+	float4 *b = &poly->vertices[1];
+	float4 *c = &poly->vertices[2];
 
-	float3 b_a;
-	float3 c_a;
-	f3_sub(&b_a, *b, *a);
-	f3_sub(&c_a, *c, *a);
+	float4 b_a;
+	float4 c_a;
+	f4_sub(&b_a, *b, *a);
+	f4_sub(&c_a, *c, *a);
 
-	f3_cross(&poly->normal, b_a, c_a);
-	f3_normalize(&poly->normal);
+	f4_cross(&poly->normal, b_a, c_a);
+	f4_normalize(&poly->normal);
 
-	poly->w = f3_dot(poly->normal, *a);
+	poly->w = f4_dot(poly->normal, *a);
 	return 0;
 }
 
@@ -54,7 +54,7 @@ int poly_vertex_count(poly_t *poly) {
 }
 
 // Add a vertex to the end of the polygon vertex list
-int poly_push_vertex(poly_t *poly, float3 v) {
+int poly_push_vertex(poly_t *poly, float4 v) {
 	// TODO: Don't assert, grow
 	assert(poly->vertex_count < POLY_MAX_VERTS);
 
@@ -62,6 +62,7 @@ int poly_push_vertex(poly_t *poly, float3 v) {
 	poly->vertices[poly->vertex_count][0] = v[0];
 	poly->vertices[poly->vertex_count][1] = v[1];
 	poly->vertices[poly->vertex_count][2] = v[2];
+	poly->vertices[poly->vertex_count][3] = v[3];
 
 	// Update the poly if we can
 	if(++poly->vertex_count > 2) {
@@ -73,8 +74,8 @@ error:
 	return -1;
 }
 
-int poly_classify_vertex(poly_t *poly, float3 v) {
-	float side = f3_dot(poly->normal, v) - poly->w;
+int poly_classify_vertex(poly_t *poly, float4 v) {
+	float side = f4_dot(poly->normal, v) - poly->w;
 	if(side < -EPSILON) return BACK;
 	if(side > EPSILON) return FRONT;
 	return COPLANAR;
@@ -113,8 +114,8 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 	}
 
 	// Current and next vertex
-	float3 v_cur = FLOAT3_INIT;
-	float3 v_next = FLOAT3_INIT;
+	float4 v_cur = FLOAT4_INIT;
+	float4 v_next = FLOAT4_INIT;
 	// Classifications of the above
 	int c_cur, c_next;
 	// Loop indexes
@@ -122,7 +123,7 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 	int count = poly_vertex_count(poly);
 	for(i = 0; i < count; i++) {
 		j = (i + 1) % count;
-		for(int k = 0; k < 3; k++) {
+		for(int k = 0; k < 4; k++) {
 			v_cur[k]  = poly->vertices[i][k];
 			v_next[k] = poly->vertices[j][k];
 		}
@@ -140,15 +141,15 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 
 		// Interpolate a midpoint if we found a spanning edge
 		if((c_cur | c_next) == SPANNING) {
-			float3 diff = FLOAT3_INIT;
-			f3_sub(&diff, v_next, v_cur);
+			float4 diff = FLOAT4_INIT;
+			f4_sub(&diff, v_next, v_cur);
 
 			float t = divider->w;
-			t = t - f3_dot(divider->normal, v_cur);
-			t = t / f3_dot(divider->normal, diff);
+			t = t - f4_dot(divider->normal, v_cur);
+			t = t / f4_dot(divider->normal, diff);
 
-			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
-			f3_interpolate(&mid_f, v_cur, v_next, t);
+			float4 mid_f = {v_cur[0], v_cur[1], v_cur[2], v_cur[4]};
+			f4_interpolate(&mid_f, v_cur, v_next, t);
 
 			check(poly_push_vertex(*front, mid_f) == 0,
 				  "Failed to push midpoint to front poly(%p)", front);
@@ -162,16 +163,16 @@ error:
 	return -1;
 }
 
-poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
+poly_t *poly_make_triangle(float4 a, float4 b, float4 c) {
 	poly_t *p = NULL;
 	check_mem(p = alloc_poly());
 
 	check(poly_push_vertex(p, a) == 0,
-		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
+		  "Failed to add vertex a to poly(%p): (%f, %f, %f, %f)", p, FLOAT4_FORMAT(a));
 	check(poly_push_vertex(p, b) == 0,
-		  "Failed to add vertex b to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(b));
+		  "Failed to add vertex b to poly(%p): (%f, %f, %f, %f)", p, FLOAT4_FORMAT(b));
 	check(poly_push_vertex(p, c) == 0,
-		  "Failed to add vertex c to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(c));
+		  "Failed to add vertex c to poly(%p): (%f, %f, %f, %f)", p, FLOAT4_FORMAT(c));
 
 	return p;
 error:
@@ -180,26 +181,29 @@ error:
 }
 
 poly_t *poly_invert(poly_t *poly) {
-	f3_scale(&poly->normal, -1.0);
+	f4_scale(&poly->normal, -1.0);
 	poly->w *= -1.0;
 
 	// We walk the list from the back to the midway point
 	// and flip the opposite ends to reverse the poly list.
 	int last = poly_vertex_count(poly) - 1;
 	int first = 0;
-	float3 temp = FLOAT3_INIT;
+	float4 temp = FLOAT4_INIT;
 	for(; first < last; first++, last--) {
 		temp[0] = poly->vertices[last][0];
 		temp[1] = poly->vertices[last][1];
 		temp[2] = poly->vertices[last][2];
+		temp[3] = poly->vertices[last][3];
 
 		poly->vertices[last][0] = poly->vertices[first][0];
 		poly->vertices[last][1] = poly->vertices[first][1];
 		poly->vertices[last][2] = poly->vertices[first][2];
+		poly->vertices[last][3] = poly->vertices[first][3];
 
 		poly->vertices[first][0] = temp[0];
 		poly->vertices[first][1] = temp[1];
 		poly->vertices[first][2] = temp[2];
+		poly->vertices[first][3] = temp[3];
 	}
 
 	return poly;

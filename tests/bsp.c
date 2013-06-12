@@ -14,28 +14,28 @@ void test_bsp__initialize(void) {
 	poly_t *poly = NULL;
 	polygons = kl_init(poly);
 
-	float3 fs[] = {{-0.5, 0.0, 0.0},
+	float4 fs[] = {{-0.5, 0.0, 0.0},
 				   {0.5, 0.0, 0.0},
 				   {0.0, 0.5, 0.0}};
 	poly = poly_make_triangle(fs[0], fs[1], fs[2]);
 	cl_assert_(poly != NULL, "Out of memory");
 	*kl_pushp(poly, polygons) = poly;
 
-	float3 fs2[] = {{-0.5, 0.0, -0.5},
+	float4 fs2[] = {{-0.5, 0.0, -0.5},
 				   {0.5, 0.0, -0.5},
 				   {0.0, 0.5, -0.5}};
 	poly = poly_make_triangle(fs2[0], fs2[1], fs2[2]);
 	cl_assert_(poly != NULL, "Out of memory");
 	*kl_pushp(poly, polygons) = poly;
 
-	float3 fs3[] = {{-0.5, 0.0, 0.5},
+	float4 fs3[] = {{-0.5, 0.0, 0.5},
 				   {0.5, 0.0, 0.5},
 				   {0.0, 0.5, 0.5}};
 	poly = poly_make_triangle(fs3[0], fs3[1], fs3[2]);
 	cl_assert_(poly != NULL, "Out of memory");
 	*kl_pushp(poly, polygons) = poly;
 
- 	float3 fs4[] = {{0.0, 0.0, -1.0},
+ 	float4 fs4[] = {{0.0, 0.0, -1.0},
 					{0.0, 0.0, 1.0},
 					{0.0, 1.0, 0.0}};
 	poly = poly_make_triangle(fs4[0], fs4[1], fs4[2]);
@@ -65,7 +65,7 @@ void test_bsp__cleanup(void) {
 }
 
 void test_bsp__cube_can_invert(void) {
-	float3 point = {0.0, 0.0, 0.5};
+	float4 point = {0.0, 0.0, 0.5, 0.0};
 	kliter_t(poly) *iter = NULL;
 
 	// Make sure that all polygons consider the point in the center
@@ -160,10 +160,10 @@ void test_bsp__tree_can_produce_triangles_from_quads(void) {
 	klist_t(poly) *quad = kl_init(poly);
 	// I'll make a quad by making a triangle with a missing
 	// vertex, then pushing the extra vertex after and recomputing
-	float3 quad_verts[] = {{-1.0, 1.0, 0.0},
-						  {-1.0, -1.0, 0.0},
-						  {1.0, -1.0, 0.0},
-						  {1.0, 1.0, 0.0}};
+	float4 quad_verts[] = {{-1.0, 1.0, 0.0, 0.0},
+						   {-1.0, -1.0, 0.0, 0.0},
+						   {1.0, -1.0, 0.0, 0.0},
+						   {1.0, 1.0, 0.0, 0.0}};
 	poly_t *poly = poly_make_triangle(quad_verts[0], quad_verts[1], quad_verts[2]);
 	cl_assert_(poly != NULL, "Can't make triangle for test");
 
@@ -188,12 +188,12 @@ void test_bsp__tree_can_produce_triangles_from_quads(void) {
 
 void test_bsp__tree_can_clip_polygons(void) {
 	klist_t(poly) *polys = kl_init(poly);
-	float3 tr1[] = {{-0.2, 0.0, 0.0},
-					{0.2, 0.0, 0.0},
-					{0.0, 0.2, 0.0}};
-	float3 tr2[] = {{-0.2, 0.0, 100.0},
-					{0.2, 0.0, 100.0},
-					{0.0, 0.2, 1000.0}};
+	float4 tr1[] = {{-0.2, 0.0, 0.0, 0.0},
+					{0.2, 0.0, 0.0, 0.0},
+					{0.0, 0.2, 0.0, 0.0}};
+	float4 tr2[] = {{-0.2, 0.0, 100.0, 0.0},
+					{0.2, 0.0, 100.0, 0.0},
+					{0.0, 0.2, 1000.0, 0.0}};
 
 	*kl_pushp(poly, polys) = poly_make_triangle(tr1[0], tr1[1], tr1[2]);
 	*kl_pushp(poly, polys) = poly_make_triangle(tr2[0], tr2[1], tr2[2]);
@@ -213,12 +213,12 @@ void test_bsp__tree_can_clip_polygons(void) {
 
 void test_bsp__tree_can_clip_tree(void) {
 	klist_t(poly) *polys = kl_init(poly);
-	float3 tr1[] = {{-0.2, 0.0, 0.0},
-					{0.2, 0.0, 0.0},
-					{0.0, 0.2, 0.0}};
-	float3 tr2[] = {{-0.2, 0.0, 100.0},
-					{0.2, 0.0, 100.0},
-					{0.0, 0.2, 1000.0}};
+	float4 tr1[] = {{-0.2, 0.0, 0.0, 0.0},
+					{0.2, 0.0, 0.0, 0.0},
+					{0.0, 0.2, 0.0, 0.0}};
+	float4 tr2[] = {{-0.2, 0.0, 100.0, 0.0},
+					{0.2, 0.0, 100.0, 0.0},
+					{0.0, 0.2, 1000.0, 0.0}};
 
 	*kl_pushp(poly, polys) = poly_make_triangle(tr1[0], tr1[1], tr1[2]);
 	*kl_pushp(poly, polys) = poly_make_triangle(tr2[0], tr2[1], tr2[2]);
@@ -235,7 +235,7 @@ void test_bsp__tree_can_clip_tree(void) {
 
 	// Make sure we clipped the poly inside the cube, and kept
 	// the poly outside
-	float3 *v = &kl_val(kl_begin(clipped))->vertices[0];
+	float4 *v = &kl_val(kl_begin(clipped))->vertices[0];
 	cl_assert_((*v)[2] >= 99.0, "Should have kept the vertex outside the cube, not inside.");
 
 	kl_destroy(poly, polys);

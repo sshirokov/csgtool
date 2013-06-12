@@ -33,11 +33,12 @@ error:
 		exit(-1);
 }
 
-void v3_cross(float3 *result, float3 v1, float3 v2, int normalize) {
-		float3 v1_x_v2 = {
+void v4_cross(float4 *result, float4 v1, float4 v2, int normalize) {
+		float4 v1_x_v2 = {
 				v1[1]*v2[2] - v1[2]*v2[1],
 				v1[2]*v2[0] - v1[0]*v2[2],
-				v1[0]*v2[1] - v1[1]*v2[0]
+				v1[0]*v2[1] - v1[1]*v2[0],
+				0
 		};
 		if(normalize) {
 				float mag = sqrt(v1_x_v2[0]*v1_x_v2[0] + v1_x_v2[1]*v1_x_v2[1] + v1_x_v2[2]*v1_x_v2[2]);
@@ -45,14 +46,15 @@ void v3_cross(float3 *result, float3 v1, float3 v2, int normalize) {
 				v1_x_v2[1] /= mag;
 				v1_x_v2[2] /= mag;
 		}
-		memcpy(result, &v1_x_v2, sizeof(float3));
+		memcpy(result, &v1_x_v2, sizeof(float4));
 }
 
 void stl_facet_update_normal(stl_facet *facet) {
-		float3 *fvs = facet->vertices;
-		float3 v1 = {fvs[0][0] - fvs[1][0], fvs[0][1] - fvs[1][1], fvs[0][2] - fvs[1][2]};
-		float3 v2 = {fvs[0][0] - fvs[2][0], fvs[0][1] - fvs[2][1], fvs[0][2] - fvs[2][2]};
-		v3_cross(&facet->normal, v1, v2, 1);
+	float4 *fvs = (float4*)facet->vertices;
+	float4 v1 = {fvs[0][0] - fvs[1][0], fvs[0][1] - fvs[1][1], fvs[0][2] - fvs[1][2]};
+	float4 v2 = {fvs[0][0] - fvs[2][0], fvs[0][1] - fvs[2][1], fvs[0][2] - fvs[2][2]};
+	float4 *normal = (float4*)&(facet->normal);
+	v4_cross(normal, v1, v2, 1);
 }
 
 stl_facet *stl_read_facet(int fd) {

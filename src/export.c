@@ -10,7 +10,7 @@ stl_object *stl_from_polys(klist_t(poly) *polygons) {
 	for(; iter != kl_end(polygons); iter = kl_next(iter), facet++) {
 		poly = kl_val(iter);
 		check(poly_vertex_count(poly) == 3, "Polygon is not a triangle.");
-		memcpy(facet->normal, poly->normal, sizeof(float3));
+		memcpy(facet->normal, poly->normal, sizeof(float4));
 		memcpy(facet->vertices, poly->vertices, sizeof(facet->vertices));
 	}
 
