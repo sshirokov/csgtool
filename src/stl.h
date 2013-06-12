@@ -15,7 +15,6 @@ typedef float float3[3];
 // File format structs
 typedef struct s_stl_facet {
 		float3 normal;
-	    float pad;
 		float3 vertices[3];
 		uint16_t attr;
 } stl_facet;
