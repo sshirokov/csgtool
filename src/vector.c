@@ -1,4 +1,5 @@
 #include "vector.h"
+#include <smmintrin.h>
 
 float3 *clone_f3(float3 f) {
 	float3 *clone = malloc(sizeof(float3));
@@ -28,9 +29,17 @@ float3 *f3_scale(float3 *v, float c) {
 }
 
 float f3_dot(float3 v1, float3 v2) {
-	return (v1[0] * v2[0] +
-			v1[1] * v2[1] +
-			v1[2] * v2[2]);
+	float result;
+	float arr[4] = { v1[0], v1[1], v1[2], 0.0 };
+	float arr2[4] = { v2[0], v2[1], v2[2], 0.0 };
+
+    __m128 a = _mm_loadu_ps(arr);
+    __m128 b = _mm_loadu_ps(arr2);
+	const int mask = 0xff;
+	__m128 sse_result = _mm_dp_ps(a, b, mask);
+
+	_mm_store_ss(&result, sse_result);
+	return result;
 }
 
 float3 *f3_cross(float3 *result, float3 v1, float3 v2) {
