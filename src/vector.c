@@ -1,4 +1,7 @@
 #include "vector.h"
+#if defined __SSE4_1__
+#include <smmintrin.h>
+#endif
 
 float4 *clone_f4(float4 f) {
 	float4 *clone = malloc(sizeof(float4));
@@ -30,11 +33,21 @@ float4 *f4_scale(float4 *v, float c) {
 	return v;
 }
 
+
 float f4_dot(float4 v1, float4 v2) {
-	return (v1[0] * v2[0] +
-			v1[1] * v2[1] +
-			v1[2] * v2[2] +
-		    v1[3] * v2[3]);
+#if defined __SSE4_1__
+    __m128 a = _mm_loadu_ps(v1);
+    __m128 b = _mm_loadu_ps(v2);
+	const int mask = 0xff;
+	__m128 sse_result = _mm_dp_ps(a, b, mask);
+	float result;
+	_mm_store_ss(&result, sse_result);
+	return result;
+#else
+  return (v1[0] * v2[0] +
+		  v1[1] * v2[1] +
+		  v1[2] * v2[2]);
+#endif
 }
 
 float4 *f4_cross(float4 *result, float4 v1, float4 v2) {
