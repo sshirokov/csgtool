@@ -3,7 +3,7 @@ csgtool [![Build Status](https://travis-ci.org/sshirokov/csgtool.png?branch=mast
 
 **CSGTOOL** is a library, [Ruby Gem](http://rubygems.org/gems/csg) and command line tool for performing
 [Constructive Solid Geometry](http://en.wikipedia.org/wiki/Constructive_solid_geometry) operations on
-[STL Files](http://en.wikipedia.org/wiki/STL_(file_format)) using [3D BSP Trees](http://en.wikipedia.org/wiki/Binary_space_partitioning).
+[STL Files](http://en.wikipedia.org/wiki/STL_(file_format) ) using [3D BSP Trees](http://en.wikipedia.org/wiki/Binary_space_partitioning).
 
 The library is written in C99 with performance, portability and readability as primary goals. The ruby gem wraps the library
 using the [ffi gem](leaning towards, and requ) to provide a friendlier interface to the underlying engine.
