@@ -26,7 +26,6 @@ stl_object *bsp_to_stl(bsp_node_t *tree) {
 
 	polys = bsp_to_polygons(tree, 1, NULL);
 	check(polys != NULL, "Failed to generate polygons from bsp_node_t(%p)", tree);
-	check(polys->size > 0, "No polygons returned from tree(%p)", tree);
 
 	stl = stl_from_polys(polys);
 	check(stl != NULL, "Failed to build stl from %zd polygons", polys->size);
