@@ -39,3 +39,14 @@ void test_export__tree_can_export_stl(void) {
 
 	if(result) stl_free(result);
 }
+
+void test_export__test_can_export_zero_poly_stl(void) {
+	bsp_node_t *tree = alloc_bsp_node();
+	stl_object *stl  = bsp_to_stl(tree);
+
+	cl_assert(stl);
+	cl_assert_equal_i(stl->facet_count, 0);
+
+	if(tree) free_bsp_tree(tree);
+	if(stl) stl_free(stl);
+}
