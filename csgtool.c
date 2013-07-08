@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 
 	stl_object *file2_stl = NULL;
 	bsp_node_t *file2_bsp = NULL;
-	check(argc >= 3, "Need two filename");
+	check(argc >= 3, "Need two filenames");
 
 	// Read file 1
 	file = argv[1];
