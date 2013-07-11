@@ -24,8 +24,13 @@ bsp_node_t *clone_bsp_tree(bsp_node_t *tree) {
 	}
 
 	free_poly(copy->divider, 1);
-	copy->divider = clone_poly(tree->divider);
-	check_mem(copy->divider);
+	if(tree->divider) {
+		copy->divider = clone_poly(tree->divider);
+		check_mem(copy->divider);
+	}
+	else {
+		copy->divider = NULL;
+	}
 
 	if(tree->front != NULL) {
 		copy->front = clone_bsp_tree(tree->front);

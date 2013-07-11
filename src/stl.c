@@ -220,7 +220,6 @@ stl_object *stl_read_object(int fd) {
 		// Triangle count
 		rc = read(fd, &n_tris, sizeof(n_tris));
 		check(rc == sizeof(n_tris), "Failed to read facet count.");
-		check(n_tris > 0, "Facet count cannot be zero.");
 
 		obj = stl_alloc(header, n_tris);
 
