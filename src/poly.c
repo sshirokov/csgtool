@@ -85,10 +85,12 @@ int poly_classify_vertex_thick(poly_t *poly, float3 v, float factor) {
 	check_mem(far);
 	check_mem(near);
 
-	for(int i = 0; i < far->vertex_count; i++) {
+	for(int i = 0; i < poly_vertex_count(poly); i++) {
 		f3_add(&far->vertices[i], far->vertices[i], offset);
 		f3_sub(&far->vertices[i], near->vertices[i], offset);
 	}
+	check(poly_update(far) == 0, "Failed to update far polygon of thick plane");
+	check(poly_update(near) == 0, "Failed to update far polygon of thick plane");
 
 
 	near_class = poly_classify_vertex(near, v);
@@ -121,7 +123,11 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 	back = 0;
 
 	for(int i = 0; i < count; i++) {
+#ifdef THICK_PLANE
+		switch(poly_classify_vertex_thick(this, other->vertices[i], EPSILON * 2.0)) {
+#else
 		switch(poly_classify_vertex(this, other->vertices[i])) {
+#endif
 		case FRONT:
 			front += 1;
 			break;
@@ -161,8 +167,13 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 		}
 
 		// Classify the first and next vertex
+#ifdef THICK_PLANE
+		c_cur  = poly_classify_vertex_thick(divider, v_cur, EPSILON * 2.0);
+		c_next = poly_classify_vertex_thick(divider, v_next, EPSILON * 2.0);
+#else
 		c_cur  = poly_classify_vertex(divider, v_cur);
 		c_next = poly_classify_vertex(divider, v_next);
+#endif
 
 		if(c_cur != BACK)  {
 			poly_push_vertex(*front, v_cur);
