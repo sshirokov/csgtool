@@ -73,6 +73,39 @@ error:
 	return -1;
 }
 
+int poly_classify_vertex_thick(poly_t *poly, float3 v, float factor) {
+	int near_class, far_class;
+	poly_t *far = NULL;
+	poly_t *near = NULL;
+	float3 offset = {poly->normal[0], poly->normal[1], poly->normal[2]};
+	f3_scale(&offset, factor / 2.0);
+
+	far = clone_poly(poly);
+	near = clone_poly(poly);
+	check_mem(far);
+	check_mem(near);
+
+	for(int i = 0; i < far->vertex_count; i++) {
+		f3_add(&far->vertices[i], far->vertices[i], offset);
+		f3_sub(&far->vertices[i], near->vertices[i], offset);
+	}
+
+
+	near_class = poly_classify_vertex(near, v);
+	far_class = poly_classify_vertex(far, v);
+
+	if(far) free_poly(far, 1);
+	if(near) free_poly(near, 1);
+	// Only return BACK or FRONT if it satisfies both polys
+	// Otherwise consider the point coplanar to the poly
+	if(near_class == far_class) return near_class;
+	return COPLANAR;
+error:
+	if(far) free_poly(far, 1);
+	if(near) free_poly(near, 1);
+	return -1;
+}
+
 int poly_classify_vertex(poly_t *poly, float3 v) {
 	float side = f3_dot(poly->normal, v) - poly->w;
 	if(side < -EPSILON) return BACK;
