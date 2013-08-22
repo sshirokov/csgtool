@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-#ifndef __EXPORT_H
-#define __EXPORT_H
+#ifndef __COMMANDS_H
+#define __COMMANDS_H
 
 typedef int (*cmd_fun_t)(int argc, char **argv);
 
-typedef struct s_cmd {
+typedef struct s_cmd_t {
 	char *name;
 	char *description;
 	cmd_fun_t fun;
