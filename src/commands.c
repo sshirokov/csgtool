@@ -56,7 +56,7 @@ error:
 // two files and an optional output path and calls a matching function
 // bsp_<name>(bsp_node_t*,bsp_node_t*) and writes the resulting mesh
 // to disk as either `./out.stl` or the value of argv[2]
-// Uses the above `bsp_binary_operation(..)` wrapper above to do most of the
+// Uses the above `bsp_binary_operation(..)` wrapper to do most of the
 // heavy lifting.
 #define MAKE_CSG_COMMAND(name)                                                        \
 int cmd_##name(int argc, char **argv) {                                               \
