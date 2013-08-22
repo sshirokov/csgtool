@@ -13,6 +13,10 @@ using the [ffi gem](leaning towards, and requ) to provide a friendlier interface
 ```
 $ git clone https://github.com/sshirokov/csgtool.git
 $ make test
+$ ./csgtool
+Usage: ./csgtool <command> [command options]
+..
+[help snipped]
 $ bundle exec ruby ./csgtool.rb tests/fixtures/jaws.stl tests/fixtures/jaws2.stl
 ```
 
