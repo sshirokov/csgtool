@@ -5,6 +5,7 @@
 #include "stl.h"
 #include "bsp.h"
 #include "export.h"
+#include "commands.h"
 
 int main(int argc, char **argv) {
 	char *file = NULL;
