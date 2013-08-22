@@ -61,12 +61,58 @@ error:
 int cmd_intersect(int argc, char **argv) {
 	bsp_node_t *result = NULL;
 	stl_object *out = NULL;
+	char *out_path = "/tmp/out.intersect.stl";
 
 	check(argc >= 2, "At least two input files required.");
+	if(argc > 2) out_path = argv[2];
 
 	result = bsp_binary_operation(argv[0], argv[1], bsp_intersect);
 	out = bsp_to_stl(result);
-	check(stl_write_file(out, "/tmp/out.int.stl") == 0, "Failed to write STL");
+	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path);
+
+
+	if(result != NULL) free_bsp_tree(result);
+	if(out != NULL) stl_free(out);
+	return 0;
+error:
+	if(result != NULL) free_bsp_tree(result);
+	if(out != NULL) stl_free(out);
+	return -1;
+}
+
+int cmd_union(int argc, char **argv) {
+	bsp_node_t *result = NULL;
+	stl_object *out = NULL;
+	char *out_path = "/tmp/out.union.stl";
+
+	check(argc >= 2, "At least two input files required.");
+	if(argc > 2) out_path = argv[2];
+
+	result = bsp_binary_operation(argv[0], argv[1], bsp_union);
+	out = bsp_to_stl(result);
+	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path);
+
+
+	if(result != NULL) free_bsp_tree(result);
+	if(out != NULL) stl_free(out);
+	return 0;
+error:
+	if(result != NULL) free_bsp_tree(result);
+	if(out != NULL) stl_free(out);
+	return -1;
+}
+
+int cmd_subtract(int argc, char **argv) {
+	bsp_node_t *result = NULL;
+	stl_object *out = NULL;
+	char *out_path = "/tmp/out.subtract.stl";
+
+	check(argc >= 2, "At least two input files required.");
+	if(argc > 2) out_path = argv[2];
+
+	result = bsp_binary_operation(argv[0], argv[1], bsp_subtract);
+	out = bsp_to_stl(result);
+	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path);
 
 
 	if(result != NULL) free_bsp_tree(result);
@@ -82,6 +128,8 @@ error:
 // Available commands
 const cmd_t commands[] = {
 	{"intersect", "Intersect two geometries", cmd_intersect},
+	{"subtract",  "Subtract two geometries",  cmd_subtract},
+	{"union",     "Union two geometries",     cmd_union},
 	{NULL, NULL, NULL}
 };
 
