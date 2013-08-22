@@ -1,10 +1,6 @@
 #include <stdio.h>
-#include "klist.h"
 #include "dbg.h"
 
-#include "stl.h"
-#include "bsp.h"
-#include "export.h"
 #include "commands.h"
 
 int usage(char *argv0) {
