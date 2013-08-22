@@ -51,79 +51,41 @@ error:
 	return NULL;
 }
 
-// CLI Command functions
-// Each takes argc, counted after the command name
-// and argv, with argc elements with the remainder of the
-// command line, the commands return status is directly
-// returned to the OS.
-//
-// Commands should be exported in `commands` at the bottom of this file.
-int cmd_intersect(int argc, char **argv) {
-	bsp_node_t *result = NULL;
-	stl_object *out = NULL;
-	char *out_path = "/tmp/out.intersect.stl";
-
-	check(argc >= 2, "At least two input files required.");
-	if(argc > 2) out_path = argv[2];
-
-	result = bsp_binary_operation(argv[0], argv[1], bsp_intersect);
-	out = bsp_to_stl(result);
-	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path);
-
-
-	if(result != NULL) free_bsp_tree(result);
-	if(out != NULL) stl_free(out);
-	return 0;
-error:
-	if(result != NULL) free_bsp_tree(result);
-	if(out != NULL) stl_free(out);
-	return -1;
+// Constructor for commands named after the CSG functions they perform.
+// Produces a function named `cmd_<name>(int argc, char **argv) that reads
+// two files and an optional output path and calls a matching function
+// bsp_<name>(bsp_node_t*,bsp_node_t*) and writes the resulting mesh
+// to disk as either `./out.stl` or the value of argv[2]
+// Uses the above `bsp_binary_operation(..)` wrapper above to do most of the
+// heavy lifting.
+#define MAKE_CSG_COMMAND(name)                                                        \
+int cmd_##name(int argc, char **argv) {                                               \
+	bsp_node_t *result = NULL;                                                        \
+	stl_object *out = NULL;                                                           \
+	char *out_path = "./out.stl";                                                     \
+                                                                                      \
+	check(argc >= 2, "At least two input files required.");                           \
+	if(argc > 2) out_path = argv[2];                                                  \
+                                                                                      \
+	result = bsp_binary_operation(argv[0], argv[1], bsp_intersect);                   \
+	out = bsp_to_stl(result);                                                         \
+	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path); \
+                                                                                      \
+	if(result != NULL) free_bsp_tree(result);                                         \
+	if(out != NULL) stl_free(out);                                                    \
+	return 0;                                                                         \
+error:                                                                                \
+	if(result != NULL) free_bsp_tree(result);                                         \
+	if(out != NULL) stl_free(out);                                                    \
+	return -1;                                                                        \
 }
 
-int cmd_union(int argc, char **argv) {
-	bsp_node_t *result = NULL;
-	stl_object *out = NULL;
-	char *out_path = "/tmp/out.union.stl";
-
-	check(argc >= 2, "At least two input files required.");
-	if(argc > 2) out_path = argv[2];
-
-	result = bsp_binary_operation(argv[0], argv[1], bsp_union);
-	out = bsp_to_stl(result);
-	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path);
-
-
-	if(result != NULL) free_bsp_tree(result);
-	if(out != NULL) stl_free(out);
-	return 0;
-error:
-	if(result != NULL) free_bsp_tree(result);
-	if(out != NULL) stl_free(out);
-	return -1;
-}
-
-int cmd_subtract(int argc, char **argv) {
-	bsp_node_t *result = NULL;
-	stl_object *out = NULL;
-	char *out_path = "/tmp/out.subtract.stl";
-
-	check(argc >= 2, "At least two input files required.");
-	if(argc > 2) out_path = argv[2];
-
-	result = bsp_binary_operation(argv[0], argv[1], bsp_subtract);
-	out = bsp_to_stl(result);
-	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path);
-
-
-	if(result != NULL) free_bsp_tree(result);
-	if(out != NULL) stl_free(out);
-	return 0;
-error:
-	if(result != NULL) free_bsp_tree(result);
-	if(out != NULL) stl_free(out);
-	return -1;
-}
-
+// Each MAKE_BSP_COMMAND(name) results in a function named
+// cmd_<name>(int argc, argv) which calls bsp_<name>() with
+// two trees built from files in argv[0] and argv[1]
+MAKE_CSG_COMMAND(intersect);
+MAKE_CSG_COMMAND(union);
+MAKE_CSG_COMMAND(subtract);
 
 // Available commands
 const cmd_t commands[] = {
