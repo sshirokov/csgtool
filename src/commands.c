@@ -114,7 +114,7 @@ const cmd_t commands[] = {
 	{"intersect", "Intersect two geometries", cmd_intersect},
 	{"subtract",  "Subtract two geometries",  cmd_subtract},
 	{"union",     "Union two geometries",     cmd_union},
-	{"prune",     "Compute a de-duplicated v<->p index and clean polygons without neightbors", cmd_prune},
+	{"prune",     "Compute a de-duplicated v<->p index and clean polygons without neighbors", cmd_prune},
 	{NULL, NULL, NULL}
 };
 
