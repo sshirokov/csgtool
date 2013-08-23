@@ -5,6 +5,7 @@
 #include "stl.h"
 #include "bsp.h"
 #include "export.h"
+#include "index.h"
 
 typedef bsp_node_t* (*bsp_binary_op)(bsp_node_t *, bsp_node_t *);
 
@@ -89,13 +90,20 @@ MAKE_CSG_COMMAND(subtract);
 
 int cmd_index(int argc, char **argv) {
 	stl_object *stl = NULL;
+	klist_t(poly) *polys = NULL;
 	check(argc >= 1, "An input file is required.");
 	check((stl = stl_read_file(argv[0], 1)) != NULL, "Failed to read file from '%s'", argv[0]);
+	check((polys = stl_to_polys(stl)) != NULL, "Failed to get polygon list from %p (%s)", stl, argv[0]);
 
+	// TODO: You are here
+	void *index = index_create(polys);
+	check(index != NULL, "Failed to generate index of %zd polygons from %s", polys->size, argv[0]);
 
+	if(polys != NULL) kl_destroy(poly, polys);
 	if(stl != NULL) stl_free(stl);
 	return 0;
 error:
+	if(polys != NULL) kl_destroy(poly, polys);
 	if(stl != NULL) stl_free(stl);
 	return -1;
 }
