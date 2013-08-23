@@ -96,8 +96,9 @@ int cmd_prune(int argc, char **argv) {
 	check((polys = stl_to_polys(stl)) != NULL, "Failed to get polygon list from %p (%s)", stl, argv[0]);
 
 	// TODO: You are here
-	void *index = index_create(polys);
+	vertex_node_t *index = index_create(polys);
 	check(index != NULL, "Failed to generate index of %zd polygons from %s", polys->size, argv[0]);
+	free_vertex_tree(index);
 
 	if(polys != NULL) kl_destroy(poly, polys);
 	if(stl != NULL) stl_free(stl);

@@ -130,7 +130,7 @@ void vertex_node_count(vertex_node_t *node, void *counter) {
 	if(node != NULL) *i += 1;
 }
 
-void *index_create(klist_t(poly) *polygons) {
+vertex_node_t *index_create(klist_t(poly) *polygons) {
 	vertex_node_t *verts = NULL;
 	size_t total = 0;
 	size_t unique = 0;

@@ -51,6 +51,6 @@ void vertex_node_print(vertex_node_t *node, void *stream);
 void vertex_node_count(vertex_node_t *node, void *counter);
 
 // General API
-void *index_create(klist_t(poly) *polygons);
+vertex_node_t *index_create(klist_t(poly) *polygons);
 
 #endif
