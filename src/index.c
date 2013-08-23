@@ -100,10 +100,36 @@ error:
 	return NULL;
 }
 
+int vertex_node_filter_polygon(vertex_node_t *node, idx_poly_t *poly) {
+	klist_t(idx_poly) *new_polygons = kl_init(idx_poly);
+	kliter_t(idx_poly) *iter = kl_begin(node->polygons);
+	for(; iter != kl_end(node->polygons); iter = kl_next(iter)) {
+		if(kl_val(iter) != poly) {
+			*kl_pushp(idx_poly, new_polygons) = kl_val(iter);
+		}
+	}
+	kl_destroy(idx_poly, node->polygons);
+	node->polygons = new_polygons;
+
+	// TODO: Handle the OOM error that can occur
+	return 0;
+}
+
 void free_vertex_tree(vertex_node_t *tree) {
 	if(tree == NULL) return;
 	free_vertex_tree(tree->lt);
 	free_vertex_tree(tree->gt);
+	kliter_t(idx_poly) *iter = kl_begin(tree->polygons);
+	idx_poly_t *poly = NULL;
+	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
+		poly = kl_val(iter);
+		for(int v = 0; v < poly->vertex_count; v++) {
+			if(poly->vertices[v] != tree) {
+				vertex_node_filter_polygon(poly->vertices[v], poly);
+			}
+		}
+		free_idx_poly(poly);
+	}
 	kl_destroy(idx_poly, tree->polygons);
 	free(tree);
 }
@@ -139,6 +165,7 @@ void *index_create(klist_t(poly) *polygons) {
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		idx_poly = alloc_idx_poly(kl_val(iter));
 		check_mem(idx_poly);
+		log_info("idx_poly: %p", idx_poly);
 		for(int v = 0; v < idx_poly->poly->vertex_count; v++) {
 			total += 1;
 			vertex_node_t *vn = vertex_tree_search(verts, idx_poly->poly->vertices[v]);
@@ -148,14 +175,13 @@ void *index_create(klist_t(poly) *polygons) {
 			idx_poly->vertices[idx_poly->vertex_count++] = vn;
 			*kl_pushp(idx_poly, vn->polygons) = idx_poly;
 		}
+		idx_poly = NULL; // Value is checked for a leak in the error: label
 	}
 	vertex_tree_walk(verts, vertex_node_count, &unique);
 
 	log_info("Walking tree %p", verts);
 	vertex_tree_walk(verts, vertex_node_print, NULL);
 	log_info("Verts %zd uses, %zd distinct", total, unique);
-
-	sentinel("TODO: idx_poly_t's inside of the vert tree are not being freed, and there's no sane way to free them");
 
 	return verts;
 error:
