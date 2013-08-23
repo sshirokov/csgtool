@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "klist.h"
 
@@ -34,18 +35,25 @@ vertex_node_t *alloc_vertex_node(void) {
 	return node;
 }
 
-vertex_node_t *search_vertex_node(vertex_node_t *tree, float3 v) {
+typedef void (*vertex_tree_visitor)(vertex_node_t *, void*);
+void vertex_tree_walk(vertex_node_t *tree, vertex_tree_visitor visit, void *blob) {
+	if((tree != NULL) && (tree->lt != NULL)) vertex_tree_walk(tree->lt, visit, blob);
+	if((tree != NULL) && (tree->gt != NULL)) vertex_tree_walk(tree->gt, visit, blob);
+	visit(tree, blob);
+}
+
+vertex_node_t *vertex_tree_search(vertex_node_t *tree, float3 v) {
 	if(tree == NULL) return NULL;
 
 	switch(f3_cmp(tree->vertex, v)) {
-	case -1: return search_vertex_node(tree->lt, v);
-	case 1:  return search_vertex_node(tree->gt, v);
+	case -1: return vertex_tree_search(tree->lt, v);
+	case 1:  return vertex_tree_search(tree->gt, v);
 	case 0: return tree;
 	}
 	return NULL;
 }
 
-vertex_node_t *insert_vertex_node(vertex_node_t *tree, float3 v) {
+vertex_node_t *vertex_tree_insert(vertex_node_t *tree, float3 v) {
 	vertex_node_t *node = NULL;
 	if(tree == NULL) {
 		node = alloc_vertex_node();
@@ -55,14 +63,14 @@ vertex_node_t *insert_vertex_node(vertex_node_t *tree, float3 v) {
 	else {
 		switch(f3_cmp(tree->vertex, v)) {
 		case -1: {
-			if(tree->lt != NULL) return insert_vertex_node(tree->lt, v);
+			if(tree->lt != NULL) return vertex_tree_insert(tree->lt, v);
 			tree->lt = alloc_vertex_node();
 			FLOAT3_SET(tree->lt->vertex, v);
 			node = tree->lt;
 			break;
 		}
 		case 1: {
-			if(tree->gt != NULL) return insert_vertex_node(tree->gt, v);
+			if(tree->gt != NULL) return vertex_tree_insert(tree->gt, v);
 			tree->gt = alloc_vertex_node();
 			FLOAT3_SET(tree->gt->vertex, v);
 			node = tree->gt;
@@ -89,19 +97,47 @@ void free_vertex_tree(vertex_node_t *tree) {
 	free(tree);
 }
 
+void vertex_node_print(vertex_node_t *node, void *stream) {
+	FILE *out = (FILE*)stream;
+	if(out == NULL) out = stdout;
+	fprintf(out, "Node: %p\n", node);
+	if(node == NULL) {
+		fprintf(out, "\tNULL NODE\n");
+	}
+	else {
+		fprintf(out, "\tVertex: (%f, %f, %f)\n", FLOAT3_FORMAT(node->vertex));
+		fprintf(out, "\tPolys: %zd\n", node->polygons->size);
+		fprintf(out, "\tLT tree: %p\n", node->lt);
+		fprintf(out, "\tGT tree: %p\n", node->gt);
+	}
+}
+
+void vertex_node_count(vertex_node_t *node, void *counter) {
+	size_t *i = (size_t*)counter;
+	if(node != NULL) *i += 1;
+}
+
 void *index_create(klist_t(poly) *polygons) {
 	vertex_node_t *verts = NULL;
+	size_t total = 0;
+	size_t unique = 0;
 
 	// Get all the verticies copied into the buffer
 	kliter_t(poly) *iter = kl_begin(polygons);
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		poly_t *p = kl_val(iter);
 		for(int v = 0; v < p->vertex_count; v++) {
-			vertex_node_t *vn = search_vertex_node(verts, p->vertices[v]);
-			if(vn == NULL) vn = insert_vertex_node(verts, p->vertices[v]);
+			total += 1;
+			vertex_node_t *vn = vertex_tree_search(verts, p->vertices[v]);
+			if(vn == NULL) vn = vertex_tree_insert(verts, p->vertices[v]);
 			if(verts == NULL) verts = vn;
 		}
 	}
+	vertex_tree_walk(verts, vertex_node_count, &unique);
+
+	log_info("Walking tree %p", verts);
+	vertex_tree_walk(verts, vertex_node_print, NULL);
+	log_info("Verts %zd uses, %zd distinct", total, unique);
 
 	if(verts) free_vertex_tree(verts);
 	return NULL;
