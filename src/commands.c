@@ -87,11 +87,25 @@ MAKE_CSG_COMMAND(intersect);
 MAKE_CSG_COMMAND(union);
 MAKE_CSG_COMMAND(subtract);
 
+int cmd_index(int argc, char **argv) {
+	stl_object *stl = NULL;
+	check(argc >= 1, "An input file is required.");
+	check((stl = stl_read_file(argv[0], 1)) != NULL, "Failed to read file from '%s'", argv[0]);
+
+
+	if(stl != NULL) stl_free(stl);
+	return 0;
+error:
+	if(stl != NULL) stl_free(stl);
+	return -1;
+}
+
 // Available commands
 const cmd_t commands[] = {
 	{"intersect", "Intersect two geometries", cmd_intersect},
 	{"subtract",  "Subtract two geometries",  cmd_subtract},
 	{"union",     "Union two geometries",     cmd_union},
+	{"index",     "TODO: Compute a de-duplicated v<->p index", cmd_index},
 	{NULL, NULL, NULL}
 };
 
