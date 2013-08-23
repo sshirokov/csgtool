@@ -1,21 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "klist.h"
-
-#include "poly.h"
-
 #include "index.h"
 
-typedef struct s_idx_poly {
-	struct s_vertex_node *vertices[POLY_MAX_VERTS];
-	int vertex_count;
-
-	poly_t *poly;
-} idx_poly_t;
-
-#define mp_nop(x)
-KLIST_INIT(idx_poly, struct s_idx_poly *, mp_nop)
-
+// Indexed polygon methods
 idx_poly_t *alloc_idx_poly(poly_t *poly) {
 	idx_poly_t *p = NULL;
 	check_mem(p = malloc(sizeof(idx_poly_t)));
@@ -31,26 +16,30 @@ void free_idx_poly(idx_poly_t *p) {
 	free(p);
 }
 
-typedef struct s_vertex_node {
-	float3 vertex;
-
-	klist_t(idx_poly) *polygons;
-
-	struct s_vertex_node *lt;
-	struct s_vertex_node *gt;
-} vertex_node_t;
-
+// Vertex node methods
 vertex_node_t *alloc_vertex_node(void) {
 	vertex_node_t *node = calloc(1, sizeof(vertex_node_t));
 	node->polygons = kl_init(idx_poly);
 	return node;
 }
 
-typedef void (*vertex_tree_visitor)(vertex_node_t *, void*);
-void vertex_tree_walk(vertex_node_t *tree, vertex_tree_visitor visit, void *blob) {
-	if((tree != NULL) && (tree->lt != NULL)) vertex_tree_walk(tree->lt, visit, blob);
-	if((tree != NULL) && (tree->gt != NULL)) vertex_tree_walk(tree->gt, visit, blob);
-	visit(tree, blob);
+void free_vertex_tree(vertex_node_t *tree) {
+	if(tree == NULL) return;
+	free_vertex_tree(tree->lt);
+	free_vertex_tree(tree->gt);
+	kliter_t(idx_poly) *iter = kl_begin(tree->polygons);
+	idx_poly_t *poly = NULL;
+	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
+		poly = kl_val(iter);
+		for(int v = 0; v < poly->vertex_count; v++) {
+			if(poly->vertices[v] != tree) {
+				vertex_node_filter_polygon(poly->vertices[v], poly);
+			}
+		}
+		free_idx_poly(poly);
+	}
+	kl_destroy(idx_poly, tree->polygons);
+	free(tree);
 }
 
 vertex_node_t *vertex_tree_search(vertex_node_t *tree, float3 v) {
@@ -100,6 +89,12 @@ error:
 	return NULL;
 }
 
+void vertex_tree_walk(vertex_node_t *tree, vertex_tree_visitor visit, void *blob) {
+	if((tree != NULL) && (tree->lt != NULL)) vertex_tree_walk(tree->lt, visit, blob);
+	if((tree != NULL) && (tree->gt != NULL)) vertex_tree_walk(tree->gt, visit, blob);
+	visit(tree, blob);
+}
+
 int vertex_node_filter_polygon(vertex_node_t *node, idx_poly_t *poly) {
 	klist_t(idx_poly) *new_polygons = kl_init(idx_poly);
 	kliter_t(idx_poly) *iter = kl_begin(node->polygons);
@@ -113,25 +108,6 @@ int vertex_node_filter_polygon(vertex_node_t *node, idx_poly_t *poly) {
 
 	// TODO: Handle the OOM error that can occur
 	return 0;
-}
-
-void free_vertex_tree(vertex_node_t *tree) {
-	if(tree == NULL) return;
-	free_vertex_tree(tree->lt);
-	free_vertex_tree(tree->gt);
-	kliter_t(idx_poly) *iter = kl_begin(tree->polygons);
-	idx_poly_t *poly = NULL;
-	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
-		poly = kl_val(iter);
-		for(int v = 0; v < poly->vertex_count; v++) {
-			if(poly->vertices[v] != tree) {
-				vertex_node_filter_polygon(poly->vertices[v], poly);
-			}
-		}
-		free_idx_poly(poly);
-	}
-	kl_destroy(idx_poly, tree->polygons);
-	free(tree);
 }
 
 void vertex_node_print(vertex_node_t *node, void *stream) {
