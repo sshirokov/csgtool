@@ -12,5 +12,6 @@
 stl_object *stl_from_polys(klist_t(poly) *polygons);
 stl_object *bsp_to_stl(bsp_node_t *tree);
 bsp_node_t *stl_to_bsp(stl_object *stl);
+klist_t(poly) *stl_to_polys(stl_object *stl);
 
 #endif

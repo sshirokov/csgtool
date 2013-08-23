@@ -32,6 +32,12 @@ void test_export__cleanup(void) {
 	free_bsp_tree(cube_tree);
 }
 
+void test_export__stl_can_export_poly_list(void) {
+	klist_t(poly) *p = stl_to_polys(cube_stl);
+	cl_assert_equal_i(p->size, cube_stl->facet_count);
+	kl_destroy(poly, p);
+}
+
 void test_export__tree_can_export_stl(void) {
 	stl_object *result = bsp_to_stl(cube_tree);
 	cl_assert(result != NULL);
