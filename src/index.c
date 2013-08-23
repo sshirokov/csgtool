@@ -143,8 +143,8 @@ mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 			check_mem(vn);
 			idx_poly->vertices[idx_poly->vertex_count++] = vn;
 			*kl_pushp(idx_poly, vn->polygons) = idx_poly;
-			*kl_pushp(idx_poly, idx->polygons) = idx_poly;
 		}
+		*kl_pushp(idx_poly, idx->polygons) = idx_poly;
 		idx_poly = NULL; // Value is checked for a leak in the error: label
 	}
 	return idx;
