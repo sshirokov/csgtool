@@ -53,3 +53,19 @@ float3 *f3_interpolate(float3 *result, float3 start, float3 v, float alpha) {
 	}
 	return result;
 }
+
+#ifndef EPSILON
+#define EPSILON 1e-5
+#endif
+
+int f3_cmp(float3 a, float3 b) {
+	float3 delta = FLOAT3_INIT;
+	f3_sub(&delta, b, a);
+	for(int i = 0; i < 3; i++) {
+		if(fabsf(delta[i]) >= EPSILON) {
+			if(delta[i] < 0) return 1;
+			if(delta[i] > 0) return -1;
+		}
+	}
+	return 0;
+}
