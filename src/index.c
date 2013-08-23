@@ -7,18 +7,29 @@
 #include "index.h"
 
 typedef struct s_idx_poly {
-	struct s_vertex_node_t *vertices[POLY_MAX_VERTS];
+	struct s_vertex_node *vertices[POLY_MAX_VERTS];
 	int vertex_count;
 
 	poly_t *poly;
 } idx_poly_t;
 
-#define mp_free(x) free(kl_val(x))
-#define mp_free_idx_poly(x) do { \
-	free(kl_val(x)->vertices);	 \
-	mp_free(x);                  \
-} while(0)
-KLIST_INIT(idx_poly, struct s_idx_poly *, mp_free_idx_poly)
+#define mp_nop(x)
+KLIST_INIT(idx_poly, struct s_idx_poly *, mp_nop)
+
+idx_poly_t *alloc_idx_poly(poly_t *poly) {
+	idx_poly_t *p = NULL;
+	check_mem(p = malloc(sizeof(idx_poly_t)));
+	p->vertex_count = 0;
+	p->poly = poly;
+
+	return p;
+error:
+	return NULL;
+}
+
+void free_idx_poly(idx_poly_t *p) {
+	free(p);
+}
 
 typedef struct s_vertex_node {
 	float3 vertex;
@@ -124,13 +135,18 @@ void *index_create(klist_t(poly) *polygons) {
 
 	// Get all the verticies copied into the buffer
 	kliter_t(poly) *iter = kl_begin(polygons);
+	idx_poly_t *idx_poly = NULL;
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
-		poly_t *p = kl_val(iter);
-		for(int v = 0; v < p->vertex_count; v++) {
+		idx_poly = alloc_idx_poly(kl_val(iter));
+		check_mem(idx_poly);
+		for(int v = 0; v < idx_poly->poly->vertex_count; v++) {
 			total += 1;
-			vertex_node_t *vn = vertex_tree_search(verts, p->vertices[v]);
-			if(vn == NULL) vn = vertex_tree_insert(verts, p->vertices[v]);
+			vertex_node_t *vn = vertex_tree_search(verts, idx_poly->poly->vertices[v]);
+			if(vn == NULL) vn = vertex_tree_insert(verts, idx_poly->poly->vertices[v]);
 			if(verts == NULL) verts = vn;
+			check_mem(vn);
+			idx_poly->vertices[idx_poly->vertex_count++] = vn;
+			*kl_pushp(idx_poly, vn->polygons) = idx_poly;
 		}
 	}
 	vertex_tree_walk(verts, vertex_node_count, &unique);
@@ -139,6 +155,11 @@ void *index_create(klist_t(poly) *polygons) {
 	vertex_tree_walk(verts, vertex_node_print, NULL);
 	log_info("Verts %zd uses, %zd distinct", total, unique);
 
+	sentinel("TODO: idx_poly_t's inside of the vert tree are not being freed, and there's no sane way to free them");
+
+	return verts;
+error:
+	if(idx_poly) free_idx_poly(idx_poly);
 	if(verts) free_vertex_tree(verts);
 	return NULL;
 }
