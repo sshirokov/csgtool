@@ -26,7 +26,7 @@ clean:
 test:
 	@make -C tests clean test
 
-.PHONY: all clean test libcsg
+.PHONY: all clean test libcsg loc
 
 $(TARGET): $(TARGET).o $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@.new
@@ -39,3 +39,9 @@ libcsg: $(LIB_TARGET)
 
 %.o: %.c
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $^
+
+loc:
+	@echo "=> Source:"
+	@find src/ -name '*.[ch]' -not -name 'dbg.*' | xargs wc -l csgtool.c
+	@echo "=> Tests:"
+	find tests/ -name '*.[ch]' -not -path '*clar*' | xargs wc -l
