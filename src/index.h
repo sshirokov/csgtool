@@ -50,7 +50,17 @@ int vertex_node_filter_polygon(vertex_node_t *node, idx_poly_t *poly);
 void vertex_node_print(vertex_node_t *node, void *stream);
 void vertex_node_count(vertex_node_t *node, void *counter);
 
-// General API
-vertex_node_t *index_create(klist_t(poly) *polygons);
+// Generalized mesh index
+// couples a vertex_tree_t with a polygon list of indexed polygons
+// for easier polygon walks without vertex tree walks
+typedef struct s_mesh_index {
+	vertex_node_t *vertex_tree;
+	klist_t(idx_poly) *polygons;
+} mesh_index_t;
+
+mesh_index_t *alloc_mesh_index(klist_t(poly) *polygons);
+void free_mesh_index(mesh_index_t *index);
+
+mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons);
 
 #endif

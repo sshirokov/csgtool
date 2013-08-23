@@ -130,37 +130,44 @@ void vertex_node_count(vertex_node_t *node, void *counter) {
 	if(node != NULL) *i += 1;
 }
 
-vertex_node_t *index_create(klist_t(poly) *polygons) {
-	vertex_node_t *verts = NULL;
-	size_t total = 0;
-	size_t unique = 0;
-
-	// Get all the verticies copied into the buffer
+mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 	kliter_t(poly) *iter = kl_begin(polygons);
 	idx_poly_t *idx_poly = NULL;
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		idx_poly = alloc_idx_poly(kl_val(iter));
 		check_mem(idx_poly);
 		for(int v = 0; v < idx_poly->poly->vertex_count; v++) {
-			total += 1;
-			vertex_node_t *vn = vertex_tree_search(verts, idx_poly->poly->vertices[v]);
-			if(vn == NULL) vn = vertex_tree_insert(verts, idx_poly->poly->vertices[v]);
-			if(verts == NULL) verts = vn;
+			vertex_node_t *vn = vertex_tree_search(idx->vertex_tree, idx_poly->poly->vertices[v]);
+			if(vn == NULL) vn = vertex_tree_insert(idx->vertex_tree, idx_poly->poly->vertices[v]);
+			if(idx->vertex_tree == NULL) idx->vertex_tree = vn;
 			check_mem(vn);
 			idx_poly->vertices[idx_poly->vertex_count++] = vn;
 			*kl_pushp(idx_poly, vn->polygons) = idx_poly;
+			*kl_pushp(idx_poly, idx->polygons) = idx_poly;
 		}
 		idx_poly = NULL; // Value is checked for a leak in the error: label
 	}
-	vertex_tree_walk(verts, vertex_node_count, &unique);
-
-	log_info("Walking tree %p", verts);
-	vertex_tree_walk(verts, vertex_node_print, NULL);
-	log_info("Verts %zd uses, %zd distinct", total, unique);
-
-	return verts;
+	return idx;
 error:
 	if(idx_poly) free_idx_poly(idx_poly);
-	if(verts) free_vertex_tree(verts);
 	return NULL;
+}
+
+mesh_index_t *alloc_mesh_index(klist_t(poly) *polygons) {
+	mesh_index_t *idx = malloc(sizeof(mesh_index_t));
+	idx->vertex_tree = NULL;
+	idx->polygons = kl_init(idx_poly);
+	if(polygons != NULL) {
+		check(mesh_index_init(idx, polygons) != NULL, "Failed to initialize mesh index");
+	}
+	return idx;
+error:
+	if(idx != NULL) free_mesh_index(idx);
+	return NULL;
+}
+
+void free_mesh_index(mesh_index_t* idx) {
+	if(idx == NULL) return;
+	free_vertex_tree(idx->vertex_tree);
+	kl_destroy(idx_poly, idx->polygons);
 }

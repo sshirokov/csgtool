@@ -96,9 +96,12 @@ int cmd_prune(int argc, char **argv) {
 	check((polys = stl_to_polys(stl)) != NULL, "Failed to get polygon list from %p (%s)", stl, argv[0]);
 
 	// TODO: You are here
-	vertex_node_t *index = index_create(polys);
+	mesh_index_t *index = alloc_mesh_index(polys);
+	size_t verts = 0;
 	check(index != NULL, "Failed to generate index of %zd polygons from %s", polys->size, argv[0]);
-	free_vertex_tree(index);
+	vertex_tree_walk(index->vertex_tree, vertex_node_count, &verts);
+	log_info("Polys in index: %zd Verts in index: %zd", index->polygons->size, verts);
+	free_mesh_index(index);
 
 	if(polys != NULL) kl_destroy(poly, polys);
 	if(stl != NULL) stl_free(stl);
