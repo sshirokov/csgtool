@@ -141,7 +141,6 @@ void *index_create(klist_t(poly) *polygons) {
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		idx_poly = alloc_idx_poly(kl_val(iter));
 		check_mem(idx_poly);
-		log_info("idx_poly: %p", idx_poly);
 		for(int v = 0; v < idx_poly->poly->vertex_count; v++) {
 			total += 1;
 			vertex_node_t *vn = vertex_tree_search(verts, idx_poly->poly->vertices[v]);
