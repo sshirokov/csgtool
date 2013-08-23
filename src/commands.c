@@ -88,7 +88,7 @@ MAKE_CSG_COMMAND(intersect);
 MAKE_CSG_COMMAND(union);
 MAKE_CSG_COMMAND(subtract);
 
-int cmd_index(int argc, char **argv) {
+int cmd_prune(int argc, char **argv) {
 	stl_object *stl = NULL;
 	klist_t(poly) *polys = NULL;
 	check(argc >= 1, "An input file is required.");
@@ -113,7 +113,7 @@ const cmd_t commands[] = {
 	{"intersect", "Intersect two geometries", cmd_intersect},
 	{"subtract",  "Subtract two geometries",  cmd_subtract},
 	{"union",     "Union two geometries",     cmd_union},
-	{"index",     "TODO: Compute a de-duplicated v<->p index", cmd_index},
+	{"prune",     "Compute a de-duplicated v<->p index and clean polygons without neightbors", cmd_prune},
 	{NULL, NULL, NULL}
 };
 
