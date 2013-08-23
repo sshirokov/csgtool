@@ -42,6 +42,6 @@ libcsg: $(LIB_TARGET)
 
 loc:
 	@echo "=> Source:"
-	@find src/ -name '*.[ch]' -not -name 'dbg.*' | xargs wc -l csgtool.c
+	find src/ -name '*.[ch]' -not -name 'dbg.*' | xargs wc -l csgtool.c
 	@echo "=> Tests:"
 	find tests/ -name '*.[ch]' -not -path '*clar*' | xargs wc -l
