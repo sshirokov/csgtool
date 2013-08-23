@@ -12,9 +12,14 @@ typedef float float3[3];
 #define FLOAT3_INIT_MAX {INFINITY, INFINITY, INFINITY}
 #define FLOAT3_INIT_MIN {-INFINITY, -INFINITY, -INFINITY}
 #define FLOAT3_FORMAT(x) (x)[0], (x)[1], (x)[2]
-#define f3X(x) (x)[0]
-#define f3Y(x) (x)[1]
-#define f3Z(x) (x)[2]
+#define f3X(x) ((x)[0])
+#define f3Y(x) ((x)[1])
+#define f3Z(x) ((x)[2])
+#define FLOAT3_SET(to, from) do { \
+	f3X(to) = f3X(from);          \
+	f3Y(to) = f3Y(from);          \
+	f3Z(to) = f3Z(from);          \
+} while(0)
 
 float3 *clone_f3(float3 f);
 
