@@ -64,8 +64,12 @@ typedef struct s_edge {
 
 edge_t *alloc_edge(void);
 void free_edge(edge_t *edge);
-
 void free_edge_tree(edge_t *tree);
+
+float3 *edge_middle(edge_t *node, float3 *result);
+
+edge_t *edge_tree_search_mid(edge_t *tree, float3 mid);
+edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b);
 
 // edge_t list and destructor
 #define mp_free_edge(x) free_edge(kl_val(x))

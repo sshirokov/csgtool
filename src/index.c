@@ -159,6 +159,72 @@ void free_edge_tree(edge_t *tree) {
 	free_edge(tree);
 }
 
+float3 *edge_middle(edge_t *node, float3 *result) {
+	f3_mid(result, node->a->vertex, node->b->vertex);
+	return result;
+}
+
+edge_t *edge_tree_search_mid(edge_t *tree, float3 mid) {
+	if(tree == NULL) return NULL;
+	float3 edge_mid = FLOAT3_INIT;
+	edge_middle(tree, &edge_mid);
+
+	switch(f3_cmp(edge_mid, mid)) {
+	case -1: return edge_tree_search_mid(tree->lt, mid);
+	case 1: return edge_tree_search_mid(tree->lt, mid);
+	case 0: return tree;
+	}
+	return NULL;
+}
+
+edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b) {
+	float3 ab_mid = FLOAT3_INIT;
+	f3_mid(&ab_mid, a, b);
+	return edge_tree_search_mid(tree, ab_mid);
+}
+
+edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
+	edge_t *node = NULL;
+	if(tree == NULL) {
+		node = alloc_edge();
+		check_mem(node);
+		node->a = a;
+		node->b = b;
+	}
+	else {
+		float3 tree_mid = FLOAT3_INIT;
+		float3 ab_mid = FLOAT3_INIT;
+		edge_middle(tree, &tree_mid);
+		f3_mid(&ab_mid, a->vertex, b->vertex);
+		switch(f3_cmp(tree_mid, ab_mid)) {
+		case -1: {
+			if(tree->lt != NULL) return edge_tree_insert(tree->lt, a, b);
+			tree->lt = alloc_edge();
+			tree->gt->a = a;
+			tree->gt->b = b;
+			node = tree->lt;
+			break;
+		}
+		case 1: {
+			if(tree->gt != NULL) return edge_tree_insert(tree->gt, a, b);
+			tree->gt = alloc_edge();
+			tree->gt->a = a;
+			tree->gt->b = b;
+			node = tree->gt;
+			break;
+		}
+		default: {
+			log_warn("Attempting to insert duplicate edge (%f, %f, %f)-(%f, %f, %f)",
+					 FLOAT3_FORMAT(a->vertex), FLOAT3_FORMAT(b->vertex));
+			node = tree;
+			break;
+		}
+		}
+	}
+	return node;
+error:
+	return NULL;
+}
 
 //Overall Mesh index API
 mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
