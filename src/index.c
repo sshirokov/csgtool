@@ -183,7 +183,26 @@ edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b) {
 	return edge_tree_search_mid(tree, ab_mid);
 }
 
+int edge_node_update_verts(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
+	int cmp = f3_cmp(a->vertex, b->vertex);
+	check(cmp != 0, "Vertex %p and %p are the same, no edge is formed.", a, b);
+
+	if(cmp < 0) {
+		tree->a = a;
+		tree->b = b;
+	}
+	else {
+		tree->a = a;
+		tree->b = b;
+	}
+
+	return 0;
+error:
+	return -1;
+}
+
 edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
+	int rc = -1;
 	edge_t *node = NULL;
 	if(tree == NULL) {
 		node = alloc_edge();
@@ -199,18 +218,18 @@ edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 		switch(f3_cmp(tree_mid, ab_mid)) {
 		case -1: {
 			if(tree->lt != NULL) return edge_tree_insert(tree->lt, a, b);
-			tree->lt = alloc_edge();
-			tree->gt->a = a;
-			tree->gt->b = b;
-			node = tree->lt;
+			check_mem(node = alloc_edge());
+			rc = edge_node_update_verts(tree->lt, a, b);
+			check(rc == 0, "Failed to update node %p", node);
+			tree->lt = node;
 			break;
 		}
 		case 1: {
 			if(tree->gt != NULL) return edge_tree_insert(tree->gt, a, b);
-			tree->gt = alloc_edge();
-			tree->gt->a = a;
-			tree->gt->b = b;
-			node = tree->gt;
+			check_mem(node = alloc_edge());
+			rc = edge_node_update_verts(tree->gt, a, b);
+			check(rc == 0, "Failed to update node %p", node);
+			tree->gt = node;
 			break;
 		}
 		default: {
@@ -223,6 +242,7 @@ edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 	}
 	return node;
 error:
+	if(node != NULL) free_edge(node);
 	return NULL;
 }
 
