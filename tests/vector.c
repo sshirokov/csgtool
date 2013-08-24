@@ -13,3 +13,13 @@ void test_vector__comparison(void) {
 	cl_assert_equal_i(f3_cmp(b, a), -1);
 	cl_assert_equal_i(f3_cmp(a, b), 1);
 }
+
+
+void test_vector__midpoint(void) {
+	float3 mid = FLOAT3_INIT;
+	float3 expect = {0.5, 0.5, 0.5};
+
+	f3_mid(&mid, z, a);
+
+	cl_assert_equal_i(f3_cmp(mid, expect), 0);
+}
