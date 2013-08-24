@@ -130,6 +130,37 @@ void vertex_node_count(vertex_node_t *node, void *counter) {
 	if(node != NULL) *i += 1;
 }
 
+// Edge Tree API
+edge_t *alloc_edge(void) {
+	edge_t *edge = malloc(sizeof(edge_t));
+	check_mem(edge);
+
+	edge->a = edge->b = NULL;
+	edge->lt = edge->gt = NULL;
+
+	edge->polygons = kl_init(idx_poly);
+	check_mem(edge->polygons);
+
+	return edge;
+error:
+	if(edge != NULL) free_edge(edge);
+	return NULL;
+}
+
+void free_edge(edge_t *edge) {
+	if(edge == NULL) return;
+	if(edge->polygons) kl_destroy(idx_poly, edge->polygons);
+	free(edge);
+}
+
+void free_edge_tree(edge_t *tree) {
+	if(tree->lt != NULL) free_edge_tree(tree->lt);
+	if(tree->gt != NULL) free_edge_tree(tree->gt);
+	free_edge(tree);
+}
+
+
+//Overall Mesh index API
 mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 	kliter_t(poly) *iter = kl_begin(polygons);
 	idx_poly_t *idx_poly = NULL;
