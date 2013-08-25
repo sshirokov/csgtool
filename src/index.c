@@ -172,7 +172,7 @@ edge_t *edge_tree_search_mid(edge_t *tree, float3 mid) {
 
 	switch(f3_cmp(edge_mid, mid)) {
 	case -1: return edge_tree_search_mid(tree->lt, mid);
-	case 1: return edge_tree_search_mid(tree->lt, mid);
+	case 1: return edge_tree_search_mid(tree->gt, mid);
 	case 0: return tree;
 	}
 	return NULL;
