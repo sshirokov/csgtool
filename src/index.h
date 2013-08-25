@@ -80,6 +80,7 @@ KLIST_INIT(edge, struct s_edge *, mp_free_edge)
 // for easier polygon walks without vertex tree walks
 typedef struct s_mesh_index {
 	vertex_node_t *vertex_tree;
+	edge_t *edge_tree;
 	klist_t(idx_poly) *polygons;
 } mesh_index_t;
 
