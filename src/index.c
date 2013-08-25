@@ -220,7 +220,7 @@ edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 		case -1: {
 			if(tree->lt != NULL) return edge_tree_insert(tree->lt, a, b);
 			check_mem(node = alloc_edge());
-			rc = edge_node_update_verts(tree->lt, a, b);
+			rc = edge_node_update_verts(node, a, b);
 			check(rc == 0, "Failed to update node %p", node);
 			tree->lt = node;
 			break;
@@ -228,7 +228,7 @@ edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 		case 1: {
 			if(tree->gt != NULL) return edge_tree_insert(tree->gt, a, b);
 			check_mem(node = alloc_edge());
-			rc = edge_node_update_verts(tree->gt, a, b);
+			rc = edge_node_update_verts(node, a, b);
 			check(rc == 0, "Failed to update node %p", node);
 			tree->gt = node;
 			break;
