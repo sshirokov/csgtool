@@ -269,10 +269,12 @@ mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 
 		// Store each edge in the edge tree
 		for(int i = 0, i2 = 1; i < idx_poly->vertex_count; ++i, i2 = (i + 1) % idx_poly->vertex_count) {
-			vertex_node_t *v = idx_poly->vertices[i];
+			vertex_node_t *v1 = idx_poly->vertices[i];
 			vertex_node_t *v2 = idx_poly->vertices[i2];
-			edge_t *edge = edge_tree_search(idx->edge_tree, v->vertex, v2->vertex);
-			if(edge == NULL) edge = edge_tree_insert(idx->edge_tree, v, v2);
+
+			edge_t *edge = edge_tree_search(idx->edge_tree, v1->vertex, v2->vertex);
+			if(edge == NULL) edge = edge_tree_insert(idx->edge_tree, v1, v2);
+			if(idx->edge_tree == NULL) idx->edge_tree = edge;
 			check_mem(edge);
 			*kl_pushp(idx_poly, edge->polygons) = idx_poly;
 		}
