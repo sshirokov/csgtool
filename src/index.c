@@ -247,6 +247,7 @@ edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 		default: {
 			log_warn("Attempting to insert duplicate edge (%f, %f, %f)-(%f, %f, %f)",
 					 FLOAT3_FORMAT(a->vertex), FLOAT3_FORMAT(b->vertex));
+			log_err("TODO: About to assert(). This is a bug. We should disambiguate edges that might share a midpoint.");
 			assert(0); // TODO: Handle this case, which shouldn't occur from BSP models
 			node = tree;
 			break;
