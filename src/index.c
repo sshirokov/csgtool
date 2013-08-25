@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "index.h"
 
 // Indexed polygon methods
@@ -235,6 +236,7 @@ edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 		default: {
 			log_warn("Attempting to insert duplicate edge (%f, %f, %f)-(%f, %f, %f)",
 					 FLOAT3_FORMAT(a->vertex), FLOAT3_FORMAT(b->vertex));
+			assert(0); // TODO: Handle this case, which shouldn't occur from BSP models
 			node = tree;
 			break;
 		}
@@ -253,6 +255,9 @@ mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 	for(; iter != kl_end(polygons); iter = kl_next(iter)) {
 		idx_poly = alloc_idx_poly(kl_val(iter));
 		check_mem(idx_poly);
+
+		// Store the vertexes in the index vertex tree and update the indexed
+		// polygon with the vertex pointers
 		for(int v = 0; v < idx_poly->poly->vertex_count; v++) {
 			vertex_node_t *vn = vertex_tree_search(idx->vertex_tree, idx_poly->poly->vertices[v]);
 			if(vn == NULL) vn = vertex_tree_insert(idx->vertex_tree, idx_poly->poly->vertices[v]);
@@ -261,6 +266,18 @@ mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 			idx_poly->vertices[idx_poly->vertex_count++] = vn;
 			*kl_pushp(idx_poly, vn->polygons) = idx_poly;
 		}
+
+		// Store each edge in the edge tree
+		for(int i = 0, i2 = 1; i < idx_poly->vertex_count; ++i, i2 = (i + 1) % idx_poly->vertex_count) {
+			vertex_node_t *v = idx_poly->vertices[i];
+			vertex_node_t *v2 = idx_poly->vertices[i2];
+			edge_t *edge = edge_tree_search(idx->edge_tree, v->vertex, v2->vertex);
+			if(edge == NULL) edge = edge_tree_insert(idx->edge_tree, v, v2);
+			check_mem(edge);
+			*kl_pushp(idx_poly, edge->polygons) = idx_poly;
+		}
+
+		// Store the indexed polygon in the array
 		*kl_pushp(idx_poly, idx->polygons) = idx_poly;
 		idx_poly = NULL; // Value is checked for a leak in the error: label
 	}
@@ -272,6 +289,7 @@ error:
 
 mesh_index_t *alloc_mesh_index(klist_t(poly) *polygons) {
 	mesh_index_t *idx = malloc(sizeof(mesh_index_t));
+	idx->edge_tree = NULL;
 	idx->vertex_tree = NULL;
 	idx->polygons = kl_init(idx_poly);
 	if(polygons != NULL) {
