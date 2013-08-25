@@ -49,3 +49,13 @@ void test_index__edge_count(void) {
 	// A cube expressed as triangles has 18 edges.
 	cl_assert_equal_i(count, 18);
 }
+
+
+// Helper for test below
+void check_two_polys_on_edge(edge_t *edge, void *ignored) {
+	cl_assert_equal_i(edge->polygons->size, 2);
+}
+
+void test_index__edges_of_a_cube_all_have_2_neighbors(void) {
+	edge_tree_walk(idx->edge_tree, check_two_polys_on_edge, NULL);
+}
