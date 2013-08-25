@@ -98,9 +98,11 @@ int cmd_prune(int argc, char **argv) {
 	// TODO: You are here
 	mesh_index_t *index = alloc_mesh_index(polys);
 	size_t verts = 0;
+	size_t edges = 0;
 	check(index != NULL, "Failed to generate index of %zd polygons from %s", polys->size, argv[0]);
 	vertex_tree_walk(index->vertex_tree, vertex_node_count, &verts);
-	log_info("Polys in index: %zd Verts in index: %zd", index->polygons->size, verts);
+	edge_tree_walk(index->edge_tree, edge_node_count, &edges);
+	log_info("Polys in index: %zd Verts in index: %zd Edges in index: %zd", index->polygons->size, verts, edges);
 	free_mesh_index(index);
 
 	if(polys != NULL) kl_destroy(poly, polys);
