@@ -184,6 +184,17 @@ edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b) {
 	return edge_tree_search_mid(tree, ab_mid);
 }
 
+void edge_tree_walk(edge_t *tree, edge_tree_visitor visit, void* blob) {
+	if((tree != NULL) && (tree->lt != NULL)) edge_tree_walk(tree->lt, visit, blob);
+	if((tree != NULL) && (tree->gt != NULL)) edge_tree_walk(tree->gt, visit, blob);
+	visit(tree, blob);
+}
+
+void edge_node_count(edge_t *node, void *counter) {
+	size_t *i = (size_t*)counter;
+	if(node != NULL) *i += 1;
+}
+
 int edge_node_update_verts(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 	int cmp = f3_cmp(a->vertex, b->vertex);
 	check(cmp != 0, "Vertex %p and %p are the same, no edge is formed.", a, b);
