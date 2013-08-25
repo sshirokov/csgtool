@@ -80,8 +80,8 @@ int edge_node_update_verts(edge_t *tree, vertex_node_t *a, vertex_node_t *b);
 edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b);
 
 // edge_t list and destructor
-#define mp_free_edge(x) free_edge(kl_val(x))
-KLIST_INIT(edge, struct s_edge *, mp_free_edge)
+#define mp_nop(x)
+KLIST_INIT(edge, struct s_edge *, mp_nop)
 
 // Generalized mesh index
 // couples a vertex_tree_t with a polygon list of indexed polygons
