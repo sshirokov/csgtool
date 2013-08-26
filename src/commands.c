@@ -68,8 +68,9 @@ int cmd_##name(int argc, char **argv) {                                         
 	check(argc >= 2, "At least two input files required.");                           \
 	if(argc > 2) out_path = argv[2];                                                  \
                                                                                       \
-	result = bsp_binary_operation(argv[0], argv[1], bsp_intersect);                   \
+	result = bsp_binary_operation(argv[0], argv[1], bsp_##name);                   \
 	out = bsp_to_stl(result);                                                         \
+    log_info("Writing output to %s", out_path);                                       \
 	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path); \
                                                                                       \
 	if(result != NULL) free_bsp_tree(result);                                         \
