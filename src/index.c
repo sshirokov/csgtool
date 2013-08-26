@@ -1,7 +1,6 @@
 #include "index.h"
 
-
-//Overall Mesh index API
+// Init, Alloc and Dealloc
 mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 	kliter_t(poly) *iter = kl_begin(polygons);
 	idx_poly_t *idx_poly = NULL;
@@ -60,4 +59,62 @@ void free_mesh_index(mesh_index_t* idx) {
 	if(idx == NULL) return;
 	free_vertex_tree(idx->vertex_tree);
 	kl_destroy(idx_poly, idx->polygons);
+}
+
+// Access methods
+klist_t(edge) *index_find_poly_edges(mesh_index_t *index, idx_poly_t *poly) {
+	klist_t(edge) *result = NULL;
+	check((result = kl_init(edge)) != NULL,
+		  "index_find_poly_edges(%p, %p) Failed to allocate result list.",
+		  index, poly);
+
+
+	for(int i = 0, j = 1; i < poly->vertex_count; j = ((++i) + 1) % poly->vertex_count) {
+		edge_t *edge = edge_tree_search(index->edge_tree, poly->vertices[i]->vertex, poly->vertices[j]->vertex);
+		if(edge != NULL) {
+			*kl_pushp(edge, result) = edge;
+		}
+		else {
+			log_warn("Edge [%p][%d](%f, %f, %f)<->[%p][%d](%f, %f, %f) of %p not found in index.",
+					 poly->vertices[i], i, FLOAT3_FORMAT(poly->vertices[i]->vertex),
+					 poly->vertices[j], j, FLOAT3_FORMAT(poly->vertices[j]->vertex),
+					 poly);
+		}
+	}
+
+	return result;
+error:
+	if(result != NULL) kl_destroy(edge, result);
+	return NULL;
+}
+
+klist_t(idx_poly) *index_find_poly_neighbors(mesh_index_t *index, idx_poly_t *poly) {
+	klist_t(idx_poly) *result = NULL;
+	klist_t(edge) *edges = NULL;
+
+	check((result = kl_init(idx_poly)) != NULL,
+		  "index_find_neighbors(%p, %p) Failed to allocate result list", index, poly);
+	check((edges = index_find_poly_edges(index, poly)) != NULL,
+		  "index_find_neighbors(%p, %p) Failed to find poly edges", index, poly);
+
+	// Walk every edge and get the polygons that share that edge.
+	// Adding evry polygon that isn't `poly` to the result
+	// list.
+	kliter_t(edge) *iter = kl_begin(edges);
+	for(; iter != kl_end(edges); iter = kl_next(iter)) {
+		edge_t *edge = kl_val(iter);
+		kliter_t(idx_poly) *pIter = kl_begin(edge->polygons);
+		for(; pIter != kl_end(edge->polygons); pIter = kl_next(pIter)) {
+			idx_poly_t *edge_poly = kl_val(pIter);
+			if(edge_poly != poly) {
+				*kl_pushp(idx_poly, result) = edge_poly;
+			}
+		}
+	}
+
+
+	return result;
+error:
+	if(result != NULL) kl_destroy(idx_poly, result);
+	return NULL;
 }

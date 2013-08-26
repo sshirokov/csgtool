@@ -59,3 +59,21 @@ void check_two_polys_on_edge(edge_t *edge, void *ignored) {
 void test_index__edges_of_a_cube_all_have_2_neighbors(void) {
 	edge_tree_walk(idx->edge_tree, check_two_polys_on_edge, NULL);
 }
+
+void test_index__polygon_can_find_edges(void) {
+	idx_poly_t *p = kl_val(kl_begin(idx->polygons));
+
+	klist_t(edge) *edges = index_find_poly_edges(idx, p);
+	cl_assert_(edges != NULL, "There should be edges defined for every poly in this cube.");
+	cl_assert_equal_i(edges->size, 3);
+	if(edges != NULL) kl_destroy(edge, edges);
+}
+
+void test_index__polygon_can_find_neighbors(void) {
+	idx_poly_t *p = kl_val(kl_begin(idx->polygons));
+
+	klist_t(idx_poly) *polys = index_find_poly_neighbors(idx, p);
+	cl_assert_(polys != NULL, "There should be neighbors of every poly in this cube.");
+	cl_assert_equal_i(polys->size, 3);
+	if(polys != NULL) kl_destroy(idx_poly, polys);
+}

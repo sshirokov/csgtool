@@ -24,4 +24,7 @@ void free_mesh_index(mesh_index_t *index);
 
 mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons);
 
+klist_t(edge) *index_find_poly_edges(mesh_index_t *index, idx_poly_t *poly);
+klist_t(idx_poly) *index_find_poly_neighbors(mesh_index_t *index, idx_poly_t *poly);
+
 #endif
