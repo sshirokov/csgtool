@@ -90,26 +90,53 @@ MAKE_CSG_COMMAND(union);
 MAKE_CSG_COMMAND(subtract);
 
 int cmd_prune(int argc, char **argv) {
+	char *out = "./out.pruned.stl";
 	stl_object *stl = NULL;
 	klist_t(poly) *polys = NULL;
+	mesh_index_t *index = NULL;
 	check(argc >= 1, "An input file is required.");
 	check((stl = stl_read_file(argv[0], 1)) != NULL, "Failed to read file from '%s'", argv[0]);
 	check((polys = stl_to_polys(stl)) != NULL, "Failed to get polygon list from %p (%s)", stl, argv[0]);
 
-	// TODO: You are here
-	mesh_index_t *index = alloc_mesh_index(polys);
+	// Replace the output path if we were given one
+	if(argc > 2) out = argv[1];
+
+	index = alloc_mesh_index(polys);
 	size_t verts = 0;
 	size_t edges = 0;
 	check(index != NULL, "Failed to generate index of %zd polygons from %s", polys->size, argv[0]);
 	vertex_tree_walk(index->vertex_tree, vertex_node_count, &verts);
 	edge_tree_walk(index->edge_tree, edge_node_count, &edges);
 	log_info("Polys in index: %zd Verts in index: %zd Edges in index: %zd", index->polygons->size, verts, edges);
-	free_mesh_index(index);
 
+	klist_t(poly) *real_polys = kl_init(poly);
+
+	// Walk the polygons and only keep ones that return more than two neighbors
+	kliter_t(idx_poly) *iter = kl_begin(index->polygons);
+	for(; iter != kl_end(index->polygons); iter = kl_next(iter)) {
+		idx_poly_t *poly = kl_val(iter);
+		klist_t(idx_poly) *neighbors = index_find_poly_neighbors(index, poly);
+		check(neighbors != NULL, "Failed to find neighbors of poly in prune.");
+		if(neighbors->size > 1) {
+			*kl_pushp(poly, real_polys) = poly->poly;
+		}
+		kl_destroy(idx_poly, neighbors);
+	}
+
+	log_info("Result has %zd polys, writing to clipped.stl", real_polys->size);
+	stl_object *pruned = stl_from_polys(real_polys);
+	int rc = stl_write_file(pruned, "./clipped.stl");
+	log_info("Write result: %d", rc);
+
+
+
+
+	if(index != NULL) free_mesh_index(index);
 	if(polys != NULL) kl_destroy(poly, polys);
 	if(stl != NULL) stl_free(stl);
 	return 0;
 error:
+	if(index != NULL) free_mesh_index(index);
 	if(polys != NULL) kl_destroy(poly, polys);
 	if(stl != NULL) stl_free(stl);
 	return -1;
