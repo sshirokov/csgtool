@@ -123,9 +123,9 @@ int cmd_prune(int argc, char **argv) {
 		kl_destroy(idx_poly, neighbors);
 	}
 
-	log_info("Result has %zd polys, writing to clipped.stl", real_polys->size);
+	log_info("Result has %zd polys, writing to %s", real_polys->size, out);
 	stl_object *pruned = stl_from_polys(real_polys);
-	int rc = stl_write_file(pruned, "./clipped.stl");
+	int rc = stl_write_file(pruned, out);
 	log_info("Write result: %d", rc);
 
 
