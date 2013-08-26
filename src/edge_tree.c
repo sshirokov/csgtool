@@ -75,8 +75,8 @@ int edge_node_update_verts(edge_t *tree, vertex_node_t *a, vertex_node_t *b) {
 		tree->b = b;
 	}
 	else {
-		tree->a = a;
-		tree->b = b;
+		tree->a = b;
+		tree->b = a;
 	}
 
 	return 0;
