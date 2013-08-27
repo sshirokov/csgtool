@@ -57,6 +57,7 @@ void check_two_polys_on_edge(edge_t *edge, void *ignored) {
 }
 
 void test_index__edges_of_a_cube_all_have_2_neighbors(void) {
+	cl_assert_(idx->edge_tree != NULL, "Edge tree does not exist.");
 	edge_tree_walk(idx->edge_tree, check_two_polys_on_edge, NULL);
 }
 
