@@ -9,6 +9,7 @@ edge_t *alloc_edge(void) {
 
 	edge->vertex = NULL;
 	edge->endpoints = NULL;
+	edge->start = NULL;
 	edge->lt = edge->gt = NULL;
 
 	edge->polygons = kl_init(idx_poly);
@@ -22,6 +23,7 @@ error:
 
 void free_edge(edge_t *edge) {
 	if(edge == NULL) return;
+	// TODO: Destroy every endpoint
 	if(edge->polygons) kl_destroy(idx_poly, edge->polygons);
 	free(edge);
 }
@@ -44,8 +46,34 @@ void edge_node_count(edge_t *node, void *counter) {
 	if(node != NULL) *i += 1;
 }
 
+// Helper to `edge_tree_search' for searching the `endpoints' subtree of the
+// edge_t node `tree` for a node where `f3_cmp(tree->vertes->vertex, b) == 0`
+edge_t *edge_tree_search_end(edge_t *tree, float3 b) {
+	return NULL;
+}
+
 edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b) {
-	// TODO:
+	if(tree == NULL) return NULL;
+
+	// Ensure we search as A<B
+	float3 start, end;
+	if(f3_cmp(a, b) < 0) {
+		FLOAT3_SET(start, a);
+		FLOAT3_SET(end, b);
+	}
+	else {
+		FLOAT3_SET(start, b);
+		FLOAT3_SET(end, a);
+	}
+
+	switch(f3_cmp(tree->vertex->vertex, start)) {
+	case -1:
+		return edge_tree_search(tree->lt, start, end);
+	case 1:
+		return edge_tree_search(tree->gt, start, end);
+	case 0:
+		return edge_tree_search_end(tree->endpoints, end);
+	}
 	return NULL;
 }
 
