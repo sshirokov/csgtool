@@ -20,7 +20,6 @@ void free_vertex_tree(vertex_node_t *tree) {
 				vertex_node_filter_polygon(poly->vertices[v], poly);
 			}
 		}
-		free_idx_poly(poly);
 	}
 	kl_destroy(idx_poly, tree->polygons);
 	free(tree);
