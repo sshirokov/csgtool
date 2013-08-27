@@ -26,6 +26,7 @@ void free_edge(edge_t *edge) {
 }
 
 void free_edge_tree(edge_t *tree) {
+	if(tree == NULL) return;
 	if(tree->lt != NULL) free_edge_tree(tree->lt);
 	if(tree->gt != NULL) free_edge_tree(tree->gt);
 	free_edge(tree);
