@@ -4,10 +4,14 @@
 #ifndef __EDGE_TREE_H
 #define __EDGE_TREE_H
 
-// Polygon edge, a < b
+// Polygon edge, A<->B, A < B as mesured by f3_cmp()
+// A is stored in Vertex, and the other end is stored
+// in the `endpoints` memeber as a tree based on `vertex`.
+// The endpoint stores the list of polygons, the origin
+// node does not store data.
 typedef struct s_edge {
-	vertex_node_t *a;
-	vertex_node_t *b;
+	vertex_node_t *vertex;
+	struct s_edge *endpoints;
 
 	klist_t(idx_poly) *polygons;
 
@@ -21,15 +25,10 @@ edge_t *alloc_edge(void);
 void free_edge(edge_t *edge);
 void free_edge_tree(edge_t *tree);
 
-float3 *edge_middle(edge_t *node, float3 *result);
-
-edge_t *edge_tree_search_mid(edge_t *tree, float3 mid);
-edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b);
-
 void edge_tree_walk(edge_t *tree, edge_tree_visitor visit, void* blob);
 void edge_node_count(edge_t *node, void *counter);
 
-int edge_node_update_verts(edge_t *tree, vertex_node_t *a, vertex_node_t *b);
+edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b);
 edge_t *edge_tree_insert(edge_t *tree, vertex_node_t *a, vertex_node_t *b);
 
 // edge_t list and destructor
