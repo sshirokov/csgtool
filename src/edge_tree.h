@@ -9,8 +9,10 @@
 // in the `endpoints` memeber as a tree based on `vertex`.
 // The endpoint stores the list of polygons, the origin
 // node does not store data.
+// Endpoint nodes keep a pointer to the start node.
 typedef struct s_edge {
 	vertex_node_t *vertex;
+	struct s_edge *start;
 	struct s_edge *endpoints;
 
 	klist_t(idx_poly) *polygons;
