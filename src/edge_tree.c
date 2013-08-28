@@ -21,9 +21,17 @@ error:
 	return NULL;
 }
 
+void free_edge_end(edge_t *end) {
+	if(end == NULL) return;
+	if(end->lt != NULL) free_edge_end(end->lt);
+	if(end->gt != NULL) free_edge_end(end->gt);
+	if(end->polygons) kl_destroy(idx_poly, end->polygons);
+	free(end);
+}
+
 void free_edge(edge_t *edge) {
 	if(edge == NULL) return;
-	// TODO: Destroy every endpoint
+	free_edge_end(edge->endpoints);
 	if(edge->polygons) kl_destroy(idx_poly, edge->polygons);
 	free(edge);
 }
