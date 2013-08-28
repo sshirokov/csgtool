@@ -59,6 +59,10 @@ void free_mesh_index(mesh_index_t* idx) {
 	if(idx == NULL) return;
 	free_vertex_tree(idx->vertex_tree);
 	free_edge_tree(idx->edge_tree);
+	kliter_t(idx_poly) *iter = kl_begin(idx->polygons);
+	for(; iter != kl_end(idx->polygons); iter = kl_next(iter)) {
+		free_idx_poly(kl_val(iter));
+	}
 	kl_destroy(idx_poly, idx->polygons);
 }
 
