@@ -49,6 +49,28 @@ void edge_node_count(edge_t *node, void *counter) {
 // Helper to `edge_tree_search' for searching the `endpoints' subtree of the
 // edge_t node `tree` for a node where `f3_cmp(tree->vertes->vertex, b) == 0`
 edge_t *edge_tree_search_end(edge_t *tree, float3 b) {
+	if(tree == NULL) return NULL;
+
+	switch(f3_cmp(tree->vertex->vertex, b)) {
+	case -1: return edge_tree_search_end(tree->lt, b);
+	case 1: return edge_tree_search_end(tree->gt, b);
+	case 0: return tree;
+	}
+	return NULL;
+}
+
+edge_t *edge_tree_search_begin(edge_t *tree, float3 a) {
+	if(tree == NULL) return NULL;
+
+	switch(f3_cmp(tree->vertex->vertex, a)) {
+	case -1:
+		return edge_tree_search_begin(tree->lt, a);
+	case 1:
+		return edge_tree_search_begin(tree->gt, a);
+	case 0:
+		return tree;
+	}
+
 	return NULL;
 }
 
@@ -65,15 +87,8 @@ edge_t *edge_tree_search(edge_t *tree, float3 a, float3 b) {
 		FLOAT3_SET(start, b);
 		FLOAT3_SET(end, a);
 	}
-
-	switch(f3_cmp(tree->vertex->vertex, start)) {
-	case -1:
-		return edge_tree_search(tree->lt, start, end);
-	case 1:
-		return edge_tree_search(tree->gt, start, end);
-	case 0:
-		return edge_tree_search_end(tree->endpoints, end);
-	}
+	edge_t *start_node = edge_tree_search_begin(tree, start);
+	if(start_node) return edge_tree_search_end(start_node->endpoints, end);
 	return NULL;
 }
 
