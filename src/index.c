@@ -26,7 +26,10 @@ mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 
 			edge_t *edge = edge_tree_search(idx->edge_tree, v1->vertex, v2->vertex);
 			if(edge == NULL) edge = edge_tree_insert(idx->edge_tree, v1, v2);
-			if(idx->edge_tree == NULL) idx->edge_tree = edge;
+			if(idx->edge_tree == NULL) {
+				check(edge != NULL, "No edge_tree root, and no edge generated.");
+				idx->edge_tree = edge->start != NULL ? edge->start : edge;
+			}
 			check_mem(edge);
 			*kl_pushp(idx_poly, edge->polygons) = idx_poly;
 		}
