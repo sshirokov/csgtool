@@ -52,7 +52,7 @@ void edge_tree_walk_tails(edge_t *start, edge_t *end, edge_tree_visitor visit, v
 void edge_tree_walk(edge_t *tree, edge_tree_visitor visit, void* blob) {
 	if((tree != NULL) && (tree->lt != NULL)) edge_tree_walk(tree->lt, visit, blob);
 	if((tree != NULL) && (tree->gt != NULL)) edge_tree_walk(tree->gt, visit, blob);
-	edge_tree_walk_tails(tree, tree->endpoints, visit, blob);
+	if(tree != NULL) edge_tree_walk_tails(tree, tree->endpoints, visit, blob);
 }
 
 void edge_node_count(edge_t *node, void *counter) {
