@@ -11,17 +11,6 @@ void free_vertex_tree(vertex_node_t *tree) {
 	if(tree == NULL) return;
 	free_vertex_tree(tree->lt);
 	free_vertex_tree(tree->gt);
-	kliter_t(idx_poly) *iter = kl_begin(tree->polygons);
-	idx_poly_t *poly = NULL;
-	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
-		poly = kl_val(iter);
-		for(int v = 0; v < poly->vertex_count; v++) {
-			if(poly->vertices[v] != tree) {
-				vertex_node_filter_polygon(poly->vertices[v], poly);
-			}
-		}
-		free_idx_poly(poly);
-	}
 	kl_destroy(idx_poly, tree->polygons);
 	free(tree);
 }

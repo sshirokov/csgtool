@@ -26,7 +26,10 @@ mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons) {
 
 			edge_t *edge = edge_tree_search(idx->edge_tree, v1->vertex, v2->vertex);
 			if(edge == NULL) edge = edge_tree_insert(idx->edge_tree, v1, v2);
-			if(idx->edge_tree == NULL) idx->edge_tree = edge;
+			if(idx->edge_tree == NULL) {
+				check(edge != NULL, "No edge_tree root, and no edge generated.");
+				idx->edge_tree = edge->start != NULL ? edge->start : edge;
+			}
 			check_mem(edge);
 			*kl_pushp(idx_poly, edge->polygons) = idx_poly;
 		}
@@ -58,6 +61,11 @@ error:
 void free_mesh_index(mesh_index_t* idx) {
 	if(idx == NULL) return;
 	free_vertex_tree(idx->vertex_tree);
+	free_edge_tree(idx->edge_tree);
+	kliter_t(idx_poly) *iter = kl_begin(idx->polygons);
+	for(; iter != kl_end(idx->polygons); iter = kl_next(iter)) {
+		free_idx_poly(kl_val(iter));
+	}
 	kl_destroy(idx_poly, idx->polygons);
 }
 
