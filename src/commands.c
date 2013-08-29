@@ -6,6 +6,7 @@
 #include "bsp.h"
 #include "export.h"
 #include "index.h"
+#include "filter.h"
 
 typedef bsp_node_t* (*bsp_binary_op)(bsp_node_t *, bsp_node_t *);
 
@@ -100,6 +101,17 @@ int cmd_clean(int argc, char **argv) {
 
 	// Replace the output path if we were given one
 	if(argc > 2) out = argv[1];
+
+	// Perform a simple filter to remove polys with singularity edges
+	klist_t(poly) *filtered = filter_polys(NULL, polys, filter_test_edge_singularity);
+	log_info("Filter result %zd/%zd", polys->size, filtered->size);
+	// TODO: Don't do this, but also rewrite this whole method to not be a test driver.
+
+	stl_object *f_stl = stl_from_polys(filtered);
+	log_info("Wrtiting filterd: %d", stl_write_file(f_stl, "./out.filtered.stl"));
+	stl_free(f_stl);
+	kl_destroy(poly, polys);
+	polys = filtered;
 
 	index = alloc_mesh_index(polys);
 	size_t verts = 0;
