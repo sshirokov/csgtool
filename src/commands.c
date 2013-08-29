@@ -89,8 +89,8 @@ MAKE_CSG_COMMAND(intersect);
 MAKE_CSG_COMMAND(union);
 MAKE_CSG_COMMAND(subtract);
 
-int cmd_prune(int argc, char **argv) {
-	char *out = "./out.pruned.stl";
+int cmd_clean(int argc, char **argv) {
+	char *out = "./out.cleaned.stl";
 	stl_object *stl = NULL;
 	klist_t(poly) *polys = NULL;
 	mesh_index_t *index = NULL;
@@ -116,7 +116,7 @@ int cmd_prune(int argc, char **argv) {
 	for(; iter != kl_end(index->polygons); iter = kl_next(iter)) {
 		idx_poly_t *poly = kl_val(iter);
 		klist_t(idx_poly) *neighbors = index_find_poly_neighbors(index, poly);
-		check(neighbors != NULL, "Failed to find neighbors of poly in prune.");
+		check(neighbors != NULL, "Failed to find neighbors of poly in clean.");
 		if(neighbors->size > 1) {
 			*kl_pushp(poly, real_polys) = poly->poly;
 		}
@@ -124,8 +124,8 @@ int cmd_prune(int argc, char **argv) {
 	}
 
 	log_info("Result has %zd polys, writing to %s", real_polys->size, out);
-	stl_object *pruned = stl_from_polys(real_polys);
-	int rc = stl_write_file(pruned, out);
+	stl_object *cleaned = stl_from_polys(real_polys);
+	int rc = stl_write_file(cleaned, out);
 	log_info("Write result: %d", rc);
 
 
@@ -147,7 +147,7 @@ const cmd_t commands[] = {
 	{"intersect", "Intersect two geometries", cmd_intersect},
 	{"subtract",  "Subtract two geometries",  cmd_subtract},
 	{"union",     "Union two geometries",     cmd_union},
-	{"prune",     "Compute a de-duplicated v<->p index and clean polygons without neighbors", cmd_prune},
+	{"clean",     "Compute a de-duplicated v<->p index and clean polygons without neighbors", cmd_clean},
 	{NULL, NULL, NULL}
 };
 
