@@ -30,6 +30,8 @@ float3 *f3_scale(float3 *f, float c);
 // Non-destructive
 float3 *f3_cross(float3 *result, float3 v1, float3 v2);
 float f3_dot(float3 v1, float3 v2);
+float f3_mag2(float3 v);
+float f3_mag(float3 v);
 float3 *f3_sub(float3 *result, float3 v1, float3 v2);
 float3 *f3_add(float3 *result, float3 v1, float3 v2);
 float3 *f3_mid(float3 *result, float3 v1, float3 v2);

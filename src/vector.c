@@ -1,19 +1,17 @@
 #include "vector.h"
 
-float3 *clone_f3(float3 f) {
-	float3 *clone = malloc(sizeof(float3));
-	if(clone) {
-		(*clone)[0] = f[0];
-		(*clone)[1] = f[1];
-		(*clone)[2] = f[2];
-	}
-	return clone;
+float f3_mag2(float3 v) {
+	return (v[0] * v[0] +
+			v[1] * v[1] +
+			v[2] * v[2]);
+}
+
+float f3_mag(float3 v) {
+	return sqrt(f3_mag2(v));
 }
 
 float3 *f3_normalize(float3 *v) {
-	float mag = sqrt((*v)[0] * (*v)[0] +
-					 (*v)[1] * (*v)[1] +
-					 (*v)[2] * (*v)[2]);
+	float mag = f3_mag(*v);
 	(*v)[0] /= mag;
 	(*v)[1] /= mag;
 	(*v)[2] /= mag;
@@ -25,6 +23,16 @@ float3 *f3_scale(float3 *v, float c) {
 	(*v)[1] *= c;
 	(*v)[2] *= c;
 	return v;
+}
+
+float3 *clone_f3(float3 f) {
+	float3 *clone = malloc(sizeof(float3));
+	if(clone) {
+		(*clone)[0] = f[0];
+		(*clone)[1] = f[1];
+		(*clone)[2] = f[2];
+	}
+	return clone;
 }
 
 float f3_dot(float3 v1, float3 v2) {
