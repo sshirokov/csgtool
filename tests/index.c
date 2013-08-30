@@ -122,6 +122,9 @@ void test_index__can_add_edge_bisectors(void) {
 	cl_assert_equal_i(other, 0);
 	cl_assert_equal_i(three, 2);
 	cl_assert_equal_i(more, 1);
+
+	kl_destroy(poly, badsquare_map);
+	kl_destroy(poly, cube_map);
 }
 
 void test_index__can_bisect_into_triangles(void) {
