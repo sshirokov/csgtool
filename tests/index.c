@@ -104,6 +104,8 @@ void test_index__can_add_edge_bisectors(void) {
 	cl_assert(cube_map != NULL);
 	cl_assert(badsquare_map != NULL);
 
+	cl_assert_equal_i(badsquare_map->size, badsquare_mesh_polys->size);
+
 	// Every poly in the cube map should be 3 vertex, because it was proper
 	kliter_t(poly) *i = kl_begin(cube_map);
 	for(; i != kl_end(cube_map); i = kl_next(i)) {
