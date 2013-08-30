@@ -62,6 +62,48 @@ error:
 	return NULL;
 }
 
+typedef struct s_vertex_segment_search {
+	float3 start;
+	float3 end;
+	vertex_node_t *results;
+} vertex_segment_info_t;
+
+void _store_if_bisect(vertex_node_t *node, vertex_segment_info_t *info) {
+	float3 ba_diff = FLOAT3_INIT;
+	float3 bn_diff = FLOAT3_INIT;
+	float3 ba_normal = FLOAT3_INIT;
+	float3 bn_normal = FLOAT3_INIT;
+
+	if((f3_cmp(node->vertex, info->start) == 0) || (f3_cmp(node->vertex, info->end) == 0)) return;
+
+	f3_sub(&ba_diff, info->end, info->start);
+	FLOAT3_SET(ba_normal, ba_diff);
+	f3_normalize(&ba_normal);
+
+	f3_sub(&bn_diff, node->vertex, info->start);
+	FLOAT3_SET(bn_normal, bn_diff);
+	f3_normalize(&bn_normal);
+
+	if(f3_cmp(ba_normal, bn_normal) == 0) {
+		if(f3_mag2(ba_diff) > f3_mag2(bn_diff)) {
+			vertex_node_t *vertex = vertex_tree_search(info->results, node->vertex);
+			if(vertex == NULL) vertex = vertex_tree_insert(info->results, node->vertex);
+			if(info->results == NULL) info->results = vertex;
+		}
+	}
+}
+
+vertex_node_t *vertex_tree_search_segment(vertex_node_t *tree, float3 start, float3 end) {
+	if(tree == NULL) return NULL;
+	vertex_segment_info_t info = {
+		.start = {FLOAT3_FORMAT(start)},
+		.end = {FLOAT3_FORMAT(end)},
+		.results = NULL
+	};
+	vertex_tree_walk(tree, (vertex_tree_visitor)_store_if_bisect, &info);
+	return info.results;
+}
+
 void vertex_tree_walk(vertex_node_t *tree, vertex_tree_visitor visit, void *blob) {
 	if((tree != NULL) && (tree->lt != NULL)) vertex_tree_walk(tree->lt, visit, blob);
 	if((tree != NULL) && (tree->gt != NULL)) vertex_tree_walk(tree->gt, visit, blob);
