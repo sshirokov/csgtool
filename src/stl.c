@@ -170,7 +170,6 @@ stl_object *stl_read_text_object(int fd) {
 		check(line != NULL, "Failed to read STL/ASCII header.");
 		check((obj = stl_alloc(NULL, 0)), "Failed to allocated new STL object.");
 		snprintf(obj->header, sizeof(obj->header), "[STL/ASCII]: '%s'", line);
-		log_info("Header: [%s]", obj->header);
 		free(line);
 
 		size_t lines = 0;
@@ -183,7 +182,6 @@ stl_object *stl_read_text_object(int fd) {
 				}
 				else if(strncmp(line, "endsolid", strlen("endfacet")) == 0) {
 						check(facets->size > 0, "No facets loaded.");
-						log_info("ASCII solid ended. Loaded %zd facets", facets->size);
 
 						obj->facet_count = facets->size;
 						obj->facets = calloc(facets->size, sizeof(stl_facet));
