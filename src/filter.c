@@ -13,7 +13,28 @@ int filter_test_edge_singularity(poly_t *poly) {
 }
 
 void map_insert_edge_bisectors(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly) {
-	log_info("TODO: insert_edge_bisectors");
+	// TODO: Memory can run out in here, should probably return an error and handle it
+	poly_t *new = alloc_poly();
+	for(int i = 0, j = 1; i < poly->vertex_count; j = ((++i) + 1) % poly->vertex_count) {
+		vertex_node_t *verts = NULL;
+		size_t count = 0;
+		verts = vertex_tree_search_segment(index->vertex_tree, &count, poly->vertices[i], poly->vertices[j]);
+		if(count > 0) {
+			// TODO:
+			//   * Sort the resulting verts in order v[i]->j[v]
+			//   * Insert the first vertex
+			//   * Insert the sorted verts
+			//   * Insert the last vert
+			poly_push_vertex(new, poly->vertices[i]);
+			poly_push_vertex(new, poly->vertices[j]);
+		}
+		else {
+			poly_push_vertex(new, poly->vertices[i]);
+			poly_push_vertex(new, poly->vertices[j]);
+		}
+		free_vertex_tree(verts);
+	}
+	*kl_pushp(poly, dst) = new;
 }
 
 klist_t(poly) *filter_polys(klist_t(poly) *dst, klist_t(poly) *src, filter_test_t *test) {
