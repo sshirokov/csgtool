@@ -9,26 +9,41 @@ stl_object *cube_mesh = NULL;
 klist_t(poly) *cube_mesh_polys = NULL;
 mesh_index_t *cube_idx = NULL;
 
+char badsquare_path[] = CLAR_FIXTURE_PATH "badsquare.stl";
+stl_object *badsquare_mesh = NULL;
+klist_t(poly) *badsquare_mesh_polys = NULL;
+mesh_index_t *badsquare_idx = NULL;
+
+void init_test_set(char *path, stl_object **mesh, klist_t(poly) **polys, mesh_index_t **index) {
+	*mesh = stl_read_file(path, 1);
+	cl_assert_(*mesh != NULL, "Failed to read object");
+
+	*polys = stl_to_polys(*mesh);
+	cl_assert_(*polys != NULL, "Failed to export mesh as polygon list.");
+
+	*index = alloc_mesh_index(*polys);
+	cl_assert_(*index, "Failed to build index");
+	cl_assert_((*index)->polygons != NULL, "Poly list does not exist");
+	cl_assert_equal_i((*index)->polygons->size, (*polys)->size);
+}
+
+void clean_test_set(stl_object **mesh, klist_t(poly) **polys, mesh_index_t **index) {
+	if(*mesh != NULL) stl_free(*mesh);
+	if(*polys != NULL) kl_destroy(poly, *polys);
+	if(*index) free_mesh_index(*index);
+	*mesh = NULL;
+	*polys = NULL;
+	*index = NULL;
+}
+
 void test_index__initialize(void) {
-	cube_mesh = stl_read_file(cube_path, 1);
-	cl_assert_(cube_mesh != NULL, "Failed to read cube");
-
-	cube_mesh_polys = stl_to_polys(cube_mesh);
-	cl_assert_(cube_mesh_polys != NULL, "Failed to export mesh as polygon list.");
-
-	cube_idx = alloc_mesh_index(cube_mesh_polys);
-	cl_assert_(cube_idx, "Failed to build index");
-	cl_assert_(cube_idx->polygons != NULL, "Poly list does not exist");
-	cl_assert_equal_i(cube_idx->polygons->size, cube_mesh_polys->size);
+	init_test_set(cube_path, &cube_mesh, &cube_mesh_polys, &cube_idx);
+	init_test_set(badsquare_path, &badsquare_mesh, &badsquare_mesh_polys, &badsquare_idx);
 }
 
 void test_index__cleanup(void) {
-	if(cube_mesh != NULL) stl_free(cube_mesh);
-	if(cube_mesh_polys != NULL) kl_destroy(poly, cube_mesh_polys);
-	if(cube_idx) free_mesh_index(cube_idx);
-	cube_mesh = NULL;
-	cube_mesh_polys = NULL;
-	cube_idx = NULL;
+	clean_test_set(&cube_mesh, &cube_mesh_polys, &cube_idx);
+	clean_test_set(&badsquare_mesh, &badsquare_mesh_polys, &badsquare_idx);
 }
 
 void test_index__reduces_vertex_count(void) {
