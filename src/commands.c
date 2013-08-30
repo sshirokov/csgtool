@@ -9,6 +9,7 @@
 #include "index.h"
 #include "filter.h"
 
+
 int cmd_clean(int argc, char **argv) {
 	char *out = "./out.cleaned.stl";
 	stl_object *stl = NULL;
@@ -39,6 +40,11 @@ int cmd_clean(int argc, char **argv) {
 	vertex_tree_walk(index->vertex_tree, vertex_node_count, &verts);
 	edge_tree_walk(index->edge_tree, edge_node_count, &edges);
 	log_info("Polys in index: %zd Verts in index: %zd Edges in index: %zd", index->polygons->size, verts, edges);
+
+	// TODO: You are here
+	filtered = map_polys_with_index(index, NULL, polys, map_bisect_edges);
+	log_info("%zd filtered polys produced.", filtered->size);
+	kl_destroy(poly, filtered);
 
 	klist_t(poly) *real_polys = kl_init(poly);
 
