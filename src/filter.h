@@ -13,7 +13,7 @@ typedef void (poly_with_index_t)(klist_t(poly) *dst, mesh_index_t *index, poly_t
 int filter_test_edge_singularity(poly_t *poly);
 
 // Maps
-void map_insert_edge_bisectors(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly);
+void map_bisect_edges(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly);
 
 // Filter driver
 klist_t(poly) *filter_polys(klist_t(poly) *dst, klist_t(poly) *src, filter_test_t *test);
