@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include "klist.h"
 
@@ -66,6 +67,28 @@ void map_bisect_edges(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly) {
 	// TODO: Memory can run out in here, should probably return an error and handle it
 	poly_t *new = poly_bisect_edges(poly, index);
 	*kl_pushp(poly, dst) = new;
+}
+
+void map_bisect_to_triangles(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly) {
+	poly_t *new = poly_bisect_edges(poly, index);
+	if(new->vertex_count == 3) {
+		*kl_pushp(poly, dst) = new;
+	}
+	else {
+		float3 *v_cur, *v_prev;
+		for(int i = 2; i < new->vertex_count; i++) {
+			v_cur = &new->vertices[i];
+			v_prev = &new->vertices[i - 1];
+			poly_t *tri = poly_make_triangle(new->vertices[0], *v_prev, *v_cur);
+			check_mem(tri);
+			*kl_pushp(poly, dst) = tri;
+		}
+	}
+
+	return;
+error:
+	log_err("map_bisect_to_triangles(%p, %p, %p) failed.", dst, index, poly);
+	assert(0);
 }
 
 klist_t(poly) *filter_polys(klist_t(poly) *dst, klist_t(poly) *src, filter_test_t *test) {

@@ -14,6 +14,7 @@ int filter_test_edge_singularity(poly_t *poly);
 
 // Maps
 void map_bisect_edges(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly);
+void map_bisect_to_triangles(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly);
 
 // Filter driver
 klist_t(poly) *filter_polys(klist_t(poly) *dst, klist_t(poly) *src, filter_test_t *test);

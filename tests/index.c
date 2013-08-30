@@ -123,3 +123,17 @@ void test_index__can_add_edge_bisectors(void) {
 	cl_assert_equal_i(three, 2);
 	cl_assert_equal_i(more, 1);
 }
+
+void test_index__can_bisect_into_triangles(void) {
+	klist_t(poly) *badsquare_map = map_polys_with_index(badsquare_idx, NULL, badsquare_mesh_polys, map_bisect_to_triangles);
+	cl_assert(badsquare_map != NULL);
+
+	kliter_t(poly) *i = kl_begin(badsquare_map);
+	for(; i != kl_end(badsquare_map); i = kl_next(i)) {
+		cl_assert_equal_i(kl_val(i)->vertex_count, 3);
+	}
+
+	cl_assert_equal_i(badsquare_mesh_polys->size + 1, badsquare_map->size);
+
+	kl_destroy(poly, badsquare_map);
+}
