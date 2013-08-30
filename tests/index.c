@@ -3,6 +3,7 @@
 #include "stl.h"
 #include "export.h"
 #include "index.h"
+#include "filter.h"
 
 char cube_path[] = CLAR_FIXTURE_PATH "cube.stl";
 stl_object *cube_mesh = NULL;
@@ -94,4 +95,31 @@ void test_index__polygon_can_find_neighbors(void) {
 	cl_assert_(polys != NULL, "There should be neighbors of every poly in this cube.");
 	cl_assert_equal_i(polys->size, 3);
 	if(polys != NULL) kl_destroy(idx_poly, polys);
+}
+
+void test_index__can_add_edge_bisectors(void) {
+	klist_t(poly) *cube_map = map_polys_with_index(cube_idx, NULL, cube_mesh_polys, map_bisect_edges);
+	klist_t(poly) *badsquare_map = map_polys_with_index(badsquare_idx, NULL, badsquare_mesh_polys, map_bisect_edges);
+
+	cl_assert(cube_map != NULL);
+	cl_assert(badsquare_map != NULL);
+
+	// Every poly in the cube map should be 3 vertex, because it was proper
+	kliter_t(poly) *i = kl_begin(cube_map);
+	for(; i != kl_end(cube_map); i = kl_next(i)) {
+		cl_assert_equal_i(kl_val(i)->vertex_count, 3);
+	}
+
+	int three = 0;
+	int more = 0;
+	int other = 0;
+	for(i = kl_begin(badsquare_map); i != kl_end(badsquare_map); i = kl_next(i)) {
+		int count = kl_val(i)->vertex_count;
+		if(count == 3) three++;
+		else if(count > 3) more++;
+		else other++;
+	}
+	cl_assert_equal_i(other, 0);
+	cl_assert_equal_i(three, 2);
+	cl_assert_equal_i(more, 1);
 }
