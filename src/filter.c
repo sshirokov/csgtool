@@ -1,3 +1,5 @@
+#include "klist.h"
+
 #include "filter.h"
 
 int filter_test_edge_singularity(poly_t *poly) {
@@ -8,6 +10,10 @@ int filter_test_edge_singularity(poly_t *poly) {
 		}
 	}
 	return 1;
+}
+
+void map_insert_edge_bisectors(klist_t(poly) *dst, mesh_index_t *index, poly_t *poly) {
+	log_info("TODO: insert_edge_bisectors");
 }
 
 klist_t(poly) *filter_polys(klist_t(poly) *dst, klist_t(poly) *src, filter_test_t *test) {
@@ -30,5 +36,22 @@ klist_t(poly) *filter_polys(klist_t(poly) *dst, klist_t(poly) *src, filter_test_
 	return result;
 error:
 	if((result != NULL) && (result != dst)) kl_destroy(poly, result);
+	return NULL;
+}
+
+klist_t(poly) *map_polys_with_index(mesh_index_t *idx, klist_t(poly) *dst, klist_t(poly) *src, poly_with_index_t *mapper) {
+	klist_t(poly) *to = NULL;
+	if(dst == NULL) to = kl_init(poly);
+	else to = dst;
+	check_mem(to);
+
+	kliter_t(poly) *iter = kl_begin(src);
+	for(; iter != kl_end(src); iter = kl_next(iter)) {
+		mapper(to, idx, kl_val(iter));
+	}
+
+	return to;
+error:
+	if((to != NULL) && (to != dst)) kl_destroy(poly, to);
 	return NULL;
 }
