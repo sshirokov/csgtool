@@ -36,6 +36,7 @@ void clean_test_set(stl_object **mesh, klist_t(poly) **polys, mesh_index_t **ind
 	*index = NULL;
 }
 
+// Test suite init/clean
 void test_index__initialize(void) {
 	init_test_set(cube_path, &cube_mesh, &cube_mesh_polys, &cube_idx);
 	init_test_set(badsquare_path, &badsquare_mesh, &badsquare_mesh_polys, &badsquare_idx);
@@ -46,6 +47,7 @@ void test_index__cleanup(void) {
 	clean_test_set(&badsquare_mesh, &badsquare_mesh_polys, &badsquare_idx);
 }
 
+// Test cases
 void test_index__reduces_vertex_count(void) {
 	cl_assert_(cube_idx->vertex_tree != NULL, "Vertex tree does not exist");
 
