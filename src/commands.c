@@ -42,8 +42,11 @@ int cmd_clean(int argc, char **argv) {
 	log_info("Polys in index: %zd Verts in index: %zd Edges in index: %zd", index->polygons->size, verts, edges);
 
 	// TODO: You are here
-	filtered = map_polys_with_index(index, NULL, polys, map_bisect_edges);
-	log_info("%zd filtered polys produced.", filtered->size);
+	filtered = map_polys_with_index(index, NULL, polys, map_bisect_to_triangles);
+	log_info("%zd mapped polys produced.", filtered->size);
+	f_stl = stl_from_polys(filtered);
+	log_info("Wrtiting mapped: %d", stl_write_file(f_stl, "./out.mapped.stl"));
+	stl_free(f_stl);
 	kl_destroy(poly, filtered);
 
 	klist_t(poly) *real_polys = kl_init(poly);
