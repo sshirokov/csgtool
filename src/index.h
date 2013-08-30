@@ -24,6 +24,12 @@ void free_mesh_index(mesh_index_t *index);
 
 mesh_index_t *mesh_index_init(mesh_index_t *idx, klist_t(poly) *polygons);
 
+// Walking
+typedef void (index_edge_visitor)(mesh_index_t *idx, edge_t *edge, void *blob);
+
+void index_walk_edges(mesh_index_t *index, index_edge_visitor *visit, void *blob);
+
+// Searching
 klist_t(edge) *index_find_poly_edges(mesh_index_t *index, idx_poly_t *poly);
 klist_t(idx_poly) *index_find_poly_neighbors(mesh_index_t *index, idx_poly_t *poly);
 

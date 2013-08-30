@@ -69,6 +69,27 @@ void free_mesh_index(mesh_index_t* idx) {
 	kl_destroy(idx_poly, idx->polygons);
 }
 
+typedef struct s_index_edge_blob {
+	mesh_index_t *index;
+	index_edge_visitor *visitor;
+	void *blob;
+} idx_edge_blob_t;
+
+// Wrapper to `edge_tree_walk` below that walks edges with an index pointer
+void _visit_edge_with_index(edge_t *edge, idx_edge_blob_t* info) {
+	info->visitor(info->index, edge, info->blob);
+}
+
+// Walker helpers
+void index_walk_edges(mesh_index_t *index, index_edge_visitor *visit, void *blob) {
+	idx_edge_blob_t info = {
+		.index = index,
+		.visitor = visit,
+		.blob = blob
+	};
+	edge_tree_walk(index->edge_tree, (edge_tree_visitor)_visit_edge_with_index, &info);
+}
+
 // Access methods
 klist_t(edge) *index_find_poly_edges(mesh_index_t *index, idx_poly_t *poly) {
 	klist_t(edge) *result = NULL;
