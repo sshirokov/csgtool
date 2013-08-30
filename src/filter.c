@@ -13,26 +13,25 @@ int filter_test_edge_singularity(poly_t *poly) {
 	return 1;
 }
 
-typedef struct s_f3_buff {
+
+typedef  int(qsort_cmp_t)(const void*,const void*);
+
+typedef struct s_f3_mag {
 	float3 base;
-	float3 *verts;
+	float3 v;
+} f3_mag_t;
+
+typedef struct s_f3_mag_buffer {
+	float3 base;
+	f3_mag_t *buffer;
 	size_t n;
-	size_t max;
-} f3_buff_t;
+} f3_mag_buffer_t;
 
-void add_to_f3_buff(vertex_node_t *node, f3_buff_t *buffer) {
-    // WARNING: MULTIPLE EVALUATION INSIDE FLOAT3_SET!
-	int i = buffer->n++;
-	FLOAT3_SET(buffer->verts[i], node->vertex);
-}
-
-typedef  int(qsort_r_cmp_t)(void*,const void*,const void*);
-
-int cmp_f3_mag2(f3_buff_t *buffer, float3 *a, float3 *b) {
+int cmp_f3_mag2(f3_mag_t *a, f3_mag_t *b) {
 	float3 diffA = FLOAT3_INIT;
 	float3 diffB = FLOAT3_INIT;
-	f3_sub(&diffA, buffer->base, *a);
-	f3_sub(&diffB, buffer->base, *b);
+	f3_sub(&diffA, a->base, a->v);
+	f3_sub(&diffB, b->base, b->v);
 
 	float magA = f3_mag2(diffA);
 	float magB = f3_mag2(diffB);
@@ -40,6 +39,12 @@ int cmp_f3_mag2(f3_buff_t *buffer, float3 *a, float3 *b) {
 	if(magA < magB) return -1;
 	if(magA > magB) return 1;
 	return 0;
+}
+
+void add_to_f3_mag_buff(vertex_node_t *node, f3_mag_buffer_t *buffer) {
+    // WARNING: MULTIPLE EVALUATION INSIDE FLOAT3_SET!
+	int i = buffer->n++;
+	FLOAT3_SET(buffer->buffer[i].v, node->vertex);
 }
 
 poly_t *poly_bisect_edges(poly_t *poly, mesh_index_t *index) {
@@ -54,19 +59,21 @@ poly_t *poly_bisect_edges(poly_t *poly, mesh_index_t *index) {
 			// by magnitude then add any vertexes after the current into the list
 			// of the new polygon.
 			check_mem(verts);
-			f3_buff_t bisects = {
+			f3_mag_buffer_t bisects = {
 				.base = {FLOAT3_FORMAT(poly->vertices[j])},
-				.verts = calloc(count, sizeof(float3)),
+				.buffer = calloc(count, sizeof(f3_mag_t)),
 				.n = 0
 			};
-			check_mem(bisects.verts);
-			vertex_tree_walk(verts, (vertex_tree_visitor)add_to_f3_buff, &bisects);
-			qsort_r(bisects.verts, bisects.n, sizeof(float3), &bisects, (qsort_r_cmp_t*)cmp_f3_mag2);
+			check_mem(bisects.buffer);
+			vertex_tree_walk(verts, (vertex_tree_visitor)add_to_f3_mag_buff, &bisects);
+
+			qsort(bisects.buffer, bisects.n, sizeof(f3_mag_t), (qsort_cmp_t*)cmp_f3_mag2);
+
 			poly_push_vertex(new, poly->vertices[i]);
 			for(int k = 0; k < bisects.n; k++) {
-				poly_push_vertex(new, bisects.verts[k]);
+				poly_push_vertex(new, bisects.buffer[k].v);
 			}
-			free(bisects.verts);
+			free(bisects.buffer);
 		}
 		else {
 			poly_push_vertex(new, poly->vertices[i]);
