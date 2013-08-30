@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "klist.h"
 
 #include "filter.h"
@@ -12,6 +13,35 @@ int filter_test_edge_singularity(poly_t *poly) {
 	return 1;
 }
 
+typedef struct s_f3_buff {
+	float3 base;
+	float3 *verts;
+	size_t n;
+	size_t max;
+} f3_buff_t;
+
+void add_to_f3_buff(vertex_node_t *node, f3_buff_t *buffer) {
+    // WARNING: MULTIPLE EVALUATION INSIDE FLOAT3_SET!
+	int i = buffer->n++;
+	FLOAT3_SET(buffer->verts[i], node->vertex);
+}
+
+typedef  int(qsort_r_cmp_t)(void*,const void*,const void*);
+
+int cmp_f3_mag2(f3_buff_t *buffer, float3 *a, float3 *b) {
+	float3 diffA = FLOAT3_INIT;
+	float3 diffB = FLOAT3_INIT;
+	f3_sub(&diffA, buffer->base, *a);
+	f3_sub(&diffB, buffer->base, *b);
+
+	float magA = f3_mag2(diffA);
+	float magB = f3_mag2(diffB);
+
+	if(magA < magB) return -1;
+	if(magA > magB) return 1;
+	return 0;
+}
+
 poly_t *poly_bisect_edges(poly_t *poly, mesh_index_t *index) {
 	poly_t *new = alloc_poly();
 	check_mem(new);
@@ -20,21 +50,30 @@ poly_t *poly_bisect_edges(poly_t *poly, mesh_index_t *index) {
 		size_t count = 0;
 		verts = vertex_tree_search_segment(index->vertex_tree, &count, poly->vertices[i], poly->vertices[j]);
 		if(count > 0) {
+			// Since we have bisecting verts, we will sort them into a list
+			// by magnitude then add any vertexes after the current into the list
+			// of the new polygon.
 			check_mem(verts);
-			// TODO:
-			//   * Sort the resulting verts in order v[i]->j[v]
-			//   * Insert the first vertex
-			//   * Insert the sorted verts
-			//   * Insert the last vert
+			f3_buff_t bisects = {
+				.base = {FLOAT3_FORMAT(poly->vertices[j])},
+				.verts = calloc(count, sizeof(float3)),
+				.n = 0
+			};
+			check_mem(bisects.verts);
+			vertex_tree_walk(verts, (vertex_tree_visitor)add_to_f3_buff, &bisects);
+			qsort_r(bisects.verts, bisects.n, sizeof(float3), &bisects, (qsort_r_cmp_t*)cmp_f3_mag2);
 			poly_push_vertex(new, poly->vertices[i]);
-			poly_push_vertex(new, poly->vertices[j]);
+			for(int k = 0; k < bisects.n; k++) {
+				poly_push_vertex(new, bisects.verts[k]);
+			}
+			free(bisects.verts);
 		}
 		else {
 			poly_push_vertex(new, poly->vertices[i]);
-			poly_push_vertex(new, poly->vertices[j]);
 		}
 		free_vertex_tree(verts);
 	}
+
 	return new;
 error:
 	if(new != NULL) free_poly(new, 1);
