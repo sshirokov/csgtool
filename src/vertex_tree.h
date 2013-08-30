@@ -28,7 +28,7 @@ void free_vertex_tree(vertex_node_t *tree);
 // Vertex tree traverseral and friends
 vertex_node_t *vertex_tree_search(vertex_node_t *tree, float3 v);
 vertex_node_t *vertex_tree_insert(vertex_node_t *tree, float3 v);
-vertex_node_t *vertex_tree_search_segment(vertex_node_t *tree, float3 start, float3 end);
+vertex_node_t *vertex_tree_search_segment(vertex_node_t *tree, size_t *count, float3 start, float3 end);
 
 void vertex_tree_walk(vertex_node_t *tree, vertex_tree_visitor visit, void *blob);
 
