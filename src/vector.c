@@ -90,3 +90,17 @@ int f3_cmp(float3 a, float3 b) {
 	}
 	return 0;
 }
+
+int f3_mag2_cmp(f3_mag_t *a, f3_mag_t *b) {
+	float3 diffA = FLOAT3_INIT;
+	float3 diffB = FLOAT3_INIT;
+	f3_sub(&diffA, a->base, a->v);
+	f3_sub(&diffB, b->base, b->v);
+
+	float magA = f3_mag2(diffA);
+	float magB = f3_mag2(diffB);
+
+	if(magA < magB) return -1;
+	if(magA > magB) return 1;
+	return 0;
+}

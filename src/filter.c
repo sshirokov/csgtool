@@ -16,31 +16,6 @@ int filter_test_edge_singularity(poly_t *poly) {
 
 typedef  int(qsort_cmp_t)(const void*,const void*);
 
-typedef struct s_f3_mag {
-	float3 base;
-	float3 v;
-} f3_mag_t;
-
-typedef struct s_f3_mag_buffer {
-	float3 base;
-	f3_mag_t *buffer;
-	size_t n;
-} f3_mag_buffer_t;
-
-int cmp_f3_mag2(f3_mag_t *a, f3_mag_t *b) {
-	float3 diffA = FLOAT3_INIT;
-	float3 diffB = FLOAT3_INIT;
-	f3_sub(&diffA, a->base, a->v);
-	f3_sub(&diffB, b->base, b->v);
-
-	float magA = f3_mag2(diffA);
-	float magB = f3_mag2(diffB);
-
-	if(magA < magB) return -1;
-	if(magA > magB) return 1;
-	return 0;
-}
-
 void add_to_f3_mag_buff(vertex_node_t *node, f3_mag_buffer_t *buffer) {
     // WARNING: MULTIPLE EVALUATION INSIDE FLOAT3_SET!
 	int i = buffer->n++;
@@ -67,7 +42,7 @@ poly_t *poly_bisect_edges(poly_t *poly, mesh_index_t *index) {
 			check_mem(bisects.buffer);
 			vertex_tree_walk(verts, (vertex_tree_visitor)add_to_f3_mag_buff, &bisects);
 
-			qsort(bisects.buffer, bisects.n, sizeof(f3_mag_t), (qsort_cmp_t*)cmp_f3_mag2);
+			qsort(bisects.buffer, bisects.n, sizeof(f3_mag_t), (qsort_cmp_t*)f3_mag2_cmp);
 
 			poly_push_vertex(new, poly->vertices[i]);
 			for(int k = 0; k < bisects.n; k++) {

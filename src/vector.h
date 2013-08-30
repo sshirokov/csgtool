@@ -42,4 +42,17 @@ int f3_cmp(float3 a, float3 b);
 #define mp_float3_free(x) free(kl_val(x))
 KLIST_INIT(float3, float3*, mp_float3_free)
 
+typedef struct s_f3_mag {
+	float3 base;
+	float3 v;
+} f3_mag_t;
+
+typedef struct s_f3_mag_buffer {
+	float3 base;
+	f3_mag_t *buffer;
+	size_t n;
+} f3_mag_buffer_t;
+
+int f3_mag2_cmp(f3_mag_t *a, f3_mag_t *b);
+
 #endif
