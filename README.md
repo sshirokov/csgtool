@@ -6,7 +6,7 @@ csgtool [![Build Status](https://travis-ci.org/sshirokov/csgtool.png?branch=mast
 [STL Files](http://bit.ly/wikistl) using [3D BSP Trees](http://en.wikipedia.org/wiki/Binary_space_partitioning).
 
 The library is written in C99 with performance, portability and readability as primary goals. The ruby gem wraps the library
-using the [ffi gem](leaning towards, and requ) to provide a friendlier interface to the underlying engine.
+using the [ffi gem](https://github.com/ffi/ffi) to provide a friendlier interface to the underlying engine.
 
 ### Quickstart
 
