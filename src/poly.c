@@ -63,6 +63,11 @@ int poly_vertex_available(poly_t *poly) {
 	return poly->vertex_max - poly->vertex_count;
 }
 
+// Has the vertex buffer been dynamically allocated?
+int poly_vertex_dynamic_p(poly_t *poly) {
+	return (poly->vertices != poly->_vbuffer) ? 1 : 0;
+}
+
 int poly_vertex_expand(poly_t *poly) {
 	// Not using realloc because the original buffer may be struct-owned
 	int new_size = poly->vertex_max * 2;
@@ -73,10 +78,11 @@ int poly_vertex_expand(poly_t *poly) {
 	poly->vertex_max = new_size;
 
 	// Free the existing buffer if it's not part of the struct's space
-	if(poly->vertices != poly->_vbuffer) {
+	if(poly_vertex_dynamic_p(poly) == 1) {
 		free(poly->vertices);
 	}
 
+	// Install the new vertex buffer
 	poly->vertices = new_verts;
 
 	return 0;
