@@ -59,10 +59,37 @@ int poly_vertex_max(poly_t *poly) {
 	return poly->vertex_max;
 }
 
-// Add a vertex to the end of the polygon vertex list
+int poly_vertex_available(poly_t *poly) {
+	return poly->vertex_max - poly->vertex_count;
+}
+
+int poly_vertex_expand(poly_t *poly) {
+	// Not using realloc because the original buffer may be struct-owned
+	int new_size = poly->vertex_max * 2;
+	float3 *new_verts = malloc(new_size * sizeof(float3));
+	check_mem(new_verts);
+
+	memcpy(new_verts, poly->vertices, poly->vertex_max * sizeof(float3));
+	poly->vertex_max = new_size;
+
+	// Free the existing buffer if it's not part of the struct's space
+	if(poly->vertices != poly->_vbuffer) {
+		free(poly->vertices);
+	}
+
+	poly->vertices = new_verts;
+
+	return 0;
+error:
+	if(new_verts != NULL) free(new_verts);
+	return -1;
+}
+
+// add a vertex to the end of the polygon vertex list
 int poly_push_vertex(poly_t *poly, float3 v) {
-	// TODO: Don't assert, grow
-	assert(poly->vertex_count < POLY_MAX_VERTS);
+	if(poly_vertex_available(poly) == 0) {
+		poly_vertex_expand(poly);
+	}
 
 	// Dat assignment copy
 	poly->vertices[poly->vertex_count][0] = v[0];

@@ -36,6 +36,8 @@ poly_t *poly_invert(poly_t *poly);
 
 int poly_vertex_count(poly_t *poly);
 int poly_vertex_max(poly_t *poly);
+int poly_vertex_available(poly_t *poly);
+int poly_vertex_expand(poly_t *poly);
 int poly_push_vertex(poly_t *poly, float3 v);
 
 int poly_classify_vertex(poly_t *poly, float3 v);
