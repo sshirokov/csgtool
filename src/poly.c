@@ -18,7 +18,7 @@ void free_poly(poly_t *p, int free_self) {
 
 poly_t *poly_init(poly_t *poly) {
 	poly->vertex_count = 0;
-	poly->max_verts = POLY_MAX_VERTS;
+	poly->vertex_max = POLY_MAX_VERTS;
 	poly->vertices = poly->_vbuffer;
 	return poly;
 }
@@ -53,6 +53,10 @@ int poly_update(poly_t *poly) {
 
 int poly_vertex_count(poly_t *poly) {
 	return poly->vertex_count;
+}
+
+int poly_vertex_max(poly_t *poly) {
+	return poly->vertex_max;
 }
 
 // Add a vertex to the end of the polygon vertex list

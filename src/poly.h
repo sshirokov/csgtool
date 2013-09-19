@@ -17,7 +17,7 @@
 typedef struct s_poly {
 	float3 *vertices;
 	int vertex_count;
-	int max_verts;
+	int vertex_max;
 
 	float3 normal;
 	float w;
@@ -35,6 +35,7 @@ int poly_update(poly_t *poly);
 poly_t *poly_invert(poly_t *poly);
 
 int poly_vertex_count(poly_t *poly);
+int poly_vertex_max(poly_t *poly);
 int poly_push_vertex(poly_t *poly, float3 v);
 
 int poly_classify_vertex(poly_t *poly, float3 v);
