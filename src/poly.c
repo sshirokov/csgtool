@@ -18,6 +18,8 @@ void free_poly(poly_t *p, int free_self) {
 
 poly_t *poly_init(poly_t *poly) {
 	poly->vertex_count = 0;
+	poly->max_verts = POLY_MAX_VERTS;
+	poly->vertices = poly->_vbuffer;
 	return poly;
 }
 

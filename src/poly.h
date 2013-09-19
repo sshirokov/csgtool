@@ -15,11 +15,14 @@
 #define POLY_MAX_VERTS 40
 
 typedef struct s_poly {
-	float3 vertices[POLY_MAX_VERTS];
+	float3 *vertices;
 	int vertex_count;
+	int max_verts;
 
 	float3 normal;
 	float w;
+
+	float3 _vbuffer[POLY_MAX_VERTS];
 } poly_t;
 
 poly_t *alloc_poly(void);
