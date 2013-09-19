@@ -13,6 +13,10 @@ error:
 
 void free_poly(poly_t *p, int free_self) {
 	if(p == NULL) return;
+	if(poly_vertex_dynamic_p(p) == 1) {
+		if(p->vertices != NULL) free(p->vertices);
+		p->vertices = NULL;
+	}
 	if(free_self) free(p);
 }
 
@@ -27,8 +31,23 @@ poly_t *clone_poly(poly_t *poly) {
 	poly_t *copy = NULL;
 	check_mem(copy = alloc_poly());
 	memcpy(copy, poly, sizeof(poly_t));
+
+	// Either point the clone at its own copied
+	// buffer, or copy over the dynamic vertex buffer
+	if(poly_vertex_dynamic_p(poly) == 0) {
+		copy->vertices = copy->_vbuffer;
+	}
+	else {
+		// We can lean on the `copy->*` memebers
+		// since they would have been memcpy'd over
+		copy->vertices = malloc(poly_vertex_max(copy) * sizeof(float3));
+		check_mem(copy->vertices);
+		memcpy(copy->vertices, poly->vertices, poly_vertex_max(copy) * sizeof(float3));
+	}
+
 	return copy;
 error:
+	if(copy != NULL) free_poly(copy, 1);
 	return NULL;
 }
 
