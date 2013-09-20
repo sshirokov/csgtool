@@ -130,7 +130,7 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons, int copy) {
 		polys[i] = poly;
 	}
 
-	check((node = bsp_build_array(node, polys, polygons->size)),
+	check((node = bsp_build_array(node, polys, polygons->size, copy)),
 		  "Failed to build node from list(%p) of %zd polys", polygons, polygons->size);
 	free(polys);
 
@@ -140,7 +140,7 @@ error:
 	return NULL;
 }
 
-bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys) {
+bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys, int free_unused) {
 	int rc = 0;
 
 	// Polygon lists and counters
@@ -150,6 +150,14 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 	poly_t **coplanar = NULL;
 	poly_t **front_p  = NULL;
 	poly_t **back_p   = NULL;
+
+	// List and counter of unused polygons
+	// These will get freed after the build
+	// because they will not appear with identity
+	// in coplanar, front_p, or back_p if free_unused
+	// is true
+	int n_unused = 0;
+	poly_t **unused = NULL;
 
 	// Iterators
 	poly_t *poly = NULL;
@@ -181,6 +189,7 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 	check_mem(coplanar = malloc(sizeof(poly_t*) * n_polys));
 	check_mem(front_p = malloc(sizeof(poly_t*) * n_polys));
 	check_mem(back_p = malloc(sizeof(poly_t*) * n_polys));
+	check_mem(unused = malloc(sizeof(poly_t*) * n_polys));
 	for(; poly_i < n_polys; poly_i++) {
 		poly = polygons[poly_i];
 		rc = bsp_subdivide(node->divider, poly,
@@ -188,14 +197,25 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 						   coplanar, &n_coplanar,
 						   front_p, &n_front,
 						   back_p, &n_back,
-						   NULL, NULL);
+						   unused, &n_unused);
 		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
 	}
+
+	// Destroy the unused polygons now, if we're asked,
+	// otherwise we'll lose the references
+	int i = 0;
+	if(free_unused != 0) {
+		for(i = 0; i < n_unused; i++) {
+			free_poly(unused[i], 1);
+		}
+	}
+	// Free now and mark NULL to make sure it's not double free'd on `error:`
+	free(unused);
+	unused = NULL;
 
 	// Store the coplanar nodes in this node's polygon list
 	// and free the container, letting the list destructor
 	// clean up
-	int i = 0;
 	for(i = 0; i < n_coplanar; i++) {
 		*kl_pushp(poly, node->polygons) = coplanar[i];
 	}
@@ -205,13 +225,13 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 	if((n_front > 0)) {
 		if(node->front == NULL) node->front = alloc_bsp_node();
 		check_mem(node->front);
-		check(bsp_build_array(node->front, front_p, n_front) != NULL,
+		check(bsp_build_array(node->front, front_p, n_front, free_unused) != NULL,
 			  "Failed to build front tree of bsp_node_array(%p)", node);
 	}
 	if((n_back > 0)) {
 		if(node->back == NULL) node->back = alloc_bsp_node();
 		check_mem(node->back);
-		check(bsp_build_array(node->back, back_p, n_back) != NULL,
+		check(bsp_build_array(node->back, back_p, n_back, free_unused) != NULL,
 			  "Failed to build back tree of bsp_node(%p)", node);
 	}
 	free(front_p);
@@ -223,6 +243,7 @@ error:
 	if(coplanar) free(coplanar);
 	if(back_p) free(back_p);
 	if(front_p) free(front_p);
+	if(unused) free(unused);
 	return NULL;
 }
 
