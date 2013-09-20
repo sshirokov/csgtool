@@ -139,6 +139,7 @@ error:
 	if(polys) free(polys);
 	return NULL;
 }
+
 bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys) {
 	int rc = 0;
 
