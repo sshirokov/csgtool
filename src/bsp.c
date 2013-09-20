@@ -70,7 +70,8 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  poly_t **coplanar_back,  int *n_cp_back,
 				  poly_t **front,          int *n_front,
 				  poly_t **back,           int *n_back,
-				  poly_t **unused,         int *n_unused) {
+				  poly_t **unused,         int *n_unused,
+				  poly_t **created,        int *n_created) {
 	switch(poly_classify_poly(divider, poly)) {
 	case FRONT:
 		front[*n_front] = poly;
@@ -106,6 +107,14 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		if(unused != NULL) {
 			unused[*n_unused] = poly;
 			*n_unused += 1;
+		}
+
+		// How about polygons that we just made?
+		if(created != NULL) {
+			created[*n_created] = f;
+			*n_created += 1;
+			created[*n_created] = b;
+			*n_created += 1;
 		}
 		break;
 	}
@@ -197,7 +206,8 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys,
 						   coplanar, &n_coplanar,
 						   front_p, &n_front,
 						   back_p, &n_back,
-						   unused, &n_unused);
+						   unused, &n_unused,
+						   NULL, NULL);
 		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
 	}
 
@@ -365,7 +375,7 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 			rc = bsp_subdivide(node->divider, p,
 							   front_array, &n_front, back_array, &n_back,
 							   front_array, &n_front, back_array, &n_back,
-							   NULL, NULL);
+							   NULL, NULL, NULL, NULL);
 			check(rc != -1, "Failed to subdivide poly %p", p);
 		}
 
@@ -435,7 +445,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 			rc = bsp_subdivide(node->divider, kl_val(iter),
 							   front_array, &n_front, back_array, &n_back,
 							   front_array, &n_front, back_array, &n_back,
-							   NULL, NULL);
+							   NULL, NULL, NULL, NULL);
 			check(rc != -1, "Failed to subdivide poly %p", kl_val(iter));
 		}
 
