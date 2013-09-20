@@ -33,7 +33,8 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  poly_t **coplanar_front, int *n_cp_front,
 				  poly_t **coplanar_back,  int *n_cp_back,
 				  poly_t **front,          int *n_front,
-				  poly_t **back,           int *n_back);
+				  poly_t **back,           int *n_back,
+				  poly_t **unused,         int *n_unused);
 
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons, int copy);
 bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys);
