@@ -45,3 +45,25 @@ void test_polygon__inverting_top_makes_bottom_front(void) {
 	poly_update(top);
 	cl_assert_equal_i(poly_classify_poly(top, bottom), FRONT);
 }
+
+void test_polygon__add_more_than_max_polys(void) {
+	poly_t *p = alloc_poly();
+	cl_assert(p != NULL);
+
+	float3 point = FLOAT3_INIT;
+	for(int i = 0; i < POLY_MAX_VERTS * 2; i++) {
+		// Might as well build a legitimate polygon
+		f3X(point) += 1.0;
+		f3Y(point) += 1.0;
+		poly_push_vertex(p, point);
+	}
+
+	cl_assert_(poly_vertex_count(p) > POLY_MAX_VERTS, "Polygon should have more vertex than the static maximum.");
+	cl_assert_(poly_vertex_max(p) > POLY_MAX_VERTS, "The maximum verts in the polygon should exceed the static maximum.");
+
+	float3 *last = &p->vertices[poly_vertex_count(p) - 1];
+
+	cl_assert_(f3X(point) == f3X(*last), "The last point in the poly should be the last point we pushed.");
+
+	if(p != NULL) free_poly(p, 1);
+}

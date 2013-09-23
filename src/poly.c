@@ -13,11 +13,17 @@ error:
 
 void free_poly(poly_t *p, int free_self) {
 	if(p == NULL) return;
+	if(poly_vertex_dynamic_p(p) == 1) {
+		if(p->vertices != NULL) free(p->vertices);
+		p->vertices = NULL;
+	}
 	if(free_self) free(p);
 }
 
 poly_t *poly_init(poly_t *poly) {
 	poly->vertex_count = 0;
+	poly->vertex_max = POLY_MAX_VERTS;
+	poly->vertices = poly->_vbuffer;
 	return poly;
 }
 
@@ -25,8 +31,23 @@ poly_t *clone_poly(poly_t *poly) {
 	poly_t *copy = NULL;
 	check_mem(copy = alloc_poly());
 	memcpy(copy, poly, sizeof(poly_t));
+
+	// Either point the clone at its own copied
+	// buffer, or copy over the dynamic vertex buffer
+	if(poly_vertex_dynamic_p(poly) == 0) {
+		copy->vertices = copy->_vbuffer;
+	}
+	else {
+		// We can lean on the `copy->*` memebers
+		// since they would have been memcpy'd over
+		copy->vertices = malloc(poly_vertex_max(copy) * sizeof(float3));
+		check_mem(copy->vertices);
+		memcpy(copy->vertices, poly->vertices, poly_vertex_max(copy) * sizeof(float3));
+	}
+
 	return copy;
 error:
+	if(copy != NULL) free_poly(copy, 1);
 	return NULL;
 }
 
@@ -53,10 +74,47 @@ int poly_vertex_count(poly_t *poly) {
 	return poly->vertex_count;
 }
 
-// Add a vertex to the end of the polygon vertex list
+int poly_vertex_max(poly_t *poly) {
+	return poly->vertex_max;
+}
+
+int poly_vertex_available(poly_t *poly) {
+	return poly->vertex_max - poly->vertex_count;
+}
+
+// Has the vertex buffer been dynamically allocated?
+int poly_vertex_dynamic_p(poly_t *poly) {
+	return (poly->vertices != poly->_vbuffer) ? 1 : 0;
+}
+
+int poly_vertex_expand(poly_t *poly) {
+	// Not using realloc because the original buffer may be struct-owned
+	int new_size = poly->vertex_max * 2;
+	float3 *new_verts = malloc(new_size * sizeof(float3));
+	check_mem(new_verts);
+
+	memcpy(new_verts, poly->vertices, poly->vertex_max * sizeof(float3));
+	poly->vertex_max = new_size;
+
+	// Free the existing buffer if it's not part of the struct's space
+	if(poly_vertex_dynamic_p(poly) == 1) {
+		free(poly->vertices);
+	}
+
+	// Install the new vertex buffer
+	poly->vertices = new_verts;
+
+	return 0;
+error:
+	if(new_verts != NULL) free(new_verts);
+	return -1;
+}
+
+// add a vertex to the end of the polygon vertex list
 int poly_push_vertex(poly_t *poly, float3 v) {
-	// TODO: Don't assert, grow
-	assert(poly->vertex_count < POLY_MAX_VERTS);
+	if(poly_vertex_available(poly) == 0) {
+		poly_vertex_expand(poly);
+	}
 
 	// Dat assignment copy
 	poly->vertices[poly->vertex_count][0] = v[0];

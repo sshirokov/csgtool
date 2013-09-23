@@ -33,10 +33,12 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  poly_t **coplanar_front, int *n_cp_front,
 				  poly_t **coplanar_back,  int *n_cp_back,
 				  poly_t **front,          int *n_front,
-				  poly_t **back,           int *n_back);
+				  poly_t **back,           int *n_back,
+				  poly_t **unused,         int *n_unused,
+				  poly_t **created,        int *n_created);
 
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons, int copy);
-bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys);
+bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys, int free_unused);
 klist_t(poly) *bsp_to_polygons(bsp_node_t *tree,  int make_triangles, klist_t(poly) *dst);
 
 bsp_node_t *bsp_invert(bsp_node_t *tree);
