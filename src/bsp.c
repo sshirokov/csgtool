@@ -357,25 +357,28 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 	poly_t **poly_buffer = static_poly_buffer;
 	poly_t **front_array = NULL;
 	poly_t **back_array = NULL;
+	poly_t **created_array = NULL;
 	int n_front = 0;
 	int n_back = 0;
+	int n_created = 0;
 
 	// Let's end this quick if there's nothing to do.
 	if(n_polys == 0) return result;
 
 	if(node->divider != NULL) {
-		if((n_polys * 2) > STATIC_POLY_BUFFER_SIZE) {
+		if((n_polys * 3) > STATIC_POLY_BUFFER_SIZE) {
 			check_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 2));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + n_polys;
+		created_array = poly_buffer + (n_polys * 2);
 		// Sort this node's polygons into the front or back
 		for(i = 0; i < n_polys; i++) {
 			p = polygons[i];
 			rc = bsp_subdivide(node->divider, p,
 							   front_array, &n_front, back_array, &n_back,
 							   front_array, &n_front, back_array, &n_back,
-							   NULL, NULL, NULL, NULL);
+							   NULL, NULL, created_array, &n_created);
 			check(rc != -1, "Failed to subdivide poly %p", p);
 		}
 
@@ -400,8 +403,15 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 			check(result != NULL, "Failed to clip back tree");
 		}
 
-		if(poly_buffer != static_poly_buffer) free(poly_buffer);
+		// Free all the polygons in 'created_array` since they would have
+		// been cloned if they were important, and the input set is not our
+		// responsibility
+		for(int j = 0; j < n_created; j++) {
+			free_poly(created_array[j], 1);
+		}
+
 		// Clean up the result halves, now that they're copied into `result`
+		if(poly_buffer != static_poly_buffer) free(poly_buffer);
 	}
 	else {
 		// If we don't have a divider we just copy out the polygons
