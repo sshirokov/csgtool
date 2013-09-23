@@ -69,7 +69,9 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 				  poly_t **coplanar_front, int *n_cp_front,
 				  poly_t **coplanar_back,  int *n_cp_back,
 				  poly_t **front,          int *n_front,
-				  poly_t **back,           int *n_back) {
+				  poly_t **back,           int *n_back,
+				  poly_t **unused,         int *n_unused,
+				  poly_t **created,        int *n_created) {
 	switch(poly_classify_poly(divider, poly)) {
 	case FRONT:
 		front[*n_front] = poly;
@@ -99,6 +101,21 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 
 		back[*n_back] = b;
 		*n_back += 1;
+
+		// Do we care about telling the caller about polygons
+		// who's pointers are not in any of the "real" lists?
+		if(unused != NULL) {
+			unused[*n_unused] = poly;
+			*n_unused += 1;
+		}
+
+		// How about polygons that we just made?
+		if(created != NULL) {
+			created[*n_created] = f;
+			*n_created += 1;
+			created[*n_created] = b;
+			*n_created += 1;
+		}
 		break;
 	}
 	}
@@ -122,7 +139,7 @@ bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons, int copy) {
 		polys[i] = poly;
 	}
 
-	check((node = bsp_build_array(node, polys, polygons->size)),
+	check((node = bsp_build_array(node, polys, polygons->size, copy)),
 		  "Failed to build node from list(%p) of %zd polys", polygons, polygons->size);
 	free(polys);
 
@@ -131,7 +148,8 @@ error:
 	if(polys) free(polys);
 	return NULL;
 }
-bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys) {
+
+bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys, int free_unused) {
 	int rc = 0;
 
 	// Polygon lists and counters
@@ -141,6 +159,14 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 	poly_t **coplanar = NULL;
 	poly_t **front_p  = NULL;
 	poly_t **back_p   = NULL;
+
+	// List and counter of unused polygons
+	// These will get freed after the build
+	// because they will not appear with identity
+	// in coplanar, front_p, or back_p if free_unused
+	// is true
+	int n_unused = 0;
+	poly_t **unused = NULL;
 
 	// Iterators
 	poly_t *poly = NULL;
@@ -172,20 +198,34 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 	check_mem(coplanar = malloc(sizeof(poly_t*) * n_polys));
 	check_mem(front_p = malloc(sizeof(poly_t*) * n_polys));
 	check_mem(back_p = malloc(sizeof(poly_t*) * n_polys));
+	check_mem(unused = malloc(sizeof(poly_t*) * n_polys));
 	for(; poly_i < n_polys; poly_i++) {
 		poly = polygons[poly_i];
 		rc = bsp_subdivide(node->divider, poly,
 						   coplanar, &n_coplanar,
 						   coplanar, &n_coplanar,
 						   front_p, &n_front,
-						   back_p, &n_back);
+						   back_p, &n_back,
+						   unused, &n_unused,
+						   NULL, NULL);
 		check(rc == 0, "Failed to subdivide: %p => %p", node->divider, poly);
 	}
+
+	// Destroy the unused polygons now, if we're asked,
+	// otherwise we'll lose the references
+	int i = 0;
+	if(free_unused != 0) {
+		for(i = 0; i < n_unused; i++) {
+			free_poly(unused[i], 1);
+		}
+	}
+	// Free now and mark NULL to make sure it's not double free'd on `error:`
+	free(unused);
+	unused = NULL;
 
 	// Store the coplanar nodes in this node's polygon list
 	// and free the container, letting the list destructor
 	// clean up
-	int i = 0;
 	for(i = 0; i < n_coplanar; i++) {
 		*kl_pushp(poly, node->polygons) = coplanar[i];
 	}
@@ -195,13 +235,13 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys)
 	if((n_front > 0)) {
 		if(node->front == NULL) node->front = alloc_bsp_node();
 		check_mem(node->front);
-		check(bsp_build_array(node->front, front_p, n_front) != NULL,
+		check(bsp_build_array(node->front, front_p, n_front, free_unused) != NULL,
 			  "Failed to build front tree of bsp_node_array(%p)", node);
 	}
 	if((n_back > 0)) {
 		if(node->back == NULL) node->back = alloc_bsp_node();
 		check_mem(node->back);
-		check(bsp_build_array(node->back, back_p, n_back) != NULL,
+		check(bsp_build_array(node->back, back_p, n_back, free_unused) != NULL,
 			  "Failed to build back tree of bsp_node(%p)", node);
 	}
 	free(front_p);
@@ -213,6 +253,7 @@ error:
 	if(coplanar) free(coplanar);
 	if(back_p) free(back_p);
 	if(front_p) free(front_p);
+	if(unused) free(unused);
 	return NULL;
 }
 
@@ -316,24 +357,28 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 	poly_t **poly_buffer = static_poly_buffer;
 	poly_t **front_array = NULL;
 	poly_t **back_array = NULL;
+	poly_t **created_array = NULL;
 	int n_front = 0;
 	int n_back = 0;
+	int n_created = 0;
 
 	// Let's end this quick if there's nothing to do.
 	if(n_polys == 0) return result;
 
 	if(node->divider != NULL) {
-		if((n_polys * 2) > STATIC_POLY_BUFFER_SIZE) {
-			check_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 2));
+		if((n_polys * 3) > STATIC_POLY_BUFFER_SIZE) {
+			check_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 3));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + n_polys;
+		created_array = poly_buffer + (n_polys * 2);
 		// Sort this node's polygons into the front or back
 		for(i = 0; i < n_polys; i++) {
 			p = polygons[i];
 			rc = bsp_subdivide(node->divider, p,
 							   front_array, &n_front, back_array, &n_back,
-							   front_array, &n_front, back_array, &n_back);
+							   front_array, &n_front, back_array, &n_back,
+							   NULL, NULL, created_array, &n_created);
 			check(rc != -1, "Failed to subdivide poly %p", p);
 		}
 
@@ -358,8 +403,15 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 			check(result != NULL, "Failed to clip back tree");
 		}
 
-		if(poly_buffer != static_poly_buffer) free(poly_buffer);
+		// Free all the polygons in 'created_array` since they would have
+		// been cloned if they were important, and the input set is not our
+		// responsibility
+		for(int j = 0; j < n_created; j++) {
+			free_poly(created_array[j], 1);
+		}
+
 		// Clean up the result halves, now that they're copied into `result`
+		if(poly_buffer != static_poly_buffer) free(poly_buffer);
 	}
 	else {
 		// If we don't have a divider we just copy out the polygons
@@ -386,23 +438,27 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 	poly_t **poly_buffer = static_poly_buffer;
 	poly_t **front_array = NULL;
 	poly_t **back_array = NULL;
+	poly_t **created_array = NULL;
 	int n_front = 0;
 	int n_back = 0;
+	int n_created = 0;
 
 	// Let's end this quick if there's nothing to do.
 	if(polygons->size == 0) return result;
 
 	if(node->divider != NULL) {
-		if((polygons->size * 2) > STATIC_POLY_BUFFER_SIZE) {
-			check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 2));
+		if((polygons->size * 3) > STATIC_POLY_BUFFER_SIZE) {
+			check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 3));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + polygons->size;
+		created_array = poly_buffer + (polygons->size * 2);
 		// Sort this node's polygons into the front or back
 		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
 			rc = bsp_subdivide(node->divider, kl_val(iter),
 							   front_array, &n_front, back_array, &n_back,
-							   front_array, &n_front, back_array, &n_back);
+							   front_array, &n_front, back_array, &n_back,
+							   NULL, NULL, created_array, &n_created);
 			check(rc != -1, "Failed to subdivide poly %p", kl_val(iter));
 		}
 
@@ -427,8 +483,15 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 			check(result != NULL, "Failed to clip back tree");
 		}
 
+		// Free all the polygons in 'created_array` since they would have
+		// been cloned if they were important, and the input set is not our
+		// responsibility
+		for(int j = 0; j < n_created; j++) {
+			free_poly(created_array[j], 1);
+		}
+
+
 		if(poly_buffer != static_poly_buffer) free(poly_buffer);
-		// Clean up the result halves, now that they're copied into `result`
 	}
 	else {
 		// If we don't have a divider we just copy out the polygons
