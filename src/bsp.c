@@ -447,11 +447,12 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 	if(polygons->size == 0) return result;
 
 	if(node->divider != NULL) {
-		if((polygons->size * 2) > STATIC_POLY_BUFFER_SIZE) {
-			check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 2));
+		if((polygons->size * 3) > STATIC_POLY_BUFFER_SIZE) {
+			check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 3));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + polygons->size;
+		created_array = poly_buffer + (polygons->size * 2);
 		// Sort this node's polygons into the front or back
 		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
 			rc = bsp_subdivide(node->divider, kl_val(iter),
