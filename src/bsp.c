@@ -366,8 +366,8 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 	if(n_polys == 0) return result;
 
 	if(node->divider != NULL) {
-		if((n_polys * 3) > STATIC_POLY_BUFFER_SIZE) {
-			check_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 3));
+		if((n_polys * 4) > STATIC_POLY_BUFFER_SIZE) {
+			check_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 4));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + n_polys;
@@ -447,8 +447,8 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 	if(polygons->size == 0) return result;
 
 	if(node->divider != NULL) {
-		if((polygons->size * 3) > STATIC_POLY_BUFFER_SIZE) {
-			check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 3));
+		if((polygons->size * 4) > STATIC_POLY_BUFFER_SIZE) {
+			check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 4));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + polygons->size;
