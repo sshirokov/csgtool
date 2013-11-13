@@ -3,6 +3,7 @@
 
 #include "commands.h"
 #include "stl.h"
+#include "mesh.h"
 #include "bsp.h"
 #include "export.h"
 
