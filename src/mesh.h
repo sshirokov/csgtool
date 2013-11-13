@@ -20,6 +20,7 @@ void free_mesh(void *self);
 
 void *alloc_mesh(size_t size, mesh_t proto, char type[4]);
 
-#define NEW(T, N) alloc_mesh(sizeof(T), T##Proto, N)
+#define NEW(T, N) alloc_mesh(sizeof(T), T##_Proto, N)
+#define _(M) proto.M
 
 #endif

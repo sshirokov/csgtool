@@ -13,6 +13,7 @@ char* mesh_describe(void *self) {
 }
 
 void free_mesh(void *self) {
+	if(self != NULL) free(self);
 	return;
 }
 
@@ -32,7 +33,7 @@ void *alloc_mesh(size_t size, mesh_t proto, char type[4]) {
 
 	mesh_t *m = calloc(1, size);
 	*m = proto;
-	strncpy(m->type, proto.type, 3);
+	strncpy(m->type, type, 3);
 
 	check(m->init(m) != -1, "Failed to initialize %p(%s)", m, m->type);
 	return m;
