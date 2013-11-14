@@ -340,9 +340,14 @@ mesh_t stl_mesh_t_Proto = {
 };
 
 // Mesh type prototype methods
-int stl_mesh_init(void *self) {
+int stl_mesh_init(void *self, void *data) {
 	stl_mesh_t *mesh = (stl_mesh_t*)self;
-	check_mem(mesh->stl = stl_alloc(NULL, 0));
+	if(data == NULL) {
+		check_mem(mesh->stl = stl_alloc(NULL, 0));
+	}
+	else {
+		mesh->stl = (stl_object*)data;
+	}
 	return 0;
 error:
 	return -1;

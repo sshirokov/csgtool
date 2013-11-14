@@ -17,7 +17,7 @@ mesh_t test_mesh_t_Proto = {
 };
 
 void test_mesh__can_create_default(void) {
-	mesh_t *mesh = NEW(mesh_t, "MSH");
+	mesh_t *mesh = NEW(mesh_t, "MSH", NULL);
 
 	cl_assert_equal_i(strncmp(mesh->type, "MSH", 3), 0);
 	cl_assert_equal_i(mesh->poly_count(mesh), 0);
@@ -27,7 +27,7 @@ void test_mesh__can_create_default(void) {
 }
 
 void test_mesh__new_class_has_new_methods(void) {
-	test_mesh_t *mesh = NEW(test_mesh_t, "TMS");
+	test_mesh_t *mesh = NEW(test_mesh_t, "TMS", NULL);
 
 	cl_assert_equal_i(strncmp(mesh->_(type), "TMS", 3), 0);
 	cl_assert_equal_i(mesh->_(poly_count)(mesh), 666);

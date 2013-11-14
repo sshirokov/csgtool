@@ -2,7 +2,7 @@
 
 #include "mesh.h"
 
-int mesh_init(void *self) {
+int mesh_init(void *self, void *unused) {
 	if(self == NULL) return -1;
 	return 0;
 }
@@ -25,7 +25,7 @@ klist_t(poly)* _default_to_polygons(void *self) {
 	return NULL;
 }
 
-void *alloc_mesh(size_t size, mesh_t proto, char type[4]) {
+void *alloc_mesh(size_t size, mesh_t proto, char type[4], void *data) {
 	if(proto.init == NULL) proto.init = mesh_init;
 	if(proto.destroy == NULL) proto.destroy = free_mesh;
 	if(proto.poly_count == NULL) proto.poly_count = _default_poly_count;
@@ -35,7 +35,7 @@ void *alloc_mesh(size_t size, mesh_t proto, char type[4]) {
 	*m = proto;
 	strncpy(m->type, type, 3);
 
-	check(m->init(m) != -1, "Failed to initialize %p(%s)", m, m->type);
+	check(m->init(m, data) != -1, "Failed to initialize %p(%s, %p)", m, m->type, data);
 	return m;
 error:
 	if(m != NULL) m->destroy(m);
