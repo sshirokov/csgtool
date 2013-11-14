@@ -69,6 +69,4 @@ void stl_mesh_destroy(void *self);
 int stl_mesh_poly_count(void *self);
 klist_t(poly)* stl_mesh_to_polygons(void *self);
 
-
-
 #endif
