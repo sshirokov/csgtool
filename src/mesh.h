@@ -13,6 +13,8 @@ typedef struct s_mesh_t {
 
 	int (*poly_count)(void *self);
 	klist_t(poly)* (*to_polygons)(void *self);
+
+	int (*write)(void *self, char *path);
 } mesh_t;
 
 int mesh_init(void *self, void *data);
