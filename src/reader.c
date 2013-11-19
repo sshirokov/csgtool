@@ -21,7 +21,9 @@ mesh_t* reader_load(char *path) {
 
 // Wrappers
 int _stl_predicate(char *path) {
-	log_err("TODO: Actually detect.");
+	// TODO: Valdiate the STL file instead of blindly trying a read.
+	//       Ideally, try to read a line, and pass if binary, if it's text
+	//       pass only if it begins with /^solid/i
 	return 1;
 }
 
