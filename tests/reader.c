@@ -19,3 +19,13 @@ void test_reader__list_is_terminated(void) {
 	}
 	cl_assert(count > 0);
 }
+
+void test_reader__can_read_stl(void) {
+	mesh_t *stl = reader_load(path_to_cube);
+	cl_assert(stl != NULL);
+
+	int poly_count = stl->poly_count(stl);
+	cl_assert_((poly_count > 11) && (poly_count < 20), "A cube should have somewhere between 11-20 polys");
+
+	stl->destroy(stl);
+}
