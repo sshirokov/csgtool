@@ -13,4 +13,7 @@ typedef struct s_reader_t {
 	reader_loader_t    *load;
 } reader_t;
 
+// Exported list of readers
+extern const reader_t readers[];
+
 #endif
