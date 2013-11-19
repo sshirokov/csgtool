@@ -1,6 +1,24 @@
 #include "stl.h"
 #include "reader.h"
 
+// API
+mesh_t* reader_load(char *path) {
+	mesh_t *mesh = NULL;
+
+	// Walk the readers list and return the first thing that passes
+	// the test and loads a mesh_t != NULL
+	const reader_t *r = NULL;
+	for(r = readers; r->name != NULL; r++) {
+		if(r->test(path) == 1) {
+			if((mesh = r->load(path))) {
+				break;
+			}
+		}
+	}
+
+	return mesh;
+}
+
 // Wrappers
 int _stl_predicate(char *path) {
 	log_err("TODO: Actually detect.");

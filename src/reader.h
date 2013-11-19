@@ -1,9 +1,12 @@
 #include "mesh.h"
-#include "stl.h"
 
 #ifndef __READER_H
 #define __READER_H
 
+// API
+mesh_t* reader_load(char *path);
+
+// Types
 typedef int     (reader_predicate_t)(char *path);
 typedef mesh_t* (reader_loader_t)(char *path);
 
