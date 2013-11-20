@@ -53,6 +53,7 @@ void *alloc_mesh(size_t size, mesh_t proto, char type[4], void *data) {
 	if(proto.destroy == NULL) proto.destroy = free_mesh;
 	if(proto.poly_count == NULL) proto.poly_count = _default_poly_count;
 	if(proto.to_polygons == NULL) proto.to_polygons = _default_to_polygons;
+	if(proto.write == NULL) proto.write = _default_write;
 
 	mesh_t *m = calloc(1, size);
 	*m = proto;
