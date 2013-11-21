@@ -76,6 +76,7 @@ bsp_node_t *mesh_to_bsp(mesh_t *mesh) {
 	check((tree = bsp_build(NULL, polys, 1)) != NULL,
 		  "Failed to build BSP tree from %zd polys", polys->size);
 
+	kl_destroy(poly, polys);
 	return tree;
 error:
 	if(tree != NULL) free_bsp_tree(tree);
