@@ -66,3 +66,11 @@ void test_mesh__stl_mesh_methods_work(void) {
 	mesh->_(destroy)(mesh);
 	stl_file_object = NULL;
 }
+
+void test_mesh__mesh_can_write_a_readable_file(void) {
+	cl_assert(NULL == "TODO: Read file");
+	cl_assert(NULL == "TODO: Write to tmp");
+	cl_assert(NULL == "TODO: Read file from tmp");
+	cl_assert(NULL == "TODO: Compary poly counts");
+	cl_assert(NULL == "TODO: UNLINK");
+}
