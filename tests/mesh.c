@@ -2,6 +2,7 @@
 #include "clar.h"
 #include "mesh.h"
 #include "stl.h"
+#include "reader.h"
 
 // Test types
 mesh_t mesh_t_Proto = {};
@@ -18,13 +19,19 @@ mesh_t test_mesh_t_Proto = {
 	.poly_count = always_666
 };
 
+
 // Test data
+char tmp_out_file[] = CLAR_FIXTURE_PATH "tmp.stl";
 char stl_file[] = CLAR_FIXTURE_PATH "cube.stl";
 stl_object *stl_file_object = NULL;
+
 
 void test_mesh__initialize(void) {
 	stl_file_object = stl_read_file(stl_file, 1);
 	cl_assert(stl_file_object != NULL);
+
+	// Make sure that we don't test stale data
+	unlink(tmp_out_file);
 }
 
 void test_mesh__cleanup(void) {
@@ -32,6 +39,9 @@ void test_mesh__cleanup(void) {
 		stl_free(stl_file_object);
 		stl_file_object = NULL;
 	}
+
+	// Try to not leave behind stale data
+	unlink(tmp_out_file);
 }
 
 void test_mesh__can_create_default(void) {
@@ -68,9 +78,26 @@ void test_mesh__stl_mesh_methods_work(void) {
 }
 
 void test_mesh__mesh_can_write_a_readable_file(void) {
-	cl_assert(NULL == "TODO: Read file");
-	cl_assert(NULL == "TODO: Write to tmp");
-	cl_assert(NULL == "TODO: Read file from tmp");
-	cl_assert(NULL == "TODO: Compary poly counts");
-	cl_assert(NULL == "TODO: UNLINK");
+	int rc = -1;
+	mesh_t *read_cube = NULL;
+	mesh_t *written_cube = NULL;
+
+	// Make sure we can read the test file
+	read_cube = reader_load(stl_file);
+	cl_assert(read_cube != NULL);
+	cl_assert(read_cube->poly_count(read_cube) > 0);
+
+	// Make sure we can write without apperant error
+	rc = read_cube->write(read_cube, tmp_out_file);
+	cl_assert_(rc == 0, "Failed to write mesh_t to file.");
+
+	// Read our output and compare
+	written_cube = reader_load(tmp_out_file);
+	cl_assert(written_cube != NULL);
+
+	cl_assert_equal_i(read_cube->poly_count(read_cube), written_cube->poly_count(written_cube));
+
+	// Destroy our peices
+	read_cube->destroy(read_cube);
+	written_cube->destroy(written_cube);
 }
