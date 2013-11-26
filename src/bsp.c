@@ -2,6 +2,7 @@
 
 #include "bsp.h"
 #include "dbg.h"
+#include "export.h"
 
 bsp_node_t *alloc_bsp_node(void) {
 	bsp_node_t *node = NULL;
@@ -627,3 +628,66 @@ error:
 	if(result != NULL) free_bsp_tree(result);
 	return NULL;
 }
+
+int bsp_count_polygons(bsp_node_t *tree) {
+	if(tree == NULL) return 0;
+	if(tree->polygons == NULL) return 0;
+
+	return tree->polygons->size +
+		bsp_count_polygons(tree->front) +
+		bsp_count_polygons(tree->back);
+}
+
+// bsp_node_t tree backed mesh methods and mesh prototype
+int bsp_mesh_init(void *self, void *data) {
+	bsp_mesh_t *mesh = (bsp_mesh_t*)self;
+	if(data == NULL) {
+		check_mem(mesh->bsp = alloc_bsp_node());
+	}
+	else {
+		mesh->bsp = (bsp_node_t*)data;
+	}
+	return 0;
+error:
+	return -1;
+}
+
+void bsp_mesh_destroy(void *self) {
+	bsp_mesh_t *mesh = (bsp_mesh_t*)self;
+	free_bsp_tree(mesh->bsp);
+	free(self);
+}
+
+int bsp_mesh_poly_count(void *self) {
+	bsp_mesh_t *mesh = (bsp_mesh_t*)self;
+	return bsp_count_polygons(mesh->bsp);
+}
+
+klist_t(poly)* bsp_mesh_to_polygons(void *self) {
+	bsp_mesh_t *mesh = (bsp_mesh_t*)self;
+	return bsp_to_polygons(mesh->bsp, 0, NULL);
+}
+
+int bsp_mesh_write_as_stl(void *self, char *path) {
+	bsp_mesh_t *mesh = (bsp_mesh_t*)self;
+	stl_object *stl = NULL;
+	int rc = -1;
+
+	check((stl = bsp_to_stl(mesh->bsp)) != NULL, "Failed to make stl_object from bsp_node_t(%p)", mesh);
+	rc = stl_write_file(stl, path);
+
+	if(stl != NULL) stl_free(stl);
+	return rc;
+error:
+	if(stl != NULL) stl_free(stl);
+	return -1;
+}
+
+// bsp_mesh_t prototype definition
+mesh_t bsp_mesh_t_Proto = {
+	.init = bsp_mesh_init,
+	.destroy = bsp_mesh_destroy,
+	.poly_count = bsp_mesh_poly_count,
+	.to_polygons = bsp_mesh_to_polygons,
+	.write = bsp_mesh_write_as_stl
+};

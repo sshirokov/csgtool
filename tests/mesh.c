@@ -3,6 +3,8 @@
 #include "mesh.h"
 #include "stl.h"
 #include "reader.h"
+#include "bsp.h"
+#include "export.h"
 
 // Test types
 mesh_t mesh_t_Proto = {};
@@ -100,4 +102,39 @@ void test_mesh__mesh_can_write_a_readable_file(void) {
 	// Destroy our peices
 	read_cube->destroy(read_cube);
 	written_cube->destroy(written_cube);
+}
+
+void test_mesh__bsp_backed_mesh_has_polygons(void) {
+	bsp_node_t *bsp = NULL;
+	mesh_t *mesh = NULL;
+
+	cl_assert((bsp = stl_to_bsp(stl_file_object)) != NULL);
+	cl_assert((mesh = NEW(bsp_mesh_t, "BSP", bsp)) != NULL);
+
+	cl_assert(mesh->poly_count(mesh) >= stl_file_object->facet_count);
+	mesh->destroy(mesh);
+}
+
+void test_mesh__bsp_backed_mesh_can_write(void) {
+	int rc = -1;
+	bsp_node_t *bsp = NULL;
+	mesh_t *mesh = NULL;
+	mesh_t *read_mesh = NULL;
+
+	bsp = stl_to_bsp(stl_file_object);
+	cl_assert(bsp != NULL);
+
+	mesh = NEW(bsp_mesh_t, "BSP", bsp);
+	cl_assert(mesh != NULL);
+
+	rc = mesh->write(mesh, tmp_out_file);
+	cl_assert_equal_i(rc, 0);
+
+	read_mesh = mesh_read_file(tmp_out_file);
+	cl_assert(read_mesh != NULL);
+
+	cl_assert(read_mesh->poly_count(read_mesh) >= stl_file_object->facet_count);
+
+	if(mesh != NULL) mesh->destroy(mesh);
+	if(read_mesh != NULL) read_mesh->destroy(read_mesh);
 }
