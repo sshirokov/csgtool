@@ -67,6 +67,6 @@ error:
 	return NULL;
 }
 
-mesh_t *mesh_read(char *path) {
+mesh_t *mesh_read_file(char *path) {
 	return reader_load(path);
 }

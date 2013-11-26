@@ -26,6 +26,6 @@ void *alloc_mesh(size_t size, mesh_t proto, char type[4], void *data);
 #define _(M) proto.M
 
 // Load wrapper to read better
-mesh_t *mesh_read(char *path);
+mesh_t *mesh_read_file(char *path);
 
 #endif
