@@ -631,9 +631,8 @@ error:
 
 int bsp_count_polygons(bsp_node_t *tree) {
 	if(tree == NULL) return 0;
-	if(tree->polygons == NULL) return 0;
 
-	return tree->polygons->size +
+	return (tree->polygons == NULL) ? 0 : tree->polygons->size +
 		bsp_count_polygons(tree->front) +
 		bsp_count_polygons(tree->back);
 }
