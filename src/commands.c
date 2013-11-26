@@ -6,7 +6,7 @@
 #include "mesh.h"
 #include "bsp.h"
 #include "export.h"
-#include "reader.h"
+
 
 typedef bsp_node_t* (*bsp_binary_op)(bsp_node_t *, bsp_node_t *);
 
@@ -23,14 +23,14 @@ bsp_node_t* bsp_binary_operation(char *path1, char *path2, bsp_binary_op op) {
 	bsp_node_t *result = NULL;
 
 	// Read 1
-	file1 = reader_load(path1);
+	file1 = mesh_read_file(path1);
 	check(file1 != NULL, "Failed to read mesh from '%s'", path1);
 	log_info("Loaded file: %s %d facets", path1, file1->poly_count(file1));
 	bsp1 = mesh_to_bsp(file1);
 	check_mem(bsp1);
 
 	// Read 2
-	file2 = reader_load(path2);
+	file2 = mesh_read_file(path2);
 	check(file2 != NULL, "Failed to read mesh from '%s'", path2);
 	log_info("Loaded file: %s %d facets", path2, file2->poly_count(file2));
 	bsp2 = mesh_to_bsp(file2);

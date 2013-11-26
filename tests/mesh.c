@@ -83,7 +83,7 @@ void test_mesh__mesh_can_write_a_readable_file(void) {
 	mesh_t *written_cube = NULL;
 
 	// Make sure we can read the test file
-	read_cube = reader_load(stl_file);
+	read_cube = mesh_read_file(stl_file);
 	cl_assert(read_cube != NULL);
 	cl_assert(read_cube->poly_count(read_cube) > 0);
 
@@ -92,7 +92,7 @@ void test_mesh__mesh_can_write_a_readable_file(void) {
 	cl_assert_(rc == 0, "Failed to write mesh_t to file.");
 
 	// Read our output and compare
-	written_cube = reader_load(tmp_out_file);
+	written_cube = mesh_read_file(tmp_out_file);
 	cl_assert(written_cube != NULL);
 
 	cl_assert_equal_i(read_cube->poly_count(read_cube), written_cube->poly_count(written_cube));
