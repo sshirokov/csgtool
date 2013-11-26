@@ -25,4 +25,7 @@ void *alloc_mesh(size_t size, mesh_t proto, char type[4], void *data);
 #define NEW(T, N, D) alloc_mesh(sizeof(T), T##_Proto, N, D)
 #define _(M) proto.M
 
+// Load wrapper to read better
+mesh_t *mesh_read(char *path);
+
 #endif

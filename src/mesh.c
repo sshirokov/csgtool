@@ -3,6 +3,7 @@
 #include "stl.h"
 #include "export.h"
 #include "mesh.h"
+#include "reader.h"
 
 int mesh_init(void *self, void *unused) {
 	if(self == NULL) return -1;
@@ -64,4 +65,8 @@ void *alloc_mesh(size_t size, mesh_t proto, char type[4], void *data) {
 error:
 	if(m != NULL) m->destroy(m);
 	return NULL;
+}
+
+mesh_t *mesh_read(char *path) {
+	return reader_load(path);
 }
