@@ -331,14 +331,6 @@ error:
 		return NULL;
 }
 
-// Mesh type definitions
-mesh_t stl_mesh_t_Proto = {
-	.init = stl_mesh_init,
-	.destroy = stl_mesh_destroy,
-	.poly_count = stl_mesh_poly_count,
-	.to_polygons = stl_mesh_to_polygons
-};
-
 // Mesh type prototype methods
 int stl_mesh_init(void *self, void *data) {
 	stl_mesh_t *mesh = (stl_mesh_t*)self;
@@ -383,3 +375,11 @@ error:
 	if(polys != NULL) kl_destroy(poly, polys);
 	return NULL;
 }
+
+// Mesh type definitions
+mesh_t stl_mesh_t_Proto = {
+	.init = stl_mesh_init,
+	.destroy = stl_mesh_destroy,
+	.poly_count = stl_mesh_poly_count,
+	.to_polygons = stl_mesh_to_polygons
+};

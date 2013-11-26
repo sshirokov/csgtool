@@ -64,9 +64,4 @@ typedef struct s_stl_mesh_t {
 	stl_object *stl;
 } stl_mesh_t;
 
-int stl_mesh_init(void *self, void *data);
-void stl_mesh_destroy(void *self);
-int stl_mesh_poly_count(void *self);
-klist_t(poly)* stl_mesh_to_polygons(void *self);
-
 #endif
