@@ -667,26 +667,10 @@ klist_t(poly)* bsp_mesh_to_polygons(void *self) {
 	return bsp_to_polygons(mesh->bsp, 0, NULL);
 }
 
-int bsp_mesh_write_as_stl(void *self, char *path) {
-	bsp_mesh_t *mesh = (bsp_mesh_t*)self;
-	stl_object *stl = NULL;
-	int rc = -1;
-
-	check((stl = bsp_to_stl(mesh->bsp)) != NULL, "Failed to make stl_object from bsp_node_t(%p)", mesh);
-	rc = stl_write_file(stl, path);
-
-	if(stl != NULL) stl_free(stl);
-	return rc;
-error:
-	if(stl != NULL) stl_free(stl);
-	return -1;
-}
-
 // bsp_mesh_t prototype definition
 mesh_t bsp_mesh_t_Proto = {
 	.init = bsp_mesh_init,
 	.destroy = bsp_mesh_destroy,
 	.poly_count = bsp_mesh_poly_count,
 	.to_polygons = bsp_mesh_to_polygons,
-	.write = bsp_mesh_write_as_stl
 };

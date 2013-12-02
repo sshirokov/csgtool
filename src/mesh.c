@@ -33,19 +33,25 @@ int _default_write(void *self, char *path) {
 	mesh_t *mesh = (mesh_t*)self;
 	stl_object *stl = NULL;
 	klist_t(poly) *polys = mesh->to_polygons(mesh);
+	klist_t(poly) *triangles = NULL;
 	check(polys != NULL, "Failed to get polygons from mesh %p", mesh);
 
+	triangles = polys_to_tris(NULL, polys);
+	check(triangles != NULL, "Failed to convert polygons to trianges.");
+
 	// The default output format is STL
-	stl = stl_from_polys(polys);
+	stl = stl_from_polys(triangles);
 	check(stl != NULL, "Failed to generate STL object for write.");
 	rc = stl_write_file(stl, path);
 
 	if(stl != NULL) stl_free(stl);
 	if(polys != NULL) kl_destroy(poly, polys);
+	if(triangles != NULL) kl_destroy(poly, triangles);
 	return rc;
 error:
 	if(stl != NULL) stl_free(stl);
 	if(polys != NULL) kl_destroy(poly, polys);
+	if(triangles != NULL) kl_destroy(poly, triangles);
 	return -1;
 }
 
