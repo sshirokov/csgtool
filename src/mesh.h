@@ -19,6 +19,7 @@ typedef struct s_mesh_t {
 
 int mesh_init(void *self, void *data);
 void free_mesh(void *self);
+void destroy_mesh(void *self);
 
 void *alloc_mesh(size_t size, mesh_t proto, char type[4], void *data);
 

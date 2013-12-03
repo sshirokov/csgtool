@@ -20,6 +20,16 @@ void free_mesh(void *self) {
 	return;
 }
 
+void destroy_mesh(void *self) {
+	mesh_t *mesh = (mesh_t*)self;
+	if(mesh->destroy != NULL) {
+		mesh->destroy(mesh);
+	}
+	else {
+		free_mesh(mesh);
+	}
+}
+
 int _default_poly_count(void *self) {
 	return 0;
 }
