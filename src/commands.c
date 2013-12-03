@@ -2,7 +2,7 @@
 #include "dbg.h"
 
 #include "commands.h"
-#include "stl.h"
+#include "mesh.h"
 #include "bsp.h"
 #include "export.h"
 
@@ -12,39 +12,39 @@ typedef bsp_node_t* (*bsp_binary_op)(bsp_node_t *, bsp_node_t *);
 // in `path1` and `path1` defined by an operation `op` from` bsp.h
 // Result is freshly allocated, and needs to be freed with `free_bsp_tree()`
 bsp_node_t* bsp_binary_operation(char *path1, char *path2, bsp_binary_op op) {
-	stl_object *file1 = NULL;
+	mesh_t *file1 = NULL;
 	bsp_node_t *bsp1 = NULL;
 
-	stl_object *file2 = NULL;
+	mesh_t *file2 = NULL;
 	bsp_node_t *bsp2 = NULL;
 
 	bsp_node_t *result = NULL;
 
 	// Read 1
-	file1 = stl_read_file(path1, 1);
-	check(file1 != NULL, "Failed to read .stl from '%s'", path1);
-	log_info("Loaded file: %s %d facets", path1, file1->facet_count);
-	bsp1 = stl_to_bsp(file1);
+	file1 = mesh_read_file(path1);
+	check(file1 != NULL, "Failed to read mesh from '%s'", path1);
+	log_info("Loaded file: %s %d facets", path1, file1->poly_count(file1));
+	bsp1 = mesh_to_bsp(file1);
 	check_mem(bsp1);
 
 	// Read 2
-	file2 = stl_read_file(path2, 1);
-	check(file2 != NULL, "Failed to read .stl from '%s'", path2);
-	log_info("Loaded file: %s %d facets", path2, file2->facet_count);
-	bsp2 = stl_to_bsp(file2);
+	file2 = mesh_read_file(path2);
+	check(file2 != NULL, "Failed to read mesh from '%s'", path2);
+	log_info("Loaded file: %s %d facets", path2, file2->poly_count(file2));
+	bsp2 = mesh_to_bsp(file2);
 	check_mem(bsp2);
 
 	// Operate
 	result = op(bsp1, bsp2);
 
-	if(file1 != NULL) stl_free(file1);
-	if(file2 != NULL) stl_free(file2);
+	if(file1 != NULL) file1->destroy(file1);
+	if(file2 != NULL) file2->destroy(file2);
 	if(bsp1 != NULL) free_bsp_tree(bsp1);
 	if(bsp2 != NULL) free_bsp_tree(bsp2);
 	return result;
 error:
-	if(file1 != NULL) stl_free(file1);
-	if(file2 != NULL) stl_free(file2);
+	if(file1 != NULL) file1->destroy(file1);
+	if(file2 != NULL) file2->destroy(file2);
 	if(bsp1 != NULL) free_bsp_tree(bsp1);
 	if(bsp2 != NULL) free_bsp_tree(bsp2);
 	if(result != NULL) free_bsp_tree(result);
@@ -61,23 +61,23 @@ error:
 #define MAKE_CSG_COMMAND(name)                                                        \
 int cmd_##name(int argc, char **argv) {                                               \
 	bsp_node_t *result = NULL;                                                        \
-	stl_object *out = NULL;                                                           \
+	mesh_t *out = NULL;                                                               \
 	char *out_path = "./out.stl";                                                     \
                                                                                       \
 	check(argc >= 2, "At least two input files required.");                           \
 	if(argc > 2) out_path = argv[2];                                                  \
                                                                                       \
-	result = bsp_binary_operation(argv[0], argv[1], bsp_##name);                   \
-	out = bsp_to_stl(result);                                                         \
+	result = bsp_binary_operation(argv[0], argv[1], bsp_##name);                      \
+	check(result != NULL, "Binary operation" #name "failed.");                        \
+	out = NEW(bsp_mesh_t, "BSP", result);                                             \
     log_info("Writing output to %s", out_path);                                       \
-	check(stl_write_file(out, out_path) == 0, "Failed to write STL to %s", out_path); \
+	check(out->write(out, out_path) == 0, "Failed to write STL to %s", out_path);     \
                                                                                       \
-	if(result != NULL) free_bsp_tree(result);                                         \
-	if(out != NULL) stl_free(out);                                                    \
+	out->destroy(out);                               				                  \
 	return 0;                                                                         \
 error:                                                                                \
-	if(result != NULL) free_bsp_tree(result);                                         \
-	if(out != NULL) stl_free(out);                                                    \
+	if(out != NULL) out->destroy(out);                                                \
+	else if(result != NULL) free_bsp_tree(result);                                    \
 	return -1;                                                                        \
 }
 
