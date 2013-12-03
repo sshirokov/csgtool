@@ -17,7 +17,7 @@ module CSG
              :destroy,     callback([:pointer], :void),
              :poly_count,  callback([:pointer], :int),
              :to_polygons, callback([:pointer], :pointer),
-             :write, callback([:pointer, :string], :int)
+             :write,       callback([:pointer, :string], :int)
 
       def self.release(ptr)
         CSG::Native.destroy_mesh ptr
