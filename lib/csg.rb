@@ -10,14 +10,14 @@ module CSG
     ffi_lib ['csg'] + candidates
 
     class Mesh < FFI::ManagedStruct
-      # TODO: You are here
+      # WARNING: You should probably never call `:destroy`, because it's a managed
+      #          struct, and should get destroyed by Ruby using this very method
       layout :type, [:uint8, 4],
-             # TODO: Real fp types
-             :init, :pointer,
-             :destroy, :pointer,
-             :poly_count, :pointer,
-             :to_polygons, :pointer,
-             :write, :pointer
+             :init,        callback([:pointer, :pointer], :int),
+             :destroy,     callback([:pointer], :void),
+             :poly_count,  callback([:pointer], :int),
+             :to_polygons, callback([:pointer], :pointer),
+             :write, callback([:pointer, :string], :int)
 
       def self.release(ptr)
         CSG::Native.destroy_mesh ptr
@@ -25,6 +25,7 @@ module CSG
     end
 
     attach_function :destroy_mesh, [:pointer], :void
+    attach_function :mesh_read_file, [:string], Mesh
 
     # TODO: most of this should go away and get replaced
     #       with the CSG::Native::Mesh based stuff
