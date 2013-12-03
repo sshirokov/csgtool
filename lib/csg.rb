@@ -9,6 +9,19 @@ module CSG
     end
     ffi_lib ['csg'] + candidates
 
+    class Mesh < FFI::ManagedStruct
+      # TODO: You are here
+      layout :type, [:uint8, 4],
+             # TODO: Real fp types
+             :init, :pointer,
+             :destroy, :pointer,
+             :poly_count, :pointer,
+             :to_polygons, :pointer,
+             :write, :pointer
+    end
+
+    # TODO: most of this should go away and get replaced
+    #       with the CSG::Native::Mesh based stuff
     class STLObject < FFI::ManagedStruct
       layout :header, [:uint8, 80],
              :facet_count, :uint32,
