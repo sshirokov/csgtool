@@ -18,7 +18,13 @@ module CSG
              :poly_count, :pointer,
              :to_polygons, :pointer,
              :write, :pointer
+
+      def self.release(ptr)
+        CSG::Native.destroy_mesh ptr
+      end
     end
+
+    attach_function :destroy_mesh, [:pointer], :void
 
     # TODO: most of this should go away and get replaced
     #       with the CSG::Native::Mesh based stuff
