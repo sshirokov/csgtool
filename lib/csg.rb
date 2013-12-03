@@ -12,6 +12,7 @@ module CSG
     class Mesh < FFI::ManagedStruct
       # WARNING: You should probably never call `:destroy`, because it's a managed
       #          struct, and should get destroyed by Ruby using this very method
+      #          inside of `Mesh.release`
       layout :type, [:uint8, 4],
              :init,        callback([:pointer, :pointer], :int),
              :destroy,     callback([:pointer], :void),
