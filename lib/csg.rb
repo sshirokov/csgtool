@@ -65,7 +65,7 @@ module CSG
       File.stat(path) # Stat before load to raise a sane "Does not exist" error
       mesh_ptr = CSG::Native::mesh_read_file path
       if not mesh_ptr.null?
-        if (tree_ptr = CSG::Native.mesh_to_bsp mesh_ptr)
+        if not (tree_ptr = CSG::Native.mesh_to_bsp(mesh_ptr)).null?
           @tree = CSG::Native::BSPNode.new tree_ptr
         else
           raise Exception.new("Failed to convert Mesh into BSPNode")
@@ -78,6 +78,7 @@ module CSG
     [:intersect, :subtract, :union].each do |name|
       define_method name do |solid|
         ptr = CSG::Native.send "bsp_#{name}", tree, solid.tree
+        raise Exception.new("Result of #{name} is NULL") if ptr.null?
         tree = CSG::Native::BSPNode.new(ptr)
         CSG::Solid.new :tree => tree
       end
