@@ -5,6 +5,7 @@
 #include "reader.h"
 #include "bsp.h"
 #include "export.h"
+#include "bsp_mesh.h"
 
 // Test types
 mesh_t mesh_t_Proto = {};
