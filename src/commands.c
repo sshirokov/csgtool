@@ -4,6 +4,7 @@
 #include "commands.h"
 #include "mesh.h"
 #include "bsp.h"
+#include "bsp_mesh.h"
 #include "export.h"
 
 typedef bsp_node_t* (*bsp_binary_op)(bsp_node_t *, bsp_node_t *);

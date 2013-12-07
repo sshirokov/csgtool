@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "poly.h"
+#include "bsp.h"
 
 #ifndef __MESH_H
 #define __MESH_H
@@ -13,6 +14,7 @@ typedef struct s_mesh_t {
 
 	int (*poly_count)(void *self);
 	klist_t(poly)* (*to_polygons)(void *self);
+	bsp_node_t* (*to_bsp)(void *self);
 
 	int (*write)(void *self, char *path);
 } mesh_t;
