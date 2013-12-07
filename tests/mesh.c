@@ -47,6 +47,20 @@ void test_mesh__cleanup(void) {
 	unlink(tmp_out_file);
 }
 
+void test_mesh__can_produce_bsp_tree(void) {
+	mesh_t *mesh = NEW(stl_mesh_t, "STL", stl_file_object);
+	stl_file_object = NULL; // The mesh will free it
+
+	bsp_node_t *bsp = mesh->to_bsp(mesh);
+	cl_assert(bsp != NULL);
+
+	klist_t(poly) *list = bsp_to_polygons(bsp, 0, NULL);
+	cl_assert(list->size >= mesh->poly_count(mesh));
+
+	kl_destroy(poly, list);
+	free_bsp_tree(bsp);
+}
+
 void test_mesh__can_create_default(void) {
 	mesh_t *mesh = NEW(mesh_t, "MSH", NULL);
 
