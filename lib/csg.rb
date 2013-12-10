@@ -85,9 +85,12 @@ module CSG
         # *NULL and explode if you ask, and that's much worse.
         raise Exception.new("The calling mesh is a NULL pointer") if mesh.null?
         raise Exception.new("The parameter mesh is a NULL pointer") if solid.mesh.null?
+
         raise Exception.new("My BSP tree is NULL.") if (my_bsp_ptr = mesh[:to_bsp].call mesh).null?
-        raise Exception.new("My BSP tree is NULL.") if (their_bsp_ptr = solid.mesh[:to_bsp].call solid.mesh).null?
+        # Asign ASAP in case the exception triggers an unwind, and I want the GC to know about this
         my_bsp = CSG::Native::BSPNode.new(my_bsp_ptr)
+
+        raise Exception.new("My BSP tree is NULL.") if (their_bsp_ptr = solid.mesh[:to_bsp].call solid.mesh).null?
         their_bsp = CSG::Native::BSPNode.new(their_bsp_ptr)
 
         result_ptr = CSG::Native.send "bsp_#{name}", my_bsp, their_bsp
