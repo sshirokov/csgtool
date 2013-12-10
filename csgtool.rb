@@ -16,8 +16,8 @@ puts "Intersect: #{intersect.inspect}"
 puts "Union: #{union.inspect}"
 puts "Subtract: #{subtract.inspect}"
 
-puts "TODO: Writing output", "--"
+puts "Writing output", "--"
 
-# intersect.to_stl.write_file "intersect.stl"
-# subtract.to_stl.write_file "subtract.stl"
-# union.to_stl.write_file "union.stl"
+intersect.write "intersect.stl"
+subtract.write "subtract.stl"
+union.write "union.stl"
