@@ -39,13 +39,17 @@ klist_t(poly)* _default_to_polygons(void *self) {
 	return NULL;
 }
 
-int _default_write(void *self, char *path) {
+int _default_write(void *self, char *path, char type[4]) {
 	int rc = -1;
 	mesh_t *mesh = (mesh_t*)self;
 	stl_object *stl = NULL;
-	klist_t(poly) *polys = mesh->to_polygons(mesh);
+	klist_t(poly) *polys = NULL;
 	klist_t(poly) *triangles = NULL;
-	check(polys != NULL, "Failed to get polygons from mesh %p", mesh);
+
+	// This is the only format we speak right now
+	if(strncmp(type, "STL", 3) != 0) goto error;
+
+	check((polys = mesh->to_polygons(mesh)) != NULL, "Failed to get polygons from mesh %p", mesh);
 
 	triangles = polys_to_tris(NULL, polys);
 	check(triangles != NULL, "Failed to convert polygons to trianges.");

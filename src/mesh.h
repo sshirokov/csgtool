@@ -16,7 +16,7 @@ typedef struct s_mesh_t {
 	klist_t(poly)* (*to_polygons)(void *self);
 	bsp_node_t* (*to_bsp)(void *self);
 
-	int (*write)(void *self, char *path);
+	int (*write)(void *self, char *path, char type[4]);
 } mesh_t;
 
 int mesh_init(void *self, void *data);
