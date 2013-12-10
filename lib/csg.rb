@@ -9,19 +9,25 @@ module CSG
     end
     ffi_lib ['csg'] + candidates
 
-    class STLObject < FFI::ManagedStruct
-      layout :header, [:uint8, 80],
-             :facet_count, :uint32,
-             :stl_facet, :pointer
+    class Mesh < FFI::ManagedStruct
+      # WARNING: You should probably never call `:destroy`, because it's a managed
+      #          struct, and should get destroyed by Ruby using this very method
+      #          inside of `Mesh.release`
+      layout :type, [:uint8, 4],
+             :init,        callback([:pointer, :pointer], :int),
+             :destroy,     callback([:pointer], :void),
+             :poly_count,  callback([:pointer], :int),
+             :to_polygons, callback([:pointer], :pointer),
+             :to_bsp,      callback([:pointer], :pointer),
+             :write,       callback([:pointer, :string, :string], :int)
 
       def self.release(ptr)
-        CSG::Native.stl_free ptr
-      end
-
-      def write_file(path)
-        CSG::Native.stl_write_file self, path
+        CSG::Native.destroy_mesh ptr
       end
     end
+
+    attach_function :destroy_mesh, [:pointer], :void
+    attach_function :mesh_read_file, [:string], Mesh
 
     class BSPNode < FFI::ManagedStruct
       layout :polygons, :pointer,
@@ -34,50 +40,71 @@ module CSG
       end
     end
 
-    attach_function :stl_read_file, [:string, :bool], :pointer
-    attach_function :stl_write_file, [:pointer, :string], :int
-
-    attach_function :stl_free, [:pointer], :void
     attach_function :free_bsp_tree, [:pointer], :void
-
-    attach_function :stl_to_bsp, [:pointer], :pointer
-    attach_function :bsp_to_stl, [:pointer], :pointer
+    attach_function :mesh_to_bsp, [Mesh], BSPNode
 
     attach_function :bsp_union, [:pointer, :pointer], :pointer
     attach_function :bsp_subtract, [:pointer, :pointer], :pointer
     attach_function :bsp_intersect, [:pointer, :pointer], :pointer
-  end
 
+    attach_function :bsp_to_mesh, [:pointer, :int], :pointer
+  end
+end
+
+module CSG
   class Solid
-    attr_reader :tree
+    attr_reader :mesh
 
     def initialize(opts)
       if opts[:file]
         load_from_file opts[:file]
-      elsif opts[:tree]
-        @tree = opts[:tree]
+      elsif opts[:mesh]
+        @mesh = opts[:mesh]
       end
-      raise ArgumentError.new "Failed to load tree with: #{opts.inspect}" unless @tree
+      raise ArgumentError.new "Failed to load mesh with: #{opts.inspect}" unless @mesh
     end
 
     def load_from_file(path)
       File.stat(path) # Stat before load to raise a sane "Does not exist" error
-      stl = CSG::Native::STLObject.new CSG::Native.stl_read_file(path, false)
-      @tree = CSG::Native::BSPNode.new CSG::Native.stl_to_bsp(stl)
-    end
-
-    def to_stl
-      ptr = CSG::Native.bsp_to_stl tree
-      CSG::Native::STLObject.new(ptr)
-    end
-
-    # Build the CSG methods with ManagedStruct wrappers
-    [:intersect, :subtract, :union].each do |name|
-      define_method name do |solid|
-        ptr = CSG::Native.send "bsp_#{name}", tree, solid.tree
-        tree = CSG::Native::BSPNode.new(ptr)
-        CSG::Solid.new :tree => tree
+      mesh_ptr = CSG::Native::mesh_read_file path
+      if not mesh_ptr.null?
+          @mesh = CSG::Native::Mesh.new mesh_ptr
+      else
+        raise Exception.new("Failed to produce Mesh from #{path}")
       end
     end
+
+    def write(path)
+      rc = mesh[:write].call(mesh, path, "STL")
+      raise Exception.new("Failed to write to '#{path}") if rc != 0
+    end
+
+    [:intersect, :subtract, :union].each do |name|
+      define_method name do |solid|
+        # I'm so paranoid because ruby will gladly FFI through a
+        # *NULL and explode if you ask, and that's much worse.
+        raise Exception.new("The calling mesh is a NULL pointer") if mesh.null?
+        raise Exception.new("The parameter mesh is a NULL pointer") if solid.mesh.null?
+
+        raise Exception.new("My BSP tree is NULL.") if (my_bsp_ptr = mesh[:to_bsp].call mesh).null?
+        # Assign ASAP in case the exception triggers an unwind, and I want the GC to know about this
+        my_bsp = CSG::Native::BSPNode.new(my_bsp_ptr)
+
+        raise Exception.new("My BSP tree is NULL.") if (their_bsp_ptr = solid.mesh[:to_bsp].call solid.mesh).null?
+        their_bsp = CSG::Native::BSPNode.new(their_bsp_ptr)
+
+        result_ptr = CSG::Native.send "bsp_#{name}", my_bsp, their_bsp
+        raise Exception.new("Result of #{name} is NULL") if result_ptr.null?
+
+        # We will not wrap the result in a CSG::Native::BSPNode because
+        # to avoid garbage collection, and we'll manage this pointer
+        # inside of the CSG::Native::Mesh object we get with
+        # bsp_to_mesh(.., 0) - which will not clone the input parameter
+        result_mesh_ptr = CSG::Native.bsp_to_mesh result_ptr, 0
+        raise Exception.new("Failed to wrap BSPNode(#{result_mesh_ptr} pointer as a Mesh, got NULL") if result_mesh_ptr.null?
+        CSG::Solid.new :mesh => CSG::Native::Mesh.new(result_mesh_ptr)
+      end
+    end
+
   end
 end

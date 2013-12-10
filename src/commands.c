@@ -4,6 +4,7 @@
 #include "commands.h"
 #include "mesh.h"
 #include "bsp.h"
+#include "bsp_mesh.h"
 #include "export.h"
 
 typedef bsp_node_t* (*bsp_binary_op)(bsp_node_t *, bsp_node_t *);
@@ -71,7 +72,7 @@ int cmd_##name(int argc, char **argv) {                                         
 	check(result != NULL, "Binary operation" #name "failed.");                        \
 	out = NEW(bsp_mesh_t, "BSP", result);                                             \
     log_info("Writing output to %s", out_path);                                       \
-	check(out->write(out, out_path) == 0, "Failed to write STL to %s", out_path);     \
+	check(out->write(out, out_path, "STL") == 0, "Failed to write STL to %s", out_path); \
                                                                                       \
 	out->destroy(out);                               				                  \
 	return 0;                                                                         \

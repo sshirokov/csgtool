@@ -1,6 +1,5 @@
 #include "klist.h"
 #include "poly.h"
-#include "mesh.h"
 
 #ifndef __BSP_H
 #define __BSP_H
@@ -23,14 +22,6 @@ typedef struct s_bsp_node {
 	struct s_bsp_node *front;
 	struct s_bsp_node *back;
 } bsp_node_t;
-
-extern mesh_t bsp_mesh_t_Proto;
-
-typedef struct s_bsp_mesh_t {
-	mesh_t proto;
-	bsp_node_t *bsp;
-} bsp_mesh_t;
-
 
 bsp_node_t *alloc_bsp_node(void);
 bsp_node_t *clone_bsp_tree(bsp_node_t *tree);

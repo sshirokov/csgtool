@@ -3,6 +3,7 @@
 #include "stl.h"
 #include "bsp.h"
 #include "export.h"
+#include "bsp_mesh.h"
 
 char cube_stl_path[] = CLAR_FIXTURE_PATH "cube.stl";
 stl_object *cube_stl = NULL;
@@ -61,6 +62,24 @@ void test_export__cleanup(void) {
 		square_list = NULL;
 	}
 	free_bsp_tree(cube_tree);
+}
+
+void test_export__bsp_to_mesh(void) {
+	mesh_t *identity_mesh = bsp_to_mesh(cube_tree, 0);
+	mesh_t *copy_mesh = bsp_to_mesh(cube_tree, 1);
+
+	cl_assert_equal_i(identity_mesh->poly_count(identity_mesh),
+					  copy_mesh->poly_count(copy_mesh));
+
+	cl_assert(((bsp_mesh_t*)identity_mesh)->bsp != ((bsp_mesh_t*)copy_mesh)->bsp);
+	cl_assert(((bsp_mesh_t*)identity_mesh)->bsp == cube_tree);
+
+	// Make sure we don't double free the tree with __cleanup
+	((bsp_mesh_t*)identity_mesh)->bsp = NULL;
+	identity_mesh->destroy(identity_mesh);
+
+	// Dealloc the copied mesh
+	copy_mesh->destroy(copy_mesh);
 }
 
 void test_export__polys_to_tris_can_allocate(void) {

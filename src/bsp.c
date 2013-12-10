@@ -3,6 +3,7 @@
 #include "bsp.h"
 #include "dbg.h"
 #include "export.h"
+#include "bsp_mesh.h"
 
 bsp_node_t *alloc_bsp_node(void) {
 	bsp_node_t *node = NULL;

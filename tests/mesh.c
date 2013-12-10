@@ -5,6 +5,7 @@
 #include "reader.h"
 #include "bsp.h"
 #include "export.h"
+#include "bsp_mesh.h"
 
 // Test types
 mesh_t mesh_t_Proto = {};
@@ -44,6 +45,20 @@ void test_mesh__cleanup(void) {
 
 	// Try to not leave behind stale data
 	unlink(tmp_out_file);
+}
+
+void test_mesh__can_produce_bsp_tree(void) {
+	mesh_t *mesh = NEW(stl_mesh_t, "STL", stl_file_object);
+	stl_file_object = NULL; // The mesh will free it
+
+	bsp_node_t *bsp = mesh->to_bsp(mesh);
+	cl_assert(bsp != NULL);
+
+	klist_t(poly) *list = bsp_to_polygons(bsp, 0, NULL);
+	cl_assert(list->size >= mesh->poly_count(mesh));
+
+	kl_destroy(poly, list);
+	free_bsp_tree(bsp);
 }
 
 void test_mesh__can_create_default(void) {
@@ -90,7 +105,7 @@ void test_mesh__mesh_can_write_a_readable_file(void) {
 	cl_assert(read_cube->poly_count(read_cube) > 0);
 
 	// Make sure we can write without apperant error
-	rc = read_cube->write(read_cube, tmp_out_file);
+	rc = read_cube->write(read_cube, tmp_out_file, "STL");
 	cl_assert_(rc == 0, "Failed to write mesh_t to file.");
 
 	// Read our output and compare
@@ -102,6 +117,15 @@ void test_mesh__mesh_can_write_a_readable_file(void) {
 	// Destroy our peices
 	read_cube->destroy(read_cube);
 	written_cube->destroy(written_cube);
+}
+
+void test_mesh__write_refuses_to_write_unknown_type(void) {
+	mesh_t *mesh = NEW(stl_mesh_t, "STL", stl_file_object);
+
+	cl_assert(mesh->write(mesh, tmp_out_file, "NO!") != 0);
+
+	mesh->destroy(mesh);
+	stl_file_object = NULL;
 }
 
 void test_mesh__bsp_backed_mesh_has_polygons(void) {
@@ -127,7 +151,7 @@ void test_mesh__bsp_backed_mesh_can_write(void) {
 	mesh = NEW(bsp_mesh_t, "BSP", bsp);
 	cl_assert(mesh != NULL);
 
-	rc = mesh->write(mesh, tmp_out_file);
+	rc = mesh->write(mesh, tmp_out_file, "STL");
 	cl_assert_equal_i(rc, 0);
 
 	read_mesh = mesh_read_file(tmp_out_file);
