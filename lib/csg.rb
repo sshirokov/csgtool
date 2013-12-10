@@ -74,10 +74,23 @@ module CSG
 
     [:intersect, :subtract, :union].each do |name|
       define_method name do |solid|
-        ptr = CSG::Native.send "bsp_#{name}", tree, solid.tree
-        raise Exception.new("Result of #{name} is NULL") if ptr.null?
-        tree = CSG::Native::BSPNode.new(ptr)
-        CSG::Solid.new :tree => tree
+        # I'm so paranoid because ruby will gladly FFI through a
+        # *NULL and explode if you ask, and that's much worse.
+        raise Exception.new("The calling mesh is a NULL pointer") if mesh.null?
+        raise Exception.new("The parameter mesh is a NULL pointer") if solid.mesh.null?
+        raise Exception.new("My BSP tree is NULL.") if (my_bsp_ptr = mesh[:to_bsp].call mesh).null?
+        raise Exception.new("My BSP tree is NULL.") if (their_bsp_ptr = solid.mesh[:to_bsp].call solid.mesh).null?
+        my_bsp = CSG::Native::BSPNode.new(my_bsp_ptr)
+        their_bsp = CSG::Native::BSPNode.new(their_bsp_ptr)
+
+        result_ptr = CSG::Native.send "bsp_#{name}", my_bsp, their_bsp
+        raise Exception.new("Result of #{name} is NULL") if result_ptr.null?
+
+        # We will not wrap te result in a CSG::Native::BSPNode because
+        # to avoid garbage collection, and we'll manage this pointer
+        # inside of the CSG::Native::Mesh object we get with
+        # bsp_to_mesh(.., 0) - which will not clone the input parameter
+        raise Exception.new("TODO: Make a BSP-backed mesh and return it.")
       end
     end
 
