@@ -51,26 +51,22 @@ end
 
 module CSG
   class Solid
-    attr_reader :tree
+    attr_reader :mesh
 
     def initialize(opts)
       if opts[:file]
         load_from_file opts[:file]
-      elsif opts[:tree]
-        @tree = opts[:tree]
+      elsif opts[:mesh]
+        @mesh = opts[:mesh]
       end
-      raise ArgumentError.new "Failed to load tree with: #{opts.inspect}" unless @tree
+      raise ArgumentError.new "Failed to load mesh with: #{opts.inspect}" unless @mesh
     end
 
     def load_from_file(path)
       File.stat(path) # Stat before load to raise a sane "Does not exist" error
       mesh_ptr = CSG::Native::mesh_read_file path
       if not mesh_ptr.null?
-        if not (tree_ptr = CSG::Native.mesh_to_bsp(mesh_ptr)).null?
-          @tree = CSG::Native::BSPNode.new tree_ptr
-        else
-          raise Exception.new("Failed to convert Mesh into BSPNode")
-        end
+          @mesh = CSG::Native::Mesh.new mesh_ptr
       else
         raise Exception.new("Failed to produce Mesh from #{path}")
       end
