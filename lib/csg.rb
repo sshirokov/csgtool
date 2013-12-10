@@ -46,6 +46,8 @@ module CSG
     attach_function :bsp_union, [:pointer, :pointer], :pointer
     attach_function :bsp_subtract, [:pointer, :pointer], :pointer
     attach_function :bsp_intersect, [:pointer, :pointer], :pointer
+
+    attach_function :bsp_to_mesh, [:pointer, :int], :pointer
   end
 end
 
@@ -90,7 +92,9 @@ module CSG
         # to avoid garbage collection, and we'll manage this pointer
         # inside of the CSG::Native::Mesh object we get with
         # bsp_to_mesh(.., 0) - which will not clone the input parameter
-        raise Exception.new("TODO: Make a BSP-backed mesh and return it.")
+        result_mesh_ptr = CSG::Native.bsp_to_mesh result_ptr, 0
+        raise Exception.new("Failed to wrap BSPNode(#{result_mesh_ptr} pointer as a Mesh, got NULL") if result_mesh_ptr.null?
+        CSG::Solid.new :mesh => CSG::Native::Mesh.new(result_mesh_ptr)
       end
     end
 
