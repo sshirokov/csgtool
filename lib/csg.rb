@@ -96,7 +96,7 @@ module CSG
         result_ptr = CSG::Native.send "bsp_#{name}", my_bsp, their_bsp
         raise Exception.new("Result of #{name} is NULL") if result_ptr.null?
 
-        # We will not wrap te result in a CSG::Native::BSPNode because
+        # We will not wrap the result in a CSG::Native::BSPNode because
         # to avoid garbage collection, and we'll manage this pointer
         # inside of the CSG::Native::Mesh object we get with
         # bsp_to_mesh(.., 0) - which will not clone the input parameter
