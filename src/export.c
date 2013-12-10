@@ -1,4 +1,5 @@
 #include "export.h"
+#include "bsp_mesh.h"
 
 stl_object *stl_from_polys(klist_t(poly) *polygons) {
 	stl_object *stl = stl_alloc(NULL, polygons->size);
@@ -68,6 +69,12 @@ error:
 
 bsp_node_t *mesh_to_bsp(mesh_t *mesh) {
 	return mesh->to_bsp(mesh);
+}
+
+mesh_t* bsp_to_mesh(bsp_node_t* bsp, int copy) {
+	bsp_node_t* input = (copy == 0) ? bsp : clone_bsp_tree(bsp);
+
+	return NEW(bsp_mesh_t, "BSP", input);
 }
 
 klist_t(poly)* polys_to_tris(klist_t(poly) *dst, klist_t(poly) *src) {
