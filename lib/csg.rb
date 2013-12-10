@@ -74,6 +74,11 @@ module CSG
       end
     end
 
+    def write(path)
+      rc = mesh[:write].call(mesh, path, "STL")
+      raise Exception.new("Failed to write to '#{path}") if rc != 0
+    end
+
     [:intersect, :subtract, :union].each do |name|
       define_method name do |solid|
         # I'm so paranoid because ruby will gladly FFI through a
