@@ -67,21 +67,7 @@ error:
 }
 
 bsp_node_t *mesh_to_bsp(mesh_t *mesh) {
-	bsp_node_t *tree = NULL;
-	klist_t(poly) *polys = NULL;
-
-	check((polys = mesh->to_polygons(mesh)) != NULL,
-		  "Failed to convert mesh %p to polgon list", mesh);
-
-	check((tree = bsp_build(NULL, polys, 1)) != NULL,
-		  "Failed to build BSP tree from %zd polys", polys->size);
-
-	kl_destroy(poly, polys);
-	return tree;
-error:
-	if(tree != NULL) free_bsp_tree(tree);
-	if(polys != NULL) kl_destroy(poly, polys);
-	return NULL;
+	return mesh->to_bsp(mesh);
 }
 
 klist_t(poly)* polys_to_tris(klist_t(poly) *dst, klist_t(poly) *src) {
