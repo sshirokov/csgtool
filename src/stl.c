@@ -359,7 +359,7 @@ int stl_mesh_poly_count(void *self) {
 klist_t(poly)* stl_mesh_to_polygons(void *self) {
 	stl_mesh_t *mesh = (stl_mesh_t*)self;
 	int count = mesh->_(poly_count)(mesh);
-	klist_t(poly)* polys = count > 0 ? kl_init(poly) : NULL;
+	klist_t(poly)* polys = kl_init(poly);
 
 	for(int i = 0; i < count; i++) {
 		poly_t *poly = poly_make_triangle(mesh->stl->facets[i].vertices[0],

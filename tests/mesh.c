@@ -47,6 +47,14 @@ void test_mesh__cleanup(void) {
 	unlink(tmp_out_file);
 }
 
+void test_mesh__can_read_and_write_zero_poly_mesh(void) {
+	char stl_path[] = CLAR_FIXTURE_PATH "zero.stl";
+	mesh_t *mesh = mesh_read_file(stl_path);
+	cl_assert_(mesh != NULL, "It should be okay to read a zero poly mesh");
+	cl_assert_equal_i(mesh->poly_count(mesh), 0);
+	cl_assert_equal_i(mesh->write(mesh, tmp_out_file, "STL"), 0);
+}
+
 void test_mesh__can_produce_bsp_tree(void) {
 	mesh_t *mesh = NEW(stl_mesh_t, "STL", stl_file_object);
 	stl_file_object = NULL; // The mesh will free it
