@@ -56,12 +56,6 @@ KLIST_INIT(stl_object, stl_object*, mp_stl_free)
 #define mp_std_free(x) free(kl_val(x))
 KLIST_INIT(stl_facet, stl_facet*, mp_std_free)
 
-// mesh_t type and prototype
-extern mesh_t stl_mesh_t_Proto;
 
-typedef struct s_stl_mesh_t {
-	mesh_t proto;
-	stl_object *stl;
-} stl_mesh_t;
 
 #endif

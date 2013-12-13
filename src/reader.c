@@ -1,5 +1,6 @@
 #include "stl.h"
 #include "reader.h"
+#include "stl_mesh.h"
 
 // API
 mesh_t* reader_load(char *path) {
