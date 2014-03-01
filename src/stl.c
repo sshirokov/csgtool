@@ -122,7 +122,7 @@ error:
 	return NULL;
 }
 
-stl_facet *stl_read_text_facet(const char *declaration, int fd) {
+stl_facet *stl_read_text_facet(const char *declaration, FILE *f) {
 		stl_facet *facet = (stl_facet*)calloc(1, sizeof(stl_facet));
 		int rc = -1;
 		char *line = NULL;
@@ -131,11 +131,11 @@ stl_facet *stl_read_text_facet(const char *declaration, int fd) {
 		rc = sscanf(declaration, "facet normal %f %f %f", &facet->normal[0], &facet->normal[1], &facet->normal[2]);
 		check(rc == 3, "stl_Read_text_facet(%s): Normal line malformed", declaration);
 
-		check((line = read_line(fd, 1, 1)), "Malformed facet, no line follows valid normal declaration");
+		check((line = read_line(f, true, true)), "Malformed facet, no line follows valid normal declaration");
 		check(strcmp(line, "outer loop") == 0, "Malformed facet, no loop declaration following valid normal.");
 
 		for(int i = 0; i < 3; i++) {
-				check((line = read_line(fd, 1, 1)), "Failed to read vertex %d", i);
+				check((line = read_line(f, true, true)), "Failed to read vertex %d", i);
 				rc = sscanf(line, "vertex %f %f %f", &facet->vertices[i][0], &facet->vertices[i][1], &facet->vertices[i][2]);
 				check(rc == 3, "Vertex declaration [%s] did not contain (x, y, z) point.", line);
 
@@ -143,10 +143,10 @@ stl_facet *stl_read_text_facet(const char *declaration, int fd) {
 				line = NULL;
 		}
 
-		check((line = read_line(fd, 1, 1)), "No line following vertex declarations.");
+		check((line = read_line(f, true, true)), "No line following vertex declarations.");
 		check(strcmp(line, "endloop") == 0, "Vertex declarations not followed by 'endloop'. Got: '%s'", line);
 		free(line);
-		check((line = read_line(fd, 1, 1)), "No line following endloop.");
+		check((line = read_line(f, true, true)), "No line following endloop.");
 		check(strcmp(line, "endfacet") == 0, "endloop not followed by 'endfacet'");
 		free(line);
 		line = NULL;
@@ -159,9 +159,16 @@ error:
 }
 
 stl_object *stl_read_text_object(int fd) {
+	FILE *f = NULL;
 	stl_object *obj = NULL;
-	char *line = read_line(fd, 0, 1);
-	klist_t(stl_facet) *facets = kl_init(stl_facet);
+	char *line = NULL;
+	klist_t(stl_facet) *facets = NULL;
+
+	check((f = fdopen(fd, "r")) != NULL, "Failed to open fd(%d) as FILE", fd);
+	check((facets = kl_init(stl_facet)) != NULL, "Failed to create facel list.");
+
+	// Read first line
+	line = read_line(f, false, true);
 
 	check(line != NULL, "Failed to read STL/ASCII header.");
 	check((obj = stl_alloc(NULL, 0)), "Failed to allocated new STL object.");
@@ -170,10 +177,10 @@ stl_object *stl_read_text_object(int fd) {
 	free(line);
 
 	size_t lines = 0;
-	while((line = read_line(fd, 1, 1))) {
+	while((line = read_line(f, true, true))) {
 		lines++;
 		if(strncmp(line, "facet", strlen("facet")) == 0) {
-			stl_facet *facet = stl_read_text_facet(line, fd);
+			stl_facet *facet = stl_read_text_facet(line, f);
 			check(facet != NULL, "Failed to read facet on line %zd", lines);
 			*kl_pushp(stl_facet, facets) = facet;
 		}
