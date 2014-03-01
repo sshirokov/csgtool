@@ -8,7 +8,7 @@ SOURCES = $(wildcard $(ROOT)/src/*.c)
 OBJS = $(patsubst %.c,%.o,$(SOURCES))
 CPPFLAGS = $(OPTCPPFLAGS)
 LIBS = -lm $(OPTLIBS)
-CFLAGS = -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
+CFLAGS = -D_POSIX_C_SOURCE=200112L -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 
 ifeq ($(shell uname),Darwin)
 LIB_TARGET = libcsg.dylib
