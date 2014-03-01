@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -73,57 +74,52 @@ error:
 }
 
 /*
- * Allocate, read, and return a anull terminated string from `fd'.
+ * Allocate, read, and return a '\0' terminated string from `fd'.
  * Return NULL in caes of error
  */
-char* read_line(int fd, int downcase, int trim) {
-		const size_t max_line = 100;
-		char *buffer = calloc(max_line + 1, sizeof(char));
-		int rc = -1;
-		check_mem(buffer);
+char *read_line(FILE *f, bool downcase, bool trim) {
+	char read_buffer[512] = {0};
+	char *line = NULL;
+	char *rc = NULL;
 
-		rc = read(fd, buffer, max_line);
-		check(rc != -1, "Failed to read.");
+	// Sanity check the stream before we go on,
+	check_debug(feof(f) == 0, "FILE(%p) is at EOF", f);
+	check(ferror(f) == 0, "Error in stream(%p).", f);
 
-		char *ret = NULL;
-		while((ret = strchr(buffer, '\r'))) {
-				*ret = ' ';
+	// Try reading, with the hope that we get the entire line at once
+	rc = fgets(read_buffer, sizeof(read_buffer), f);
+	check(rc != NULL, "Failed to read line from FILE(%p)", f);
+	check_mem(line = calloc(strlen(read_buffer) + 1, sizeof(char)));
+	strncpy(line, read_buffer, strlen(read_buffer));
+
+	// See if we need to finish reading the line
+	while(line[strlen(line) - 1] != '\n') {
+		rc = fgets(read_buffer, sizeof(read_buffer), f);
+		if((rc == NULL) && feof(f)) {
+			// We got everything that we can get, so we'll
+			// call it a "line"
+			break;
 		}
+		else {
+			// Append the new data to the end of the line
+			char *new_line = NULL;
+			check(rc != NULL, "Error finishing line from FILE(%p)", f);
+			check_mem(new_line = calloc(strlen(line) + strlen(read_buffer) + 1, sizeof(char)));
 
-		char *newline = strchr(buffer, '\n');
-		if(newline != NULL) *newline = '\0';
+			strncpy(new_line, line, strlen(line));
+			strncpy(new_line + strlen(new_line), read_buffer, strlen(read_buffer));
 
-		if((strlen(buffer) == 0) && (rc == 0)) goto eof;
-
-		rc = lseek(fd, -(rc - strlen(buffer) - 1), SEEK_CUR);
-		check(rc != -1, "Failed to seek.");
-
-		if(trim) {
-				char *new = NULL;
-				int start = 0;
-				int end = strlen(buffer) ;
-				while(isspace(buffer[start++]));
-				while(isspace(buffer[--end]));
-				if(start > 0) start--;
-				buffer[++end] = '\0';
-				check_mem((new = calloc(strlen(buffer + start) + 1, 1)));
-				memcpy(new, buffer + start, end - start);
-				free(buffer);
-				buffer = new;
+			free(line);
+			line = new_line;
 		}
+	}
 
-		if(downcase) {
-				for(int i = 0; i < strlen(buffer); i++) {
-						buffer[i] = tolower(buffer[i]);
-				}
-		}
-
-
-		return buffer;
-eof:
+	return line;
 error:
-		if(buffer) free(buffer);
-		return NULL;
+	if(line != NULL) free(line);
+	if(feof(f)) debug("FILE(%p) EOF", f);
+	if(ferror(f)) debug("FILE(%p): ERROR. %s", f, clean_errno());
+	return NULL;
 }
 
 stl_facet *stl_read_text_facet(const char *declaration, int fd) {
