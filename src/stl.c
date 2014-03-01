@@ -159,48 +159,48 @@ error:
 }
 
 stl_object *stl_read_text_object(int fd) {
-		stl_object *obj = NULL;
-		char *line = read_line(fd, 0, 1);
-		klist_t(stl_facet) *facets = kl_init(stl_facet);
+	stl_object *obj = NULL;
+	char *line = read_line(fd, 0, 1);
+	klist_t(stl_facet) *facets = kl_init(stl_facet);
 
-		check(line != NULL, "Failed to read STL/ASCII header.");
-		check((obj = stl_alloc(NULL, 0)), "Failed to allocated new STL object.");
-		snprintf(obj->header, sizeof(obj->header), "[STL/ASCII]: '%s'", line);
-		log_info("Header: [%s]", obj->header);
-		free(line);
+	check(line != NULL, "Failed to read STL/ASCII header.");
+	check((obj = stl_alloc(NULL, 0)), "Failed to allocated new STL object.");
+	snprintf(obj->header, sizeof(obj->header), "[STL/ASCII]: '%s'", line);
+	log_info("Header: [%s]", obj->header);
+	free(line);
 
-		size_t lines = 0;
-		while((line = read_line(fd, 1, 1))) {
-				lines++;
-				if(strncmp(line, "facet", strlen("facet")) == 0) {
-						stl_facet *facet = stl_read_text_facet(line, fd);
-						check(facet != NULL, "Failed to read facet on line %zd", lines);
-						*kl_pushp(stl_facet, facets) = facet;
-				}
-				else if(strncmp(line, "endsolid", strlen("endfacet")) == 0) {
-						check(facets->size > 0, "No facets loaded.");
-						log_info("ASCII solid ended. Loaded %zd facets", facets->size);
-
-						obj->facet_count = facets->size;
-						obj->facets = calloc(facets->size, sizeof(stl_facet));
-						check_mem(obj->facets);
-
-						stl_facet *facet = NULL;
-						for(int i = 0; kl_shift(stl_facet, facets, &facet) != -1; i++) {
-								obj->facets[i] = *facet;
-						}
-				}
-				else {
-						sentinel("Unexpected line[%zd]: '%s'", lines, line);
-				}
-				free(line);
+	size_t lines = 0;
+	while((line = read_line(fd, 1, 1))) {
+		lines++;
+		if(strncmp(line, "facet", strlen("facet")) == 0) {
+			stl_facet *facet = stl_read_text_facet(line, fd);
+			check(facet != NULL, "Failed to read facet on line %zd", lines);
+			*kl_pushp(stl_facet, facets) = facet;
 		}
+		else if(strncmp(line, "endsolid", strlen("endfacet")) == 0) {
+			check(facets->size > 0, "No facets loaded.");
+			log_info("ASCII solid ended. Loaded %zd facets", facets->size);
 
-		kl_destroy(stl_facet, facets);
-		return obj;
+			obj->facet_count = facets->size;
+			obj->facets = calloc(facets->size, sizeof(stl_facet));
+			check_mem(obj->facets);
+
+			stl_facet *facet = NULL;
+			for(int i = 0; kl_shift(stl_facet, facets, &facet) != -1; i++) {
+				obj->facets[i] = *facet;
+			}
+		}
+		else {
+			sentinel("Unexpected line[%zd]: '%s'", lines, line);
+		}
+		free(line);
+	}
+
+	kl_destroy(stl_facet, facets);
+	return obj;
 error:
-		kl_destroy(stl_facet, facets);
-		return NULL;
+	kl_destroy(stl_facet, facets);
+	return NULL;
 }
 
 stl_object *stl_read_object(int fd) {
