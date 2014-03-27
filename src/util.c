@@ -1,3 +1,5 @@
+#include "ctype.h"
+
 #include "util.h"
 
 char *read_line(FILE *f, bool downcase, bool trim) {
@@ -34,6 +36,17 @@ char *read_line(FILE *f, bool downcase, bool trim) {
 
 			free(line);
 			line = new_line;
+		}
+	}
+
+	// Post processing
+	if((line != NULL) && (strlen(line) > 0)) {
+		if(trim == true) {
+			log_err("TODO: trim not done");
+		}
+
+		if(downcase == true) {
+			log_err("TODO: downcase not done.");
 		}
 	}
 
