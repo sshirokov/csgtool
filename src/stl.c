@@ -199,6 +199,7 @@ stl_object *stl_read_file(char *path, int recompute_normals) {
 		check((fd = open(path, O_RDONLY)) != -1, "Unable to open '%s'", path);
 
 		obj = reader(fd);
+		check(obj != NULL, "Failed to read STL from %s", path);
 
 		char buffer[10];
 		int rc = read(fd, buffer, sizeof(buffer));
