@@ -136,3 +136,25 @@ void test_utils__read_line_can_read_blank_line(void) {
 	cl_assert_equal_i(strcmp("There was no cat above", data), 0);
 	if(data != NULL) free(data);
 }
+
+void test_utils__read_line_can_read_long_lines(void) {
+	// The data lines start and end with the same char
+	// first with `c' then with `z'
+
+	fp = fopen(CLAR_FIXTURE_PATH "1k_lines", "r");
+
+	char *data = NULL;
+
+	data = read_line(fp, false, true);
+	cl_assert(data != NULL);
+	cl_assert_equal_i(strlen(data), 1024);
+	cl_assert_equal_i(data[0], data[strlen(data) - 1]);
+	if(data != NULL) free(data);
+
+	data = read_line(fp, false, true);
+	cl_assert(data != NULL);
+	cl_assert_equal_i(strlen(data), 1024);
+	cl_assert_equal_i(data[0], data[strlen(data) - 1]);
+	cl_assert_equal_i(data[strlen(data) - 1], 'z');
+	if(data != NULL) free(data);
+}
