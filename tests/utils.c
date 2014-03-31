@@ -61,7 +61,7 @@ void test_utils__read_line_can_read_a_line_then_trim_and_downcase(void) {
 	fp = fopen(CLAR_FIXTURE_PATH "line_with_nl", "r");
 
 	// Note the lack of '\n'
-	char *data = read_line(fp, true, false);
+	char *data = read_line(fp, true, true);
 	cl_assert_equal_i(strcmp("i am a cat", data), 0);
 
 	// Cleanup locals
