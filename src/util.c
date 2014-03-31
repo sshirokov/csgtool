@@ -78,12 +78,17 @@ char *read_line(FILE *f, bool downcase, bool trim) {
 	char *rc = NULL;
 
 	// Sanity check the stream before we go on,
-	check_debug(feof(f) == 0, "FILE(%p) is at EOF", f);
+	// an EOF here is not fatal, so we'll return early
+	// instead of jumping into the error machinery.
+	if(feof(f) != 0) return NULL;
 	check(ferror(f) == 0, "Error in stream(%p).", f);
 
-	// Try reading, with the hope that we get the entire line at once
+	// Try reading, with the hope that we get the entire line at once.
+	// Short circuit EOF, so we don't emit noise if we can avoid it.
 	rc = fgets(read_buffer, sizeof(read_buffer), f);
-	check(rc != NULL, "Failed to read line from FILE(%p)", f);
+	if((rc == NULL) && feof(f)) return NULL;
+
+	check_debug(rc != NULL, "Failed to read line from FILE(%p)", f);
 	check_mem(line = calloc(strlen(read_buffer) + 1, sizeof(char)));
 	strncpy(line, read_buffer, strlen(read_buffer));
 
