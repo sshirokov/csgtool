@@ -116,7 +116,9 @@ char *read_line(FILE *f, bool downcase, bool trim) {
 		}
 
 		if(downcase == true) {
-			log_err("TODO: downcase not done.");
+			for(int i = 0; i < strlen(line); i++) {
+				line[i] = tolower(line[i]);
+			}
 		}
 	}
 
