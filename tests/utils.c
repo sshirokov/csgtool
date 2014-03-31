@@ -16,15 +16,6 @@ void test_utils__cleanup(void) {
 	}
 }
 
-// TODO: Test fixtures, rooted at CLAR_FIXTURE_PATH
-// each one should be their own test, p-much
-//
-// [x] line_with_nl
-// [x] empty
-// [x] line_without_nl
-// [x] multiline_text
-// multiline_text_no_nl
-
 void test_utils__read_line_can_read_a_line(void) {
 	fp = fopen(CLAR_FIXTURE_PATH "line_with_nl", "r");
 
@@ -119,4 +110,29 @@ void test_utils__read_line_by_line_from_multiline_without_nl(void) {
 
 	cl_assert_(read_line(fp, true, true) == NULL,
 			   "Should get a NULL after we run out of file.");
+}
+
+void test_utils__read_line_can_read_blank_line(void) {
+	fp = fopen(CLAR_FIXTURE_PATH "multiline_text_with_blank", "r");
+
+	char *data = NULL;
+
+	data = read_line(fp, false, true);
+	cl_assert_equal_i(strcmp("I am a cat", data), 0);
+	if(data != NULL) free(data);
+
+	data = read_line(fp, false, true);
+	cl_assert_equal_i(strcmp("We are all cats", data), 0);
+	if(data != NULL) free(data);
+
+	// Blank line, should be non-null tho
+	data = read_line(fp, false, true);
+	cl_assert(data != NULL);
+	cl_assert_equal_i(strlen(data), 0);
+	if(data != NULL) free(data);
+
+	// Last line
+	data = read_line(fp, false, true);
+	cl_assert_equal_i(strcmp("There was no cat above", data), 0);
+	if(data != NULL) free(data);
 }
