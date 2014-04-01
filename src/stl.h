@@ -42,7 +42,7 @@ stl_facet *stl_read_facet(int fd);
 stl_object *stl_read_object(int fd);
 
 // Text file readers
-stl_facet *stl_read_text_facet(const char *declaration, int fd);
+stl_facet *stl_read_text_facet(const char *declaration, FILE *f);
 stl_object *stl_read_text_object(int fd);
 
 // Binary file writers
