@@ -20,4 +20,8 @@ char *str_trim(char *str, bool copy);
  */
 char *read_line(FILE *f, bool downcase, bool trim);
 
+// Call `read_line` until we don't get blank lines
+// Gets the "next" non-blank line
+char *next_line(FILE *f, bool downcase, bool trim);
+
 #endif

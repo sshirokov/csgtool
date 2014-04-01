@@ -134,3 +134,16 @@ error:
 	if(ferror(f)) debug("FILE(%p): ERROR. %s", f, clean_errno());
 	return NULL;
 }
+
+char *next_line(FILE *f, bool downcase, bool trim) {
+	char *line = NULL;
+
+	// Read lines until we get one that isn't blank,
+	while(((line = read_line(f, downcase, trim)) != NULL) &&
+		  (strlen(line) == 0)) {
+		free(line);
+		line = NULL;
+	}
+
+	return line;
+}
