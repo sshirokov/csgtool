@@ -42,10 +42,7 @@ void v3_cross(float3 *result, float3 v1, float3 v2, int normalize) {
 				v1[0]*v2[1] - v1[1]*v2[0]
 		};
 		if(normalize) {
-				float mag = sqrt(v1_x_v2[0]*v1_x_v2[0] + v1_x_v2[1]*v1_x_v2[1] + v1_x_v2[2]*v1_x_v2[2]);
-				v1_x_v2[0] /= mag;
-				v1_x_v2[1] /= mag;
-				v1_x_v2[2] /= mag;
+				f3_normalize(&v1_x_v2);
 		}
 		memcpy(result, &v1_x_v2, sizeof(float3));
 }
