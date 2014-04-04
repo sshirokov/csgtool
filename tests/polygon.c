@@ -51,10 +51,13 @@ void test_polygon__add_more_than_max_polys(void) {
 	cl_assert(p != NULL);
 
 	float3 point = FLOAT3_INIT;
+	float f = 1.0; // y-growth scale
 	for(int i = 0; i < POLY_MAX_VERTS * 2; i++) {
 		// Might as well build a legitimate polygon
 		f3X(point) += 1.0;
-		f3Y(point) += 1.0;
+		// Scale the growth of Y slowly down to create
+		// a sloped curve rather than a staight line.
+		f3Y(point) += 1.0 * (f * 0.8);
 		poly_push_vertex(p, point);
 	}
 
