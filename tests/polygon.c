@@ -57,7 +57,7 @@ void test_polygon__add_more_than_max_polys(void) {
 		f3X(point) += 1.0;
 		// Scale the growth of Y slowly down to create
 		// a sloped curve rather than a staight line.
-		f3Y(point) += 1.0 * (f * 0.8);
+		f3Y(point) += 1.0 * (f *= 0.8);
 		poly_push_vertex(p, point);
 	}
 
