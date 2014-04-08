@@ -116,7 +116,7 @@ klist_t(poly)* polys_to_tris(klist_t(poly) *dst, klist_t(poly) *src) {
 	for(iter = kl_begin(src); iter != kl_end(src); iter = kl_next(iter)) {
 		poly_t *poly = kl_val(iter);
 		check(poly_to_tris(result, poly) != NULL,
-			  "Failed to tesselate %p(%zd) into triangles.",
+			  "Failed to tesselate %p(%d) into triangles.",
 			  poly, poly_vertex_count(poly));
 	}
 
