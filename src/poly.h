@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <strings.h>
 #include "dbg.h"
 #include "klist.h"
@@ -35,6 +36,8 @@ void free_poly(poly_t *p, int free_self);
 poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);
 poly_t *poly_invert(poly_t *poly);
+
+bool poly_has_area(poly_t *poly);
 
 int poly_vertex_count(poly_t *poly);
 int poly_vertex_max(poly_t *poly);
