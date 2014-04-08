@@ -77,6 +77,37 @@ mesh_t* bsp_to_mesh(bsp_node_t* bsp, int copy) {
 	return NEW(bsp_mesh_t, "BSP", input);
 }
 
+klist_t(poly) *poly_to_tris(klist_t(poly)* dst, poly_t *poly) {
+	klist_t(poly) *result = dst;
+	if(result == NULL) result = kl_init(poly);
+
+	int vertex_count = poly_vertex_count(poly);
+
+	// Copy triangles, split higher-vertex polygons into triangle fans.
+	if(vertex_count == 3) {
+		poly_t *copy = clone_poly(poly);
+		check_mem(copy);
+		*kl_pushp(poly, result) = copy;
+	}
+	else if(vertex_count > 3) {
+		float3 *v_cur, *v_prev;
+		for(int i = 2; i < vertex_count; i++) {
+			v_cur = &poly->vertices[i];
+			v_prev = &poly->vertices[i - 1];
+			poly_t *tri = poly_make_triangle(poly->vertices[0], *v_prev, *v_cur);
+			check_mem(tri);
+			*kl_pushp(poly, result) = tri;
+		}
+	} else {
+		sentinel("polygon(%p) has less than three(%d) vertices.", poly, poly_vertex_count(poly));
+	}
+
+	return result;
+error:
+	if(result != dst) if(result != NULL) kl_destroy(poly, result);
+	return NULL;
+}
+
 klist_t(poly)* polys_to_tris(klist_t(poly) *dst, klist_t(poly) *src) {
 	klist_t(poly) *result = dst;
 	if(result == NULL) result = kl_init(poly);
@@ -84,26 +115,9 @@ klist_t(poly)* polys_to_tris(klist_t(poly) *dst, klist_t(poly) *src) {
 	kliter_t(poly) *iter = NULL;
 	for(iter = kl_begin(src); iter != kl_end(src); iter = kl_next(iter)) {
 		poly_t *poly = kl_val(iter);
-		int vertex_count = poly_vertex_count(poly);
-
-		// Copy triangles, split higher-vertex polygons into triangle fans.
-		if(vertex_count == 3) {
-			poly_t *copy = clone_poly(poly);
-			check_mem(copy);
-			*kl_pushp(poly, result) = copy;
-		}
-		else if(vertex_count > 3) {
-			float3 *v_cur, *v_prev;
-			for(int i = 2; i < vertex_count; i++) {
-				v_cur = &poly->vertices[i];
-				v_prev = &poly->vertices[i - 1];
-				poly_t *tri = poly_make_triangle(poly->vertices[0], *v_prev, *v_cur);
-				check_mem(tri);
-				*kl_pushp(poly, result) = tri;
-			}
-		} else {
-			sentinel("polygon(%p) has less than three(%d) vertices.", poly, poly_vertex_count(poly));
-		}
+		check(poly_to_tris(result, poly) != NULL,
+			  "Failed to tesselate %p(%zd) into triangles.",
+			  poly, poly_vertex_count(poly));
 	}
 
 	return result;
