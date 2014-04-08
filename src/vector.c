@@ -10,10 +10,15 @@ float3 *clone_f3(float3 f) {
 	return clone;
 }
 
+float f3_magnitude(float3 *v) {
+	return sqrt((*v)[0] * (*v)[0] +
+				(*v)[1] * (*v)[1] +
+				(*v)[2] * (*v)[2]);
+}
+
 float3 *f3_normalize(float3 *v) {
-	float mag = sqrt((*v)[0] * (*v)[0] +
-					 (*v)[1] * (*v)[1] +
-					 (*v)[2] * (*v)[2]);
+	float mag = f3_magnitude(v);
+
 	(*v)[0] /= mag;
 	(*v)[1] /= mag;
 	(*v)[2] /= mag;

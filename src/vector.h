@@ -19,6 +19,7 @@ typedef float float3[3];
 float3 *clone_f3(float3 f);
 
 // Vector Updating operations
+float f3_magnitude(float3 *v);
 float3 *f3_normalize(float3 *v);
 float3 *f3_scale(float3 *f, float c);
 
