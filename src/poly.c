@@ -76,7 +76,7 @@ bool poly_has_area(poly_t *poly) {
 	float area = 0.0;
 	klist_t(poly) *tris = NULL;
 	check(tris = poly_to_tris(NULL, poly),
-		  "Failed to get triangles from %p(%zd)",
+		  "Failed to get triangles from %p(%d)",
 		  poly, poly_vertex_count(poly));
 
 	kliter_t(poly) *iter = NULL;
