@@ -98,11 +98,28 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		poly_t *b = NULL;
 		check(poly_split(divider, poly, &f, &b) == 0,
 			  "Failed to split polygon(%p) with divider(%p)", poly, divider);
-		front[*n_front] = f;
-		*n_front += 1;
 
-		back[*n_back] = b;
-		*n_back += 1;
+		// If the polys we create have no area, free them outright
+		if(!poly_has_area(f)) {
+			// debug("bsp_subdivide(): Trashing front poly(%p) because it has no area.", f);
+			free_poly(f, 1);
+			f = NULL;
+		}
+		if(!poly_has_area(b)) {
+			// debug("bsp_subdivide(): Trashing back poly(%p) because it has no area.", b);
+			free_poly(b, 1);
+			b = NULL;
+		}
+
+		// Append to the front and back lists and counts
+		if(f != NULL) {
+			front[*n_front] = f;
+			*n_front += 1;
+		}
+		if(b != NULL) {
+			back[*n_back] = b;
+			*n_back += 1;
+		}
 
 		// Do we care about telling the caller about polygons
 		// who's pointers are not in any of the "real" lists?
@@ -113,10 +130,14 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 
 		// How about polygons that we just made?
 		if(created != NULL) {
-			created[*n_created] = f;
-			*n_created += 1;
-			created[*n_created] = b;
-			*n_created += 1;
+			if(f != NULL) {
+				created[*n_created] = f;
+				*n_created += 1;
+			}
+			if(b != NULL) {
+				created[*n_created] = b;
+				*n_created += 1;
+			}
 		}
 		break;
 	}
