@@ -24,11 +24,11 @@ endif
 all: $(TARGET) $(LIB_TARGET)
 
 clean:
-	make -C tests clean
+	$(MAKE) -C tests clean
 	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new $(LIB_TARGET)
 
 test:
-	@make -C tests clean test
+	@$(MAKE) -C tests clean test
 
 .PHONY: all clean test libcsg loc
 
