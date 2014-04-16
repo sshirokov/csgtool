@@ -10,6 +10,10 @@ CPPFLAGS = $(OPTCPPFLAGS)
 LIBS = -lm $(OPTLIBS)
 CFLAGS = -D_POSIX_C_SOURCE=200112L -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 
+ifneq ($(origin DEBUG), undefined)
+CFLAGS += -DDEBUG
+endif
+
 ifeq ($(shell uname),Darwin)
 LIB_TARGET = libcsg.dylib
 else
