@@ -10,8 +10,10 @@ CPPFLAGS = $(OPTCPPFLAGS)
 LIBS = -lm $(OPTLIBS)
 CFLAGS = -D_POSIX_C_SOURCE=200112L -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 
+# If DEBUG is set, we build a new set of objects and a new target
 ifneq ($(origin DEBUG), undefined)
-CFLAGS += -DDEBUG
+OBJS = $(patsubst %.c,%.dbg.o,$(SOURCES))
+TARGET := $(TARGET).dbg
 endif
 
 ifeq ($(shell uname),Darwin)
@@ -40,6 +42,10 @@ $(LIB_TARGET): $(OBJS)
 	$(CC) -shared $(OBJS) $(LIBS) -o $(LIB_TARGET)
 
 libcsg: $(LIB_TARGET)
+
+
+%.dbg.o: %.c
+	$(CC) -fPIC $(CFLAGS) -DDEBUG -o $@ -c $^
 
 %.o: %.c
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $^
