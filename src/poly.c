@@ -101,9 +101,8 @@ float poly_area(poly_t *poly) {
 	float area = 0.0;
 	klist_t(poly) *tris = NULL;
 
-	// Before we get into this memory management bullshit
-	// let's see if it's a triangle and we can just end it there
-	// TODO: Seriously, though, do it
+	// Before we get into this tesselating bullshit, is this just a triangle?
+	if(poly_vertex_count(poly) == 3) return poly_triangle_area(poly);
 
 
 	// TODO: This is bad, and you should feel bad, just iterate the verts
