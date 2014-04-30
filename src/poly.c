@@ -127,42 +127,11 @@ error:
 }
 
 bool poly_has_area(poly_t *poly) {
-	float area = 0.0;
-	klist_t(poly) *tris = NULL;
-	check(tris = poly_to_tris(NULL, poly),
-		  "Failed to get triangles from %p(%d)",
-		  poly, poly_vertex_count(poly));
+	float area = poly_area(poly);
+	check_debug(!isnan(area), "Polygon(%p) area is NaN", poly);
 
-	kliter_t(poly) *iter = NULL;
-	for(iter = kl_begin(tris); iter != kl_end(tris); iter = kl_next(iter)) {
-		poly_t *triangle = kl_val(iter);
-
-		float3 *a = &triangle->vertices[0];
-		float3 *b = &triangle->vertices[1];
-		float3 *c = &triangle->vertices[2];
-
-		float3 b_a = FLOAT3_INIT;
-		float3 c_a = FLOAT3_INIT;
-		f3_sub(&b_a, *b, *a);
-		f3_sub(&c_a, *c, *a);
-
-		float3 cross = FLOAT3_INIT;
-		f3_cross(&cross, b_a, c_a);
-
-		float cross_mag = f3_magnitude(&cross);
-		// TODO: This means a vertex doubled down
-		//       in the list, producing a zero-area
-		//       segment in the tri-fan.
-		//       WHAT DO!? DO CARE!?
-		// assert(cross_mag > 0.0);
-
-		area += (0.5 * cross_mag);
-	}
-
-	kl_destroy(poly, tris);
 	return area > 0.0;
 error:
-	if(tris != NULL) kl_destroy(poly, tris);
 	return false;
 }
 
