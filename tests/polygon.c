@@ -7,6 +7,7 @@ poly_t *top = NULL;
 poly_t *bottom = NULL;
 poly_t *square = NULL;
 poly_t *quad = NULL;
+poly_t *line = NULL;
 
 void test_polygon__initialize(void) {
 	faces = kl_init(poly);
@@ -40,6 +41,15 @@ void test_polygon__initialize(void) {
 	}
 	cl_assert_equal_i(poly_vertex_count(quad), 4);
 	*kl_pushp(poly, faces) = quad;
+
+	// Set up an invalid polygon which is just a line
+	line = alloc_poly();
+	cl_assert(line != NULL);
+
+	cl_assert(poly_push_vertex(line, square_faces[0]) == 0);
+	cl_assert(poly_push_vertex(line, square_faces[1]) == 0);
+	cl_assert(poly_push_vertex(line, square_faces[0]) == 0);
+	*kl_pushp(poly, faces) = line;
 
 	// Set up two triangles, one on top of each other
 	float3 fs[] = {{-0.5, 0.0, 0.0},
@@ -113,4 +123,9 @@ void test_polygon__triangle_area_is_correct_for_unit_square_triangle(void) {
 void test_polygon__area_of_quad(void) {
 	cl_assert(poly_area(quad) == 1.0);
 	cl_assert(poly_area(quad) == poly_area(square) * 2);
+}
+
+void test_polygon__poly_has_area_works(void) {
+	cl_assert(poly_has_area(square));
+	cl_assert(!poly_has_area(line));
 }
