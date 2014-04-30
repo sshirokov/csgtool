@@ -72,6 +72,60 @@ int poly_update(poly_t *poly) {
 	return 0;
 }
 
+float poly_triangle_area(poly_t *triangle) {
+	if(poly_vertex_count(triangle) != 3) return NAN;
+
+	float3 *a = &triangle->vertices[0];
+	float3 *b = &triangle->vertices[1];
+	float3 *c = &triangle->vertices[2];
+
+	float3 b_a = FLOAT3_INIT;
+	float3 c_a = FLOAT3_INIT;
+	f3_sub(&b_a, *b, *a);
+	f3_sub(&c_a, *c, *a);
+
+	float3 cross = FLOAT3_INIT;
+	f3_cross(&cross, b_a, c_a);
+
+	float cross_mag = f3_magnitude(&cross);
+	// TODO: This means a vertex doubled down
+	//       in the list, producing a zero-area
+	//       segment in the tri-fan.
+	//       WHAT DO!? DO CARE!?
+	// assert(cross_mag > 0.0);
+
+	return 0.5 * cross_mag;
+}
+
+float poly_area(poly_t *poly) {
+	float area = 0.0;
+	klist_t(poly) *tris = NULL;
+
+	// Before we get into this memory management bullshit
+	// let's see if it's a triangle and we can just end it there
+	// TODO: Seriously, though, do it
+
+
+	// TODO: This is bad, and you should feel bad, just iterate the verts
+	//       and sum. That's what poly_to_tris does anyway, except with more
+	//       allocation and thrashing.
+	check(tris = poly_to_tris(NULL, poly),
+		  "Failed to get triangles from %p(%d)",
+		  poly, poly_vertex_count(poly));
+
+	kliter_t(poly) *iter = NULL;
+	for(iter = kl_begin(tris); iter != kl_end(tris); iter = kl_next(iter)) {
+		poly_t *triangle = kl_val(iter);
+		area += poly_triangle_area(triangle);
+	}
+
+	kl_destroy(poly, tris);
+	return area;
+error:
+	if(tris != NULL) kl_destroy(poly, tris);
+	return NAN;
+}
+
 bool poly_has_area(poly_t *poly) {
 	float area = 0.0;
 	klist_t(poly) *tris = NULL;

@@ -5,15 +5,43 @@
 klist_t(poly) *faces = NULL;
 poly_t *top = NULL;
 poly_t *bottom = NULL;
+poly_t *square = NULL;
+poly_t *quad = NULL;
 
 void test_polygon__initialize(void) {
 	faces = kl_init(poly);
 
-	// Set up two triangles, one on top of each other
+	// Set up three triangles, one on top of each other
 	// stored in list `faces` for easy cleanup
-	// and refferenced in `top` and `bottom`
-	// used for inversion testing.
+	// and refferenced in `top` and `bottom`, and `square`
+	// used for inversion testing and area checking.
+	// And a square for non-triangular area tests and
+	float3 square_faces[] = {{0.0, 0.0, 0.0},
+							 {1.0, 0.0, 0.0},
+							 {1.0, 1.0, 0.0},
+							 {0.0, 1.0, 0.0}};
+	square = alloc_poly();
+	cl_assert(square != NULL);
 
+	for(int i = 0; i < 3; i++) {
+		cl_assert_(poly_push_vertex(square, square_faces[i]) == 0,
+				   "Failed to add square vertex");
+	}
+	cl_assert_equal_i(poly_vertex_count(square), 3);
+	*kl_pushp(poly, faces) = square;
+
+	// Set up a quad
+	quad = alloc_poly();
+	cl_assert(quad != NULL);
+
+	for(int i = 0; i < 4; i++) {
+		cl_assert_(poly_push_vertex(quad, square_faces[i]) == 0,
+				   "Failed to add quad vertex.");
+	}
+	cl_assert_equal_i(poly_vertex_count(quad), 4);
+	*kl_pushp(poly, faces) = quad;
+
+	// Set up two triangles, one on top of each other
 	float3 fs[] = {{-0.5, 0.0, 0.0},
 				   {0.5, 0.0, 0.0},
 				   {0.0, 0.5, 0.0}};
@@ -69,4 +97,20 @@ void test_polygon__add_more_than_max_polys(void) {
 	cl_assert_(f3X(point) == f3X(*last), "The last point in the poly should be the last point we pushed.");
 
 	if(p != NULL) free_poly(p, 1);
+}
+
+void test_polygon__triangle_area_is_nan_for_quad(void) {
+	cl_assert(isnan(poly_triangle_area(quad)));
+	cl_assert(!isnan(poly_triangle_area(square)));
+}
+
+void test_polygon__triangle_area_is_correct_for_unit_square_triangle(void) {
+	// One half base times height on a unit. Hardcore arithmetic.
+	cl_assert(poly_triangle_area(square) == 0.5);
+	cl_assert(poly_triangle_area(square) == poly_area(square));
+}
+
+void test_polygon__area_of_quad(void) {
+	cl_assert(poly_area(quad) == 1.0);
+	cl_assert(poly_area(quad) == poly_area(square) * 2);
 }
