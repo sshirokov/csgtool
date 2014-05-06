@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
 
@@ -20,6 +21,13 @@ void free_poly(poly_t *p, int free_self) {
 		p->vertices = NULL;
 	}
 	if(free_self) free(p);
+}
+
+void poly_print(poly_t *p, FILE *stream) {
+	fprintf(stream, "Poly(%p) Verts: %d Area: %f:\n", p, poly_vertex_count(p), poly_area(p));
+	for(int i = 0; i < poly_vertex_count(p); i++) {
+		fprintf(stream,"\tV[%d]: (%f, %f, %f)\n", i, FLOAT3_FORMAT(p->vertices[i]));
+	}
 }
 
 poly_t *poly_init(poly_t *poly) {

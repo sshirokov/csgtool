@@ -33,6 +33,8 @@ poly_t *poly_make_triangle(float3 a, float3 b, float3 c);
 poly_t *clone_poly(poly_t *poly);
 void free_poly(poly_t *p, int free_self);
 
+void poly_print(poly_t *p, FILE *stream);
+
 poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);
 poly_t *poly_invert(poly_t *poly);
