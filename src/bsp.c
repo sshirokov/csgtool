@@ -99,6 +99,8 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		check(poly_split(divider, poly, &f, &b) == 0,
 			  "Failed to split polygon(%p) with divider(%p)", poly, divider);
 
+		// TODO: This is where shit can get weird. Which means YOU ARE HERE
+
 		// If the polys we create have no area, free them outright
 		if(!poly_has_area(f)) {
 			// debug("bsp_subdivide(): Trashing front poly(%p) because it has no area.", f);
