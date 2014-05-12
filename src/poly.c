@@ -334,3 +334,18 @@ poly_t *poly_invert(poly_t *poly) {
 
 	return poly;
 }
+
+// Compute the length of the lognest edge squared
+float poly_longest_edge_length2(poly_t *poly) {
+	const int count = poly_vertex_count(poly);
+	float longest = -INFINITY;
+
+	for(int i = 0; i < count; i++) {
+		int j = (i + 1) % count;
+		float d2 = f3_distance2(poly->vertices[i], poly->vertices[j]);
+
+		longest = (d2 > longest) ? d2 : longest;
+	}
+
+	return longest;
+}

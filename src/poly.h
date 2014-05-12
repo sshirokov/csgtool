@@ -55,6 +55,8 @@ int poly_classify_poly(poly_t *this, poly_t *other);
 
 int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back);
 
+float poly_longest_edge_length2(poly_t *poly);
+
 #define mp_poly_free(x) free_poly(kl_val(x), 1)
 KLIST_INIT(poly, poly_t*, mp_poly_free)
 
