@@ -28,6 +28,8 @@ float3 *f3_cross(float3 *result, float3 v1, float3 v2);
 float f3_dot(float3 v1, float3 v2);
 float3 *f3_sub(float3 *result, float3 v1, float3 v2);
 float3 *f3_interpolate(float3 *result, float3 start, float3 v, float alpha);
+float f3_distance(float3 a, float3 b);
+float f3_distance2(float3 a, float3 b);
 
 // Containers
 #define mp_float3_free(x) free(kl_val(x))

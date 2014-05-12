@@ -58,3 +58,13 @@ float3 *f3_interpolate(float3 *result, float3 start, float3 v, float alpha) {
 	}
 	return result;
 }
+
+float f3_distance(float3 a, float3 b) {
+	return sqrt(f3_distance2(a, b));
+}
+
+float f3_distance2(float3 a, float3 b) {
+	float3 diff = FLOAT3_INIT;
+	f3_sub(&diff, a, b);
+	return f3_dot(diff, diff);
+}
