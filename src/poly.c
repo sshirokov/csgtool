@@ -349,3 +349,17 @@ float poly_max_edge_length2(poly_t *poly) {
 
 	return longest;
 }
+
+float poly_min_edge_length2(poly_t *poly) {
+	const int count = poly_vertex_count(poly);
+	float min = INFINITY;
+
+	for(int i = 0; i < count; i++) {
+		int j = (i + 1) % count;
+		float d2 = f3_distance2(poly->vertices[i], poly->vertices[j]);
+
+		min = (d2 < min) ? d2 : min;
+	}
+
+	return min;
+}

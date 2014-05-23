@@ -137,3 +137,14 @@ void test_polygon__can_compute_longest_edge(void) {
 	cl_assert_(longest2_quad == 1.0, "Longest squared side of a unit square is a unit");
 	cl_assert_(longest2_right == 2.0, "Hyp^2 of right unit triangle is 2");
 }
+
+void test_polygon__can_compute_min_edge(void) {
+	float shortest2_quad = poly_min_edge_length2(quad);
+	float shortest2_right = poly_min_edge_length2(square);
+
+	debug("Shortest quad: %f", shortest2_quad);
+	debug("Shortest right: %f", shortest2_right);
+
+	cl_assert_(shortest2_quad == 1.0, "Shortest squared side of a unit square is a unit");
+	cl_assert_(shortest2_right == 1.0, "Hyp^2 of right unit triangle is 2, and sides are 1");
+}
