@@ -262,10 +262,12 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			poly_push_vertex(*front, v_cur);
+			check(poly_push_vertex(*front, v_cur) == 0,
+				  "Failed to push original vertex into new front polygon(%p).", front);
 		}
 		if(c_cur != FRONT) {
-			poly_push_vertex(*back, v_cur);
+			check(poly_push_vertex(*back, v_cur) == 0,
+				  "Failed to push original vertex into new back polygon(%p).", back);
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
