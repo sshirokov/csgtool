@@ -188,6 +188,10 @@ int poly_push_vertex(poly_t *poly, float3 v) {
 		poly_vertex_expand(poly);
 	}
 
+	// TODO: make sure v isn't poly->v[0], because `v` -> `p->v[0]` is an edge
+	// TODO: make sure v isn't poly->v[last], because 'poly->v[last]' -> 'v' is an edge
+	// TODO: ^^^ Neither of those are helpful later.
+
 	// Dat assignment copy
 	poly->vertices[poly->vertex_count][0] = v[0];
 	poly->vertices[poly->vertex_count][1] = v[1];
