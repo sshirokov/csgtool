@@ -131,8 +131,8 @@ void test_polygon__poly_has_area_works(void) {
 }
 
 void test_polygon__can_compute_longest_edge(void) {
-	float longest2_quad = poly_longest_edge_length2(quad);
-	float longest2_right = poly_longest_edge_length2(square);
+	float longest2_quad = poly_max_edge_length2(quad);
+	float longest2_right = poly_max_edge_length2(square);
 
 	cl_assert_(longest2_quad == 1.0, "Longest squared side of a unit square is a unit");
 	cl_assert_(longest2_right == 2.0, "Hyp^2 of right unit triangle is 2");
