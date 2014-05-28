@@ -48,7 +48,14 @@ void test_polygon__initialize(void) {
 
 	cl_assert(poly_push_vertex(line, square_faces[0]) == 0);
 	cl_assert(poly_push_vertex(line, square_faces[1]) == 0);
-	cl_assert(poly_push_vertex(line, square_faces[0]) == 0);
+	cl_assert(poly_push_vertex(line, square_faces[2]) == 0);
+
+	// Force the last vertex to be square_faces[0], then force a recompute
+	line->vertices[2][0] = line->vertices[0][0];
+	line->vertices[2][1] = line->vertices[0][1];
+	line->vertices[2][2] = line->vertices[0][2];
+	cl_assert(poly_update(line) == 0);
+
 	*kl_pushp(poly, faces) = line;
 
 	// Set up two triangles, one on top of each other
