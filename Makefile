@@ -10,6 +10,12 @@ CPPFLAGS = $(OPTCPPFLAGS)
 LIBS = -lm $(OPTLIBS)
 CFLAGS = -D_POSIX_C_SOURCE=200112L -g -std=c99 $(INCLUDE) -Wall -Werror $(OPTFLAGS)
 
+# If DEBUG is set, we build a new set of objects and a new target
+ifneq ($(origin DEBUG), undefined)
+OBJS = $(patsubst %.c,%.dbg.o,$(SOURCES))
+TARGET := $(TARGET).dbg
+endif
+
 ifeq ($(shell uname),Darwin)
 LIB_TARGET = libcsg.dylib
 else
@@ -20,11 +26,11 @@ endif
 all: $(TARGET) $(LIB_TARGET)
 
 clean:
-	make -C tests clean
+	$(MAKE) -C tests clean
 	rm -rf $(OBJS) $(TARGET) $(TARGET).o $(TARGET).new $(LIB_TARGET)
 
 test:
-	@make -C tests clean test
+	@$(MAKE) -C tests clean test
 
 .PHONY: all clean test libcsg loc
 
@@ -36,6 +42,10 @@ $(LIB_TARGET): $(OBJS)
 	$(CC) -shared $(OBJS) $(LIBS) -o $(LIB_TARGET)
 
 libcsg: $(LIB_TARGET)
+
+
+%.dbg.o: %.c
+	$(CC) -fPIC $(CFLAGS) -DDEBUG -o $@ -c $^
 
 %.o: %.c
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $^

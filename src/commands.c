@@ -89,11 +89,51 @@ MAKE_CSG_COMMAND(intersect);
 MAKE_CSG_COMMAND(union);
 MAKE_CSG_COMMAND(subtract);
 
+// Commands that exist only when built with `DEBUG` defined
+// these generally don't do anything useful
+#ifdef DEBUG
+int cmd_DEBUG_bsp(int argc, char **argv) {
+	const char *suffix = ".bsp.stl";
+	char *name = argv[0];
+	char *out_name = NULL;
+	mesh_t *in = NULL;
+	mesh_t *out = NULL;
+	bsp_node_t *bsp = NULL;
+	check(argc >= 1, "Too few args");
+	check_mem(out_name = calloc(strlen(name) + strlen(suffix) + 1, 1));
+	check(sprintf(out_name, "%s%s", name, suffix) == (strlen(name) + strlen(suffix)), "Failed to build out name.");
+
+	check(in = mesh_read_file(name), "Failed to READ");
+	check(bsp = in->to_bsp(in), "Failed to BSP");
+	check(out = bsp_to_mesh(bsp, 0), "Failed to BSP->mesh wrap");
+	bsp = NULL; // Make it obvs that out now holds the ref
+
+	log_info("Read: [%s]", argv[0]);
+	log_info("BSP: [%p]", out);
+	log_info("Write: [%s](%d)", out_name, out->write(out, out_name, "STL"));
+
+	if(out != NULL) out->destroy(out);
+	if(in != NULL) in->destroy(in);
+	if(out_name != NULL) free(out_name);
+	return 0;
+error:
+	if(out != NULL) out->destroy(out);
+	if(in != NULL) in->destroy(in);
+	if(out_name != NULL) free(out_name);
+	return -1;
+}
+#endif
+
 // Available commands
 const cmd_t commands[] = {
 	{"intersect", "Intersect two geometries", cmd_intersect},
 	{"subtract",  "Subtract two geometries",  cmd_subtract},
 	{"union",     "Union two geometries",     cmd_union},
+
+#ifdef DEBUG
+	{"bsp",       "Identity through BSP",     cmd_DEBUG_bsp},
+#endif
+
 	{NULL, NULL, NULL}
 };
 
