@@ -114,11 +114,15 @@ float poly_triangle_area(poly_t *triangle) {
 }
 
 float poly_area(poly_t *poly) {
-	float area = 0.0;
+	return poly_area2(poly) / 2.0;
+}
+
+float poly_area2(poly_t *poly) {
+	float area2 = 0.0;
 	klist_t(poly) *tris = NULL;
 
 	// Before we get into this tesselating bullshit, is this just a triangle?
-	if(poly_vertex_count(poly) == 3) return poly_triangle_area(poly);
+	if(poly_vertex_count(poly) == 3) return poly_triangle_area2(poly);
 
 
 	// TODO: This is bad, and you should feel bad, just iterate the verts
@@ -131,11 +135,11 @@ float poly_area(poly_t *poly) {
 	kliter_t(poly) *iter = NULL;
 	for(iter = kl_begin(tris); iter != kl_end(tris); iter = kl_next(iter)) {
 		poly_t *triangle = kl_val(iter);
-		area += poly_triangle_area(triangle);
+		area2 += poly_triangle_area2(triangle);
 	}
 
 	kl_destroy(poly, tris);
-	return area;
+	return area2;
 error:
 	if(tris != NULL) kl_destroy(poly, tris);
 	return NAN;
