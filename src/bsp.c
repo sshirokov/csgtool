@@ -99,7 +99,10 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		check(poly_split(divider, poly, &f, &b) == 0,
 			  "Failed to split polygon(%p) with divider(%p)", poly, divider);
 
-		// TODO: This is where shit can get weird. Which means YOU ARE HERE
+		// TODO: This is where shit can get weird.
+		//       When we create polygons we have the option of rejecting them
+		//       by freeing and setting them to NULL, preventing them from
+		//       being added to the result lists
 
 		// If the polys we create have no area, free them outright
 		if(!poly_has_area(f)) {
