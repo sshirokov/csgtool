@@ -83,7 +83,7 @@ int poly_update(poly_t *poly) {
 // Return two times the area of a triangle.
 // Avoids the division in half unless it's required to avoid
 // failing `f > 0.0` when area is used as a predicate
-float poly_triangle_area2(poly_t *triangle) {
+float poly_triangle_2area(poly_t *triangle) {
 	if(poly_vertex_count(triangle) != 3) return NAN;
 
 	float3 *a = &triangle->vertices[0];
@@ -108,21 +108,21 @@ float poly_triangle_area2(poly_t *triangle) {
 }
 
 // The actual area of a triangle `triangle`
-// Works through poly_triangle_area2
+// Works through poly_triangle_2area
 float poly_triangle_area(poly_t *triangle) {
-	return 0.5 * poly_triangle_area2(triangle);
+	return 0.5 * poly_triangle_2area(triangle);
 }
 
 float poly_area(poly_t *poly) {
-	return poly_area2(poly) / 2.0;
+	return poly_2area(poly) / 2.0;
 }
 
-float poly_area2(poly_t *poly) {
+float poly_2area(poly_t *poly) {
 	float area2 = 0.0;
 	klist_t(poly) *tris = NULL;
 
 	// Before we get into this tesselating bullshit, is this just a triangle?
-	if(poly_vertex_count(poly) == 3) return poly_triangle_area2(poly);
+	if(poly_vertex_count(poly) == 3) return poly_triangle_2area(poly);
 
 
 	// TODO: This is bad, and you should feel bad, just iterate the verts
@@ -135,7 +135,7 @@ float poly_area2(poly_t *poly) {
 	kliter_t(poly) *iter = NULL;
 	for(iter = kl_begin(tris); iter != kl_end(tris); iter = kl_next(iter)) {
 		poly_t *triangle = kl_val(iter);
-		area2 += poly_triangle_area2(triangle);
+		area2 += poly_triangle_2area(triangle);
 	}
 
 	kl_destroy(poly, tris);
@@ -146,7 +146,7 @@ error:
 }
 
 bool poly_has_area(poly_t *poly) {
-	float area = poly_area2(poly);
+	float area = poly_2area(poly);
 	check_debug(!isnan(area), "Polygon(%p) area is NaN", poly);
 
 	return area > 0.0;
