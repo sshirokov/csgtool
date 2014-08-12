@@ -39,6 +39,7 @@ poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);
 poly_t *poly_invert(poly_t *poly);
 
+float poly_triangle_area2(poly_t *triangle);
 float poly_triangle_area(poly_t *triangle);
 float poly_area(poly_t *poly);
 bool poly_has_area(poly_t *poly);

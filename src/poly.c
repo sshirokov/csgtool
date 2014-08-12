@@ -80,7 +80,10 @@ int poly_update(poly_t *poly) {
 	return 0;
 }
 
-float poly_triangle_area(poly_t *triangle) {
+// Return two times the area of a triangle.
+// Avoids the division in half unless it's required to avoid
+// failing `f > 0.0` when area is used as a predicate
+float poly_triangle_area2(poly_t *triangle) {
 	if(poly_vertex_count(triangle) != 3) return NAN;
 
 	float3 *a = &triangle->vertices[0];
@@ -101,8 +104,13 @@ float poly_triangle_area(poly_t *triangle) {
 	//       segment in the tri-fan.
 	//       WHAT DO!? DO CARE!?
 	// assert(cross_mag > 0.0);
+	return cross_mag;
+}
 
-	return 0.5 * cross_mag;
+// The actual area of a triangle `triangle`
+// Works through poly_triangle_area2
+float poly_triangle_area(poly_t *triangle) {
+	return 0.5 * poly_triangle_area2(triangle);
 }
 
 float poly_area(poly_t *poly) {
