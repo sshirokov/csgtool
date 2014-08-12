@@ -146,7 +146,7 @@ error:
 }
 
 bool poly_has_area(poly_t *poly) {
-	float area = poly_area(poly);
+	float area = poly_area2(poly);
 	check_debug(!isnan(area), "Polygon(%p) area is NaN", poly);
 
 	return area > 0.0;
