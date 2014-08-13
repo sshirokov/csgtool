@@ -109,7 +109,9 @@ int cmd_DEBUG_bsp(int argc, char **argv) {
 	bsp = NULL; // Make it obvs that out now holds the ref
 
 	log_info("Read: [%s]", argv[0]);
+	log_info("Poly Count: [%d]", in->poly_count(in));
 	log_info("BSP: [%p]", out);
+	log_info("BSP Poly Count: [%d]", out->poly_count(out));
 	log_info("Write: [%s](%d)", out_name, out->write(out, out_name, "STL"));
 
 	if(out != NULL) out->destroy(out);

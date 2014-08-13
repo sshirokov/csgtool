@@ -15,6 +15,7 @@ stl_object *bsp_to_stl(bsp_node_t *tree);
 bsp_node_t *stl_to_bsp(stl_object *stl);
 bsp_node_t *mesh_to_bsp(mesh_t *mesh);
 mesh_t* bsp_to_mesh(bsp_node_t *tree, int copy);
+klist_t(poly) *poly_to_tris(klist_t(poly)* dst, poly_t *src);
 klist_t(poly)* polys_to_tris(klist_t(poly)* dst, klist_t(poly)* src);
 
 #endif

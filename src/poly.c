@@ -1,6 +1,9 @@
+#include <stdio.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "poly.h"
+#include "export.h"
 
 poly_t *alloc_poly(void) {
 	poly_t *poly = malloc(sizeof(poly_t));
@@ -18,6 +21,13 @@ void free_poly(poly_t *p, int free_self) {
 		p->vertices = NULL;
 	}
 	if(free_self) free(p);
+}
+
+void poly_print(poly_t *p, FILE *stream) {
+	fprintf(stream, "Poly(%p) Verts: %d Area: %f:\n", p, poly_vertex_count(p), poly_area(p));
+	for(int i = 0; i < poly_vertex_count(p); i++) {
+		fprintf(stream,"\tV[%d]: (%f, %f, %f)\n", i, FLOAT3_FORMAT(p->vertices[i]));
+	}
 }
 
 poly_t *poly_init(poly_t *poly) {
@@ -70,6 +80,65 @@ int poly_update(poly_t *poly) {
 	return 0;
 }
 
+// Return two times the area of a triangle.
+// Avoids the division in half unless it's required to avoid
+// failing `f > 0.0` when area is used as a predicate
+float poly_triangle_2area(poly_t *triangle) {
+	if(poly_vertex_count(triangle) != 3) return NAN;
+
+	return triangle_2area(
+		triangle->vertices[0],
+		triangle->vertices[1],
+		triangle->vertices[2]
+	);
+}
+
+// The actual area of a triangle `triangle`
+// Works through poly_triangle_2area
+float poly_triangle_area(poly_t *triangle) {
+	return 0.5 * poly_triangle_2area(triangle);
+}
+
+float poly_area(poly_t *poly) {
+	return poly_2area(poly) / 2.0;
+}
+
+float poly_2area(poly_t *poly) {
+	float area2 = 0.0;
+	const int vertex_count = poly_vertex_count(poly);
+
+	// Sanity check that we have at least a polygon
+	if(vertex_count < 3) return NAN;
+
+	// Before we get into this tesselating bullshit, is this just a triangle?
+	if(vertex_count == 3) return poly_triangle_2area(poly);
+
+	// Break the poly into a triangle fan and sum the 2areas of the components
+	// Note that i = 2 on first iteration so that `i - 1` is defined and != 0
+	// This starts the loop on the first triangle in the poly.
+	// Since we're only caring about the magnitude of the cross inside
+	// triangle_2area, the vertex order doesn't matter.
+	for(int i = 2; i < vertex_count; i++) {
+		area2 += triangle_2area(
+			poly->vertices[0],     // Root vertex
+			poly->vertices[i - 1], // Previous vertex
+			poly->vertices[i]      // Current vertex
+	    );
+	}
+
+
+	return area2;
+}
+
+bool poly_has_area(poly_t *poly) {
+	float area = poly_2area(poly);
+	check_debug(!isnan(area), "Polygon(%p) area is NaN", poly);
+
+	return area > 0.0;
+error:
+	return false;
+}
+
 int poly_vertex_count(poly_t *poly) {
 	return poly->vertex_count;
 }
@@ -115,6 +184,10 @@ int poly_push_vertex(poly_t *poly, float3 v) {
 	if(poly_vertex_available(poly) == 0) {
 		poly_vertex_expand(poly);
 	}
+
+	// TODO: make sure v isn't poly->v[0], because `v` -> `p->v[0]` is an edge
+	// TODO: make sure v isn't poly->v[last], because 'poly->v[last]' -> 'v' is an edge
+	// TODO: ^^^ Neither of those are helpful later.
 
 	// Dat assignment copy
 	poly->vertices[poly->vertex_count][0] = v[0];
@@ -190,10 +263,12 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			poly_push_vertex(*front, v_cur);
+			check(poly_push_vertex(*front, v_cur) == 0,
+				  "Failed to push original vertex into new front polygon(%p).", front);
 		}
 		if(c_cur != FRONT) {
-			poly_push_vertex(*back, v_cur);
+			check(poly_push_vertex(*back, v_cur) == 0,
+				  "Failed to push original vertex into new back polygon(%p).", back);
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
@@ -261,4 +336,46 @@ poly_t *poly_invert(poly_t *poly) {
 	}
 
 	return poly;
+}
+
+// Compute the length of the lognest edge squared
+float poly_max_edge_length2(poly_t *poly) {
+	const int count = poly_vertex_count(poly);
+	float longest = -INFINITY;
+
+	for(int i = 0; i < count; i++) {
+		int j = (i + 1) % count;
+		float d2 = f3_distance2(poly->vertices[i], poly->vertices[j]);
+
+		longest = (d2 > longest) ? d2 : longest;
+	}
+
+	return longest;
+}
+
+float poly_min_edge_length2(poly_t *poly) {
+	const int count = poly_vertex_count(poly);
+	float min = INFINITY;
+
+	for(int i = 0; i < count; i++) {
+		int j = (i + 1) % count;
+		float d2 = f3_distance2(poly->vertices[i], poly->vertices[j]);
+
+		min = (d2 < min) ? d2 : min;
+	}
+
+	return min;
+}
+
+float triangle_2area(float3 a, float3 b, float3 c) {
+	float3 b_a = FLOAT3_INIT;
+	float3 c_a = FLOAT3_INIT;
+
+	f3_sub(&b_a, b, a);
+	f3_sub(&c_a, c, a);
+
+	float3 cross = FLOAT3_INIT;
+	f3_cross(&cross, b_a, c_a);
+
+	return f3_magnitude(&cross);
 }

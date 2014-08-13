@@ -98,11 +98,21 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		poly_t *b = NULL;
 		check(poly_split(divider, poly, &f, &b) == 0,
 			  "Failed to split polygon(%p) with divider(%p)", poly, divider);
-		front[*n_front] = f;
-		*n_front += 1;
 
-		back[*n_back] = b;
-		*n_back += 1;
+		// TODO: This is where shit can get weird.
+		//       When we create polygons we have the option of rejecting them
+		//       by freeing and setting them to NULL, preventing them from
+		//       being added to the result lists
+
+		// Append to the front and back lists and counts
+		if(f != NULL) {
+			front[*n_front] = f;
+			*n_front += 1;
+		}
+		if(b != NULL) {
+			back[*n_back] = b;
+			*n_back += 1;
+		}
 
 		// Do we care about telling the caller about polygons
 		// who's pointers are not in any of the "real" lists?
@@ -113,10 +123,14 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 
 		// How about polygons that we just made?
 		if(created != NULL) {
-			created[*n_created] = f;
-			*n_created += 1;
-			created[*n_created] = b;
-			*n_created += 1;
+			if(f != NULL) {
+				created[*n_created] = f;
+				*n_created += 1;
+			}
+			if(b != NULL) {
+				created[*n_created] = b;
+				*n_created += 1;
+			}
 		}
 		break;
 	}
