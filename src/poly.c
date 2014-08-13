@@ -105,30 +105,25 @@ float poly_area(poly_t *poly) {
 
 float poly_2area(poly_t *poly) {
 	float area2 = 0.0;
-	klist_t(poly) *tris = NULL;
+	const int vertex_count = poly_vertex_count(poly);
+
+	// Sanity check that we have at least a polygon
+	if(vertex_count < 3) return NAN;
 
 	// Before we get into this tesselating bullshit, is this just a triangle?
-	if(poly_vertex_count(poly) == 3) return poly_triangle_2area(poly);
+	if(vertex_count == 3) return poly_triangle_2area(poly);
 
-
-	// TODO: This is bad, and you should feel bad, just iterate the verts
-	//       and sum. That's what poly_to_tris does anyway, except with more
-	//       allocation and thrashing.
-	check(tris = poly_to_tris(NULL, poly),
-		  "Failed to get triangles from %p(%d)",
-		  poly, poly_vertex_count(poly));
-
-	kliter_t(poly) *iter = NULL;
-	for(iter = kl_begin(tris); iter != kl_end(tris); iter = kl_next(iter)) {
-		poly_t *triangle = kl_val(iter);
-		area2 += poly_triangle_2area(triangle);
+	// Break the poly into a triangle fan and sum the 2areas of the components
+	for(int i = 2; i < vertex_count; i++) {
+		area2 += triangle_2area(
+			poly->vertices[0],     // Root vertex
+			poly->vertices[i - 1], // Previous vertex
+			poly->vertices[i]      // Current vertex
+	    );
 	}
 
-	kl_destroy(poly, tris);
+
 	return area2;
-error:
-	if(tris != NULL) kl_destroy(poly, tris);
-	return NAN;
 }
 
 bool poly_has_area(poly_t *poly) {
