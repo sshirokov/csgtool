@@ -104,18 +104,6 @@ int bsp_subdivide(poly_t *divider, poly_t *poly,
 		//       by freeing and setting them to NULL, preventing them from
 		//       being added to the result lists
 
-		// If the polys we create have no area, free them outright
-		if(!poly_has_area(f)) {
-			// debug("bsp_subdivide(): Trashing front poly(%p) because it has no area.", f);
-			free_poly(f, 1);
-			f = NULL;
-		}
-		if(!poly_has_area(b)) {
-			// debug("bsp_subdivide(): Trashing back poly(%p) because it has no area.", b);
-			free_poly(b, 1);
-			b = NULL;
-		}
-
 		// Append to the front and back lists and counts
 		if(f != NULL) {
 			front[*n_front] = f;
