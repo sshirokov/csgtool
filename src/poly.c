@@ -115,7 +115,9 @@ float poly_2area(poly_t *poly) {
 
 	// Break the poly into a triangle fan and sum the 2areas of the components
 	// Note that i = 2 on first iteration so that `i - 1` is defined and != 0
-	// This starts the loop on the first triangle in the poly
+	// This starts the loop on the first triangle in the poly.
+	// Since we're only caring about the magnitude of the cross inside
+	// triangle_2area, the vertex order doesn't matter.
 	for(int i = 2; i < vertex_count; i++) {
 		area2 += triangle_2area(
 			poly->vertices[0],     // Root vertex
