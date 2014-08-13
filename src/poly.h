@@ -60,6 +60,11 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back);
 float poly_max_edge_length2(poly_t *poly);
 float poly_min_edge_length2(poly_t *poly);
 
+// Some polygon helpers that don't explicitly work on `poly_t`
+// but are close enough to be grouped here
+
+float triangle_2area(float3 a, float3 b, float3 c);
+
 #define mp_poly_free(x) free_poly(kl_val(x), 1)
 KLIST_INIT(poly, poly_t*, mp_poly_free)
 

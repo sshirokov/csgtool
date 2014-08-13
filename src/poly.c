@@ -86,25 +86,11 @@ int poly_update(poly_t *poly) {
 float poly_triangle_2area(poly_t *triangle) {
 	if(poly_vertex_count(triangle) != 3) return NAN;
 
-	float3 *a = &triangle->vertices[0];
-	float3 *b = &triangle->vertices[1];
-	float3 *c = &triangle->vertices[2];
-
-	float3 b_a = FLOAT3_INIT;
-	float3 c_a = FLOAT3_INIT;
-	f3_sub(&b_a, *b, *a);
-	f3_sub(&c_a, *c, *a);
-
-	float3 cross = FLOAT3_INIT;
-	f3_cross(&cross, b_a, c_a);
-
-	float cross_mag = f3_magnitude(&cross);
-	// TODO: This means a vertex doubled down
-	//       in the list, producing a zero-area
-	//       segment in the tri-fan.
-	//       WHAT DO!? DO CARE!?
-	// assert(cross_mag > 0.0);
-	return cross_mag;
+	return triangle_2area(
+		triangle->vertices[0],
+		triangle->vertices[1],
+		triangle->vertices[2]
+	);
 }
 
 // The actual area of a triangle `triangle`
@@ -380,4 +366,17 @@ float poly_min_edge_length2(poly_t *poly) {
 	}
 
 	return min;
+}
+
+float triangle_2area(float3 a, float3 b, float3 c) {
+	float3 b_a = FLOAT3_INIT;
+	float3 c_a = FLOAT3_INIT;
+
+	f3_sub(&b_a, b, a);
+	f3_sub(&c_a, c, a);
+
+	float3 cross = FLOAT3_INIT;
+	f3_cross(&cross, b_a, c_a);
+
+	return f3_magnitude(&cross);
 }
