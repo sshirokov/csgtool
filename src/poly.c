@@ -114,6 +114,8 @@ float poly_2area(poly_t *poly) {
 	if(vertex_count == 3) return poly_triangle_2area(poly);
 
 	// Break the poly into a triangle fan and sum the 2areas of the components
+	// Note that i = 2 on first iteration so that `i - 1` is defined and != 0
+	// This starts the loop on the first triangle in the poly
 	for(int i = 2; i < vertex_count; i++) {
 		area2 += triangle_2area(
 			poly->vertices[0],     // Root vertex
