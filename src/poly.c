@@ -185,9 +185,15 @@ int poly_push_vertex(poly_t *poly, float3 v) {
 		poly_vertex_expand(poly);
 	}
 
-	// TODO: make sure v isn't poly->v[0], because `v` -> `p->v[0]` is an edge
-	// TODO: make sure v isn't poly->v[last], because 'poly->v[last]' -> 'v' is an edge
-	// TODO: ^^^ Neither of those are helpful later.
+	if(poly_vertex_count(poly) > 0) {
+		int last_idx = poly_vertex_count(poly) - 1;
+		float d2_first_to_v = f3_distance2(poly->vertices[0], v);
+		float d2_last_to_v = f3_distance2(poly->vertices[last_idx], v);
+		check_debug(d2_first_to_v > 0.0, "Point (%f, %f, %f) is the same as the first point of poly(%p)[%d]: (%f, %f, %f)",
+			  FLOAT3_FORMAT(v), poly, poly_vertex_count(poly), FLOAT3_FORMAT(poly->vertices[0]));
+		check_debug(d2_last_to_v > 0.0, "Point (%f, %f, %f) is the same as the first point of poly(%p)[%d]: (%f, %f, %f)",
+			  FLOAT3_FORMAT(v), poly, poly_vertex_count(poly), FLOAT3_FORMAT(poly->vertices[last_idx]));
+	}
 
 	// Dat assignment copy
 	poly->vertices[poly->vertex_count][0] = v[0];
