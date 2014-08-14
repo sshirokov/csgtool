@@ -32,8 +32,7 @@ char *str_ltrim(char *str, bool copy) {
 		return str;
 	}
 	else {
-		char *copy_str = NULL;
-		assert_mem(copy_str = str_dup(str));
+		char *copy_str = str_dup(str);
 		return str_ltrim(copy_str, false);
 	}
 }
@@ -47,15 +46,13 @@ char *str_rtrim(char *str, bool copy) {
 		return str;
 	}
 	else {
-		char *copy_str = NULL;
-		assert_mem(copy_str = str_dup(str));
+		char *copy_str = str_dup(str);
 		return str_ltrim(copy_str, false);
 	}
 }
 
 char *str_trim(char *str, bool copy) {
 	char *trim_str = copy ? str_dup(str) : str;
-	assert_mem(trim_str);
 
 	// Since we have already made a copy if we need one,
 	// we can just chain these two together, since non-copy
