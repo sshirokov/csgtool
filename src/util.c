@@ -4,11 +4,9 @@
 
 char *str_dup(char *str) {
 	char *copy_str = NULL;
-	check_mem(copy_str = calloc(strlen(str) + 1, sizeof(char)));
+	assert_mem(copy_str = calloc(strlen(str) + 1, sizeof(char)));
 	strncpy(copy_str, str, strlen(str));
 	return copy_str;
-error:
-	return NULL;
 }
 
 char *str_ltrim(char *str, bool copy) {
@@ -35,11 +33,9 @@ char *str_ltrim(char *str, bool copy) {
 	}
 	else {
 		char *copy_str = NULL;
-		check_mem(copy_str = str_dup(str));
+		assert_mem(copy_str = str_dup(str));
 		return str_ltrim(copy_str, false);
 	}
-error:
-	return NULL;
 }
 
 char *str_rtrim(char *str, bool copy) {
@@ -52,24 +48,20 @@ char *str_rtrim(char *str, bool copy) {
 	}
 	else {
 		char *copy_str = NULL;
-		check_mem(copy_str = str_dup(str));
+		assert_mem(copy_str = str_dup(str));
 		return str_ltrim(copy_str, false);
 	}
-error:
-	return NULL;
 }
 
 char *str_trim(char *str, bool copy) {
 	char *trim_str = copy ? str_dup(str) : str;
-	check_mem(trim_str);
+	assert_mem(trim_str);
 
 	// Since we have already made a copy if we need one,
 	// we can just chain these two together, since non-copy
 	// operations can't throw out a NULL and the pointer itself
 	// cannot change.
 	return str_ltrim(str_rtrim(trim_str, false), false);
-error:
-	return NULL;
 }
 
 char *read_line(FILE *f, bool downcase, bool trim) {
@@ -89,7 +81,7 @@ char *read_line(FILE *f, bool downcase, bool trim) {
 	if((rc == NULL) && feof(f)) return NULL;
 
 	check_debug(rc != NULL, "Failed to read line from FILE(%p)", f);
-	check_mem(line = calloc(strlen(read_buffer) + 1, sizeof(char)));
+	assert_mem(line = calloc(strlen(read_buffer) + 1, sizeof(char)));
 	strncpy(line, read_buffer, strlen(read_buffer));
 
 	// See if we need to finish reading the line
@@ -104,7 +96,7 @@ char *read_line(FILE *f, bool downcase, bool trim) {
 			// Append the new data to the end of the line
 			char *new_line = NULL;
 			check(rc != NULL, "Error finishing line from FILE(%p)", f);
-			check_mem(new_line = calloc(strlen(line) + strlen(read_buffer) + 1, sizeof(char)));
+			assert_mem(new_line = calloc(strlen(line) + strlen(read_buffer) + 1, sizeof(char)));
 
 			strncpy(new_line, line, strlen(line));
 			strncpy(new_line + strlen(new_line), read_buffer, strlen(read_buffer));
