@@ -152,3 +152,10 @@ void test_polygon__can_compute_min_edge(void) {
 	cl_assert_(shortest2_quad == 1.0, "Shortest squared side of a unit square is a unit");
 	cl_assert_(shortest2_right == 1.0, "Hyp^2 of right unit triangle is 2, and sides are 1");
 }
+
+void test_polygon__will_reject_creation_of_zero_length_edge(void) {
+	cl_assert_(poly_push_vertex(quad, quad->vertices[poly_vertex_count(quad) - 1]) == false,
+			   "It should be impossible to push a duplicate tail vertex in a poly");
+	cl_assert_(poly_push_vertex(quad, quad->vertices[0]) == false,
+			   "It should be impossible to push a duplicate first vertex in a poly");
+}
