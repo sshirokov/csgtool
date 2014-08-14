@@ -7,6 +7,9 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
+// Fatal memory check
+#define assert_mem(A) assert("Out of memory." && ((A) != NULL))
+
 
 char *str_dup(char *str);
 
