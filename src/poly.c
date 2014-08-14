@@ -185,14 +185,16 @@ bool poly_push_vertex(poly_t *poly, float3 v) {
 		poly_vertex_expand(poly);
 	}
 
+	// We only need to perform zero-length-edge checks if we are
+	// actually going to create an edge through this push.
 	if(poly_vertex_count(poly) > 0) {
 		int last_idx = poly_vertex_count(poly) - 1;
-		float d2_first_to_v = f3_distance2(poly->vertices[0], v);
-		float d2_last_to_v = f3_distance2(poly->vertices[last_idx], v);
-		check_debug(d2_first_to_v > 0.0, "Point (%f, %f, %f) is the same as the first point of poly(%p)[%d]: (%f, %f, %f)",
-			  FLOAT3_FORMAT(v), poly, poly_vertex_count(poly), FLOAT3_FORMAT(poly->vertices[0]));
-		check_debug(d2_last_to_v > 0.0, "Point (%f, %f, %f) is the same as the first point of poly(%p)[%d]: (%f, %f, %f)",
-			  FLOAT3_FORMAT(v), poly, poly_vertex_count(poly), FLOAT3_FORMAT(poly->vertices[last_idx]));
+		bool duplicate_first = !(f3_distance2(poly->vertices[0], v) > 0.0);
+		bool duplicate_last  = !(f3_distance2(poly->vertices[last_idx], v) > 0.0);
+
+		// Fail out the addition if we're adding a duplucate first or last vertex
+		// as the new last vert. This would create an edge of length zero.
+		if(duplicate_first || duplicate_last) return false;
 	}
 
 	// Dat assignment copy
