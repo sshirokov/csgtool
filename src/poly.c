@@ -180,7 +180,7 @@ error:
 }
 
 // add a vertex to the end of the polygon vertex list
-int poly_push_vertex(poly_t *poly, float3 v) {
+bool poly_push_vertex(poly_t *poly, float3 v) {
 	if(poly_vertex_available(poly) == 0) {
 		poly_vertex_expand(poly);
 	}
@@ -205,9 +205,9 @@ int poly_push_vertex(poly_t *poly, float3 v) {
 		check(poly_update(poly) == 0, "Failed to update polygon during poly_push_vertex(%p)", poly);
 	}
 
-	return 0;
+	return true;
 error:
-	return -1;
+	return false;
 }
 
 int poly_classify_vertex(poly_t *poly, float3 v) {
@@ -269,11 +269,11 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			check(poly_push_vertex(*front, v_cur) == 0,
+			check(poly_push_vertex(*front, v_cur),
 				  "Failed to push original vertex into new front polygon(%p).", front);
 		}
 		if(c_cur != FRONT) {
-			check(poly_push_vertex(*back, v_cur) == 0,
+			check(poly_push_vertex(*back, v_cur),
 				  "Failed to push original vertex into new back polygon(%p).", back);
 		}
 
@@ -289,9 +289,9 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
 			f3_interpolate(&mid_f, v_cur, v_next, t);
 
-			check(poly_push_vertex(*front, mid_f) == 0,
+			check(poly_push_vertex(*front, mid_f),
 				  "Failed to push midpoint to front poly(%p)", front);
-			check(poly_push_vertex(*back, mid_f) == 0,
+			check(poly_push_vertex(*back, mid_f),
 				  "Failed to push midpoint to back poly(%p):", back);
 		}
 	}
@@ -305,11 +305,11 @@ poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
 	poly_t *p = NULL;
 	check_mem(p = alloc_poly());
 
-	check(poly_push_vertex(p, a) == 0,
+	check(poly_push_vertex(p, a),
 		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
-	check(poly_push_vertex(p, b) == 0,
+	check(poly_push_vertex(p, b),
 		  "Failed to add vertex b to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(b));
-	check(poly_push_vertex(p, c) == 0,
+	check(poly_push_vertex(p, c),
 		  "Failed to add vertex c to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(c));
 
 	return p;
