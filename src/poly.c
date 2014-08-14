@@ -37,8 +37,7 @@ poly_t *poly_init(poly_t *poly) {
 }
 
 poly_t *clone_poly(poly_t *poly) {
-	poly_t *copy = NULL;
-	assert_mem(copy = alloc_poly());
+	poly_t *copy = alloc_poly();
 	memcpy(copy, poly, sizeof(poly_t));
 
 	// Either point the clone at its own copied
@@ -289,8 +288,7 @@ error:
 }
 
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
-	poly_t *p = NULL;
-	assert_mem(p = alloc_poly());
+	poly_t *p = alloc_poly();
 
 	check(poly_push_vertex(p, a) == 0,
 		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
