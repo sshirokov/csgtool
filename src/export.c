@@ -1,9 +1,9 @@
+#include "util.h"
 #include "export.h"
 #include "bsp_mesh.h"
 
 stl_object *stl_from_polys(klist_t(poly) *polygons) {
 	stl_object *stl = stl_alloc(NULL, polygons->size);
-	check_mem(stl);
 
 	kliter_t(poly) *iter = kl_begin(polygons);
 	stl_facet *facet = stl->facets;
@@ -49,13 +49,11 @@ bsp_node_t *stl_to_bsp(stl_object *stl) {
 		poly = poly_make_triangle(stl->facets[i].vertices[0],
 								  stl->facets[i].vertices[1],
 								  stl->facets[i].vertices[2]);
-		check_mem(polys);
 		*kl_pushp(poly, polys) = poly;
 	}
 	check(polys->size == stl->facet_count, "Wrong number of faces generated.");
 
 	tree = bsp_build(NULL, polys, 1);
-	check_mem(tree);
 
 	kl_destroy(poly, polys);
 	return tree;
@@ -85,9 +83,7 @@ klist_t(poly) *poly_to_tris(klist_t(poly)* dst, poly_t *poly) {
 
 	// Copy triangles, split higher-vertex polygons into triangle fans.
 	if(vertex_count == 3) {
-		poly_t *copy = clone_poly(poly);
-		check_mem(copy);
-		*kl_pushp(poly, result) = copy;
+		*kl_pushp(poly, result) = clone_poly(poly);
 	}
 	else if(vertex_count > 3) {
 		float3 *v_cur, *v_prev;
@@ -95,7 +91,6 @@ klist_t(poly) *poly_to_tris(klist_t(poly)* dst, poly_t *poly) {
 			v_cur = &poly->vertices[i];
 			v_prev = &poly->vertices[i - 1];
 			poly_t *tri = poly_make_triangle(poly->vertices[0], *v_prev, *v_cur);
-			check_mem(tri);
 			*kl_pushp(poly, result) = tri;
 		}
 	} else {

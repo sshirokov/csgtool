@@ -1,6 +1,7 @@
 #include <string.h>
 #include "dbg.h"
 
+#include "util.h"
 #include "commands.h"
 #include "mesh.h"
 #include "bsp.h"
@@ -26,14 +27,14 @@ bsp_node_t* bsp_binary_operation(char *path1, char *path2, bsp_binary_op op) {
 	check(file1 != NULL, "Failed to read mesh from '%s'", path1);
 	log_info("Loaded file: %s %d facets", path1, file1->poly_count(file1));
 	bsp1 = mesh_to_bsp(file1);
-	check_mem(bsp1);
+	assert_mem(bsp1);
 
 	// Read 2
 	file2 = mesh_read_file(path2);
 	check(file2 != NULL, "Failed to read mesh from '%s'", path2);
 	log_info("Loaded file: %s %d facets", path2, file2->poly_count(file2));
 	bsp2 = mesh_to_bsp(file2);
-	check_mem(bsp2);
+	assert_mem(bsp2);
 
 	// Operate
 	result = op(bsp1, bsp2);
@@ -100,7 +101,7 @@ int cmd_DEBUG_bsp(int argc, char **argv) {
 	mesh_t *out = NULL;
 	bsp_node_t *bsp = NULL;
 	check(argc >= 1, "Too few args");
-	check_mem(out_name = calloc(strlen(name) + strlen(suffix) + 1, 1));
+	assert_mem(out_name = calloc(strlen(name) + strlen(suffix) + 1, 1));
 	check(sprintf(out_name, "%s%s", name, suffix) == (strlen(name) + strlen(suffix)), "Failed to build out name.");
 
 	check(in = mesh_read_file(name), "Failed to READ");

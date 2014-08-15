@@ -2,33 +2,29 @@
 
 #include "bsp.h"
 #include "dbg.h"
+#include "util.h"
 #include "export.h"
 #include "bsp_mesh.h"
 
 bsp_node_t *alloc_bsp_node(void) {
 	bsp_node_t *node = NULL;
-	check_mem(node = calloc(1, sizeof(bsp_node_t)));
+	assert_mem(node = calloc(1, sizeof(bsp_node_t)));
 	node->polygons = kl_init(poly);
 	return node;
-error:
-	return NULL;
 }
 
 bsp_node_t *clone_bsp_tree(bsp_node_t *tree) {
 	bsp_node_t *copy = alloc_bsp_node();
-	check_mem(copy);
 
 	kliter_t(poly) *iter = kl_begin(tree->polygons);
 	for(; iter != kl_end(tree->polygons); iter = kl_next(iter)) {
 		poly_t *poly_copy = clone_poly(kl_val(iter));
-		check_mem(poly_copy);
 		*kl_pushp(poly, copy->polygons) = poly_copy;
 	}
 
 	free_poly(copy->divider, 1);
 	if(tree->divider) {
 		copy->divider = clone_poly(tree->divider);
-		check_mem(copy->divider);
 	}
 	else {
 		copy->divider = NULL;
@@ -36,17 +32,12 @@ bsp_node_t *clone_bsp_tree(bsp_node_t *tree) {
 
 	if(tree->front != NULL) {
 		copy->front = clone_bsp_tree(tree->front);
-		check_mem(copy->front);
 	}
 	if(tree->back != NULL) {
 		copy->back = clone_bsp_tree(tree->back);
-		check_mem(copy->back);
 	}
 
 	return copy;
-error:
-	if(copy != NULL) free_bsp_tree(copy);
-	return NULL;
 }
 
 void free_bsp_node(bsp_node_t *node) {
@@ -143,7 +134,7 @@ error:
 
 bsp_node_t *bsp_build(bsp_node_t *node, klist_t(poly) *polygons, int copy) {
 	poly_t **polys = NULL;
-	check_mem(polys = malloc(sizeof(poly_t*) * polygons->size));
+	assert_mem(polys = malloc(sizeof(poly_t*) * polygons->size));
 
 	kliter_t(poly) *iter = NULL;
 	int i = 0;
@@ -192,7 +183,6 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys,
 		// Allocate a node if we weren't given one. It's the nice
 		// thing to do for people.
 		node = alloc_bsp_node();
-		check_mem(node);
 	}
 
 	if(n_polys == 0) return node;
@@ -207,14 +197,13 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys,
 		poly_i += 1;
 
 		node->divider = clone_poly(polygons[0]);
-		check_mem(node->divider);
 	}
 
 
-	check_mem(coplanar = malloc(sizeof(poly_t*) * n_polys));
-	check_mem(front_p = malloc(sizeof(poly_t*) * n_polys));
-	check_mem(back_p = malloc(sizeof(poly_t*) * n_polys));
-	check_mem(unused = malloc(sizeof(poly_t*) * n_polys));
+	assert_mem(coplanar = malloc(sizeof(poly_t*) * n_polys));
+	assert_mem(front_p = malloc(sizeof(poly_t*) * n_polys));
+	assert_mem(back_p = malloc(sizeof(poly_t*) * n_polys));
+	assert_mem(unused = malloc(sizeof(poly_t*) * n_polys));
 	for(; poly_i < n_polys; poly_i++) {
 		poly = polygons[poly_i];
 		rc = bsp_subdivide(node->divider, poly,
@@ -250,13 +239,11 @@ bsp_node_t *bsp_build_array(bsp_node_t *node, poly_t **polygons, size_t n_polys,
 
 	if((n_front > 0)) {
 		if(node->front == NULL) node->front = alloc_bsp_node();
-		check_mem(node->front);
 		check(bsp_build_array(node->front, front_p, n_front, free_unused) != NULL,
 			  "Failed to build front tree of bsp_node_array(%p)", node);
 	}
 	if((n_back > 0)) {
 		if(node->back == NULL) node->back = alloc_bsp_node();
-		check_mem(node->back);
 		check(bsp_build_array(node->back, back_p, n_back, free_unused) != NULL,
 			  "Failed to build back tree of bsp_node(%p)", node);
 	}
@@ -281,7 +268,6 @@ int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *
 		int vertex_count = poly_vertex_count(poly);
 		if(!make_triangles || vertex_count == 3) {
 			poly_t *copy = clone_poly(poly);
-			check_mem(copy);
 			*kl_pushp(poly, dst) = copy;
 		}
 		else if(vertex_count > 3){
@@ -292,7 +278,6 @@ int bsp_copy_node_polygons(bsp_node_t *node, int make_triangles, klist_t(poly) *
 				v_cur = &poly->vertices[i];
 				v_prev = &poly->vertices[i - 1];
 				poly_t *tri = poly_make_triangle(poly->vertices[0], *v_prev, *v_cur);
-				check_mem(tri);
 				*kl_pushp(poly, dst) = tri;
 			}
 		}
@@ -383,7 +368,7 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 
 	if(node->divider != NULL) {
 		if((n_polys * 4) > STATIC_POLY_BUFFER_SIZE) {
-			check_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 4));
+			assert_mem(poly_buffer = malloc((sizeof(poly_t*) * n_polys) * 4));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + n_polys;
@@ -408,7 +393,6 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 		else {
 			for(i = 0; i < n_front; i++) {
 				copy = clone_poly(front_array[i]);
-				check_mem(copy);
 				*kl_pushp(poly, result) = copy;
 			}
 		}
@@ -432,8 +416,7 @@ klist_t(poly) *bsp_clip_polygon_array(bsp_node_t *node, poly_t **polygons, size_
 	else {
 		// If we don't have a divider we just copy out the polygons
 		for(i = 0; i < n_polys; i++) {
-			check_mem(p = clone_poly(polygons[i]));
-			*kl_pushp(poly, result) = p;
+			*kl_pushp(poly, result) = clone_poly(polygons[i]);
 		}
 	}
 
@@ -447,7 +430,6 @@ error:
 klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klist_t(poly) *dst) {
 	klist_t(poly) *result = dst != NULL ? dst : kl_init(poly);
 	kliter_t(poly) *iter = NULL;
-	poly_t *p = NULL;
 	int rc = -1;
 
 	poly_t *static_poly_buffer[STATIC_POLY_BUFFER_SIZE];
@@ -464,7 +446,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 
 	if(node->divider != NULL) {
 		if((polygons->size * 4) > STATIC_POLY_BUFFER_SIZE) {
-			check_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 4));
+			assert_mem(poly_buffer = malloc(sizeof(poly_t*) * polygons->size * 4));
 		}
 		front_array = poly_buffer;
 		back_array = poly_buffer + polygons->size;
@@ -479,7 +461,6 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 		}
 
 		int i;
-		poly_t *copy = NULL;
 		// Recur to the front tree, or copy my current front nodes to result.
 		if(node->front) {
 			result = bsp_clip_polygon_array(node->front, front_array, n_front, result);
@@ -487,9 +468,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 		}
 		else {
 			for(i = 0; i < n_front; i++) {
-				copy = clone_poly(front_array[i]);
-				check_mem(copy);
-				*kl_pushp(poly, result) = copy;
+				*kl_pushp(poly, result) = clone_poly(front_array[i]);
 			}
 		}
 
@@ -512,8 +491,7 @@ klist_t(poly) *bsp_clip_polygons(bsp_node_t *node, klist_t(poly) *polygons, klis
 	else {
 		// If we don't have a divider we just copy out the polygons
 		for(iter = kl_begin(polygons); iter != kl_end(polygons); iter = kl_next(iter)) {
-			check_mem(p = clone_poly(kl_val(iter)));
-			*kl_pushp(poly, result) = p;
+			*kl_pushp(poly, result) = clone_poly(kl_val(iter));
 		}
 	}
 
@@ -541,8 +519,8 @@ bsp_node_t *bsp_subtract(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	bsp_node_t *result = NULL;
 	klist_t(poly) *b_polys = NULL;
 
-	check_mem(a = clone_bsp_tree(tree_a));
-	check_mem(b = clone_bsp_tree(tree_b));
+	a = clone_bsp_tree(tree_a);
+	b = clone_bsp_tree(tree_b);
 
 	check(bsp_invert(a)  != NULL, "Failed to invert A");
 	check(bsp_clip(a, b) != NULL, "Failed to clip(A, B)");
@@ -558,7 +536,6 @@ bsp_node_t *bsp_subtract(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	// TODO: Build a more balanced trees from the polys of
 	//       a instead of cloning a tree with potential gaps.
 	result = clone_bsp_tree(a);
-	check_mem(result);
 
 	if(b_polys != NULL) kl_destroy(poly, b_polys);
 	if(a != NULL) free_bsp_tree(a);
@@ -578,8 +555,8 @@ bsp_node_t *bsp_union(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	bsp_node_t *result = NULL;
 	klist_t(poly) *b_polys = NULL;
 
-	check_mem(a = clone_bsp_tree(tree_a));
-	check_mem(b = clone_bsp_tree(tree_b));
+	a = clone_bsp_tree(tree_a);
+	b = clone_bsp_tree(tree_b);
 
 	check(bsp_clip(a, b) != NULL, "Failed to clip(A, B)");
 	check(bsp_clip(b, a) != NULL, "Failed clip(B, A)");
@@ -593,7 +570,6 @@ bsp_node_t *bsp_union(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	// TODO: Build a more balanced trees from the polys of
 	//       a instead of cloning a tree with potential gaps.
 	result = clone_bsp_tree(a);
-	check_mem(result);
 
 	if(b_polys != NULL) kl_destroy(poly, b_polys);
 	if(a != NULL) free_bsp_tree(a);
@@ -613,8 +589,8 @@ bsp_node_t *bsp_intersect(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	bsp_node_t *result = NULL;
 	klist_t(poly) *b_polys = NULL;
 
-	check_mem(a = clone_bsp_tree(tree_a));
-	check_mem(b = clone_bsp_tree(tree_b));
+	a = clone_bsp_tree(tree_a);
+	b = clone_bsp_tree(tree_b);
 
 	check(bsp_invert(a)  != NULL, "Failed to invert A");
 	check(bsp_clip(b, a) != NULL, "Failed clip(B, A)");
@@ -630,7 +606,6 @@ bsp_node_t *bsp_intersect(bsp_node_t *tree_a, bsp_node_t *tree_b) {
 	// TODO: Build a more balanced trees from the polys of
 	//       a instead of cloning a tree with potential gaps.
 	result = clone_bsp_tree(a);
-	check_mem(result);
 
 	if(b_polys != NULL) kl_destroy(poly, b_polys);
 	if(a != NULL) free_bsp_tree(a);
@@ -656,14 +631,12 @@ int bsp_count_polygons(bsp_node_t *tree) {
 int bsp_mesh_init(void *self, void *data) {
 	bsp_mesh_t *mesh = (bsp_mesh_t*)self;
 	if(data == NULL) {
-		check_mem(mesh->bsp = alloc_bsp_node());
+		mesh->bsp = alloc_bsp_node();
 	}
 	else {
 		mesh->bsp = (bsp_node_t*)data;
 	}
 	return 0;
-error:
-	return -1;
 }
 
 void bsp_mesh_destroy(void *self) {

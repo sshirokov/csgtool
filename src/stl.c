@@ -18,7 +18,7 @@ void stl_free(stl_object *obj) {
 
 stl_object *stl_alloc(char *header, uint32_t n_facets) {
 		stl_object *obj = (stl_object*)calloc(1, sizeof(stl_object));
-		check_mem(obj);
+		assert_mem(obj);
 
 		if(header != NULL) {
 				memcpy(obj->header, header, sizeof(obj->header));
@@ -27,12 +27,10 @@ stl_object *stl_alloc(char *header, uint32_t n_facets) {
 		obj->facet_count = n_facets;
 		if(n_facets > 0) {
 				obj->facets = (stl_facet*)calloc(n_facets, sizeof(stl_facet));
-				check_mem(obj->facets);
+				assert_mem(obj->facets);
 		}
 
 		return obj;
-error:
-		exit(-1);
 }
 
 void v3_cross(float3 *result, float3 v1, float3 v2, int normalize) {
@@ -57,7 +55,7 @@ void stl_facet_update_normal(stl_facet *facet) {
 stl_facet *stl_read_facet(int fd) {
 		int rc = -1;
 		stl_facet *facet = (stl_facet*)calloc(1, sizeof(stl_facet));
-		check_mem(facet);
+		assert_mem(facet);
 
 		rc = read(fd, &facet->normal, sizeof(facet->normal));
 		check(rc == sizeof(facet->normal), "Failed to read normal. Read %d expected %zu", rc, sizeof(facet->normal));
@@ -76,7 +74,7 @@ stl_facet *stl_read_text_facet(const char *declaration, FILE *f) {
 		int rc = -1;
 		char *line = NULL;
 
-		check_mem(facet);
+		assert_mem(facet);
 		rc = sscanf(declaration, "facet normal %f %f %f", &facet->normal[0], &facet->normal[1], &facet->normal[2]);
 		check(rc == 3, "stl_Read_text_facet(%s): Normal line malformed", declaration);
 
@@ -146,7 +144,7 @@ stl_object *stl_read_text_object(int fd) {
 
 			obj->facet_count = facets->size;
 			obj->facets = calloc(facets->size, sizeof(stl_facet));
-			check_mem(obj->facets);
+			assert_mem(obj->facets);
 
 			stl_facet *facet = NULL;
 			for(int i = 0; kl_shift(stl_facet, facets, &facet) != -1; i++) {
