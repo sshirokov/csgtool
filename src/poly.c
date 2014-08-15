@@ -3,15 +3,14 @@
 #include <stdbool.h>
 
 #include "poly.h"
+#include "util.h"
 #include "export.h"
 
 poly_t *alloc_poly(void) {
 	poly_t *poly = malloc(sizeof(poly_t));
-	check_mem(poly);
+	assert_mem(poly);
 	poly_init(poly);
 	return poly;
-error:
-	return NULL;
 }
 
 void free_poly(poly_t *p, int free_self) {
@@ -38,8 +37,7 @@ poly_t *poly_init(poly_t *poly) {
 }
 
 poly_t *clone_poly(poly_t *poly) {
-	poly_t *copy = NULL;
-	check_mem(copy = alloc_poly());
+	poly_t *copy = alloc_poly();
 	memcpy(copy, poly, sizeof(poly_t));
 
 	// Either point the clone at its own copied
@@ -51,14 +49,11 @@ poly_t *clone_poly(poly_t *poly) {
 		// We can lean on the `copy->*` memebers
 		// since they would have been memcpy'd over
 		copy->vertices = malloc(poly_vertex_max(copy) * sizeof(float3));
-		check_mem(copy->vertices);
+		assert_mem(copy->vertices);
 		memcpy(copy->vertices, poly->vertices, poly_vertex_max(copy) * sizeof(float3));
 	}
 
 	return copy;
-error:
-	if(copy != NULL) free_poly(copy, 1);
-	return NULL;
 }
 
 int poly_update(poly_t *poly) {
@@ -160,7 +155,7 @@ int poly_vertex_expand(poly_t *poly) {
 	// Not using realloc because the original buffer may be struct-owned
 	int new_size = poly->vertex_max * 2;
 	float3 *new_verts = malloc(new_size * sizeof(float3));
-	check_mem(new_verts);
+	assert_mem(new_verts);
 
 	memcpy(new_verts, poly->vertices, poly->vertex_max * sizeof(float3));
 	poly->vertex_max = new_size;
@@ -174,9 +169,6 @@ int poly_vertex_expand(poly_t *poly) {
 	poly->vertices = new_verts;
 
 	return 0;
-error:
-	if(new_verts != NULL) free(new_verts);
-	return -1;
 }
 
 // add a vertex to the end of the polygon vertex list
@@ -296,8 +288,7 @@ error:
 }
 
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
-	poly_t *p = NULL;
-	check_mem(p = alloc_poly());
+	poly_t *p = alloc_poly();
 
 	check(poly_push_vertex(p, a) == 0,
 		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
