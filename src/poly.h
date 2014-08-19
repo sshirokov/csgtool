@@ -34,6 +34,7 @@ poly_t *clone_poly(poly_t *poly);
 void free_poly(poly_t *p, int free_self);
 
 void poly_print(poly_t *p, FILE *stream);
+void poly_print_with_plane_info(poly_t *p, poly_t *plane, FILE *stream);
 
 poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);

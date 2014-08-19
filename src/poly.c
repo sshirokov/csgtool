@@ -29,6 +29,22 @@ void poly_print(poly_t *p, FILE *stream) {
 	}
 }
 
+void poly_print_with_plane_info(poly_t *p, poly_t *plane, FILE *stream) {
+	fprintf(stream, "Poly(%p) Verts: %d Area: %f:\n", p, poly_vertex_count(p), poly_area(p));
+	for(int i = 0; i < poly_vertex_count(p); i++) {
+		char *front_back = "COPLANAR";
+		switch(poly_classify_vertex(plane, p->vertices[i])) {
+		case FRONT:
+			front_back = "FRONT";
+			break;
+		case BACK:
+			front_back = "BACK";
+			break;
+		}
+		fprintf(stream,"\tV[%d]: (%f, %f, %f) [%s]\n", i, FLOAT3_FORMAT(p->vertices[i]), front_back);
+	}
+}
+
 poly_t *poly_init(poly_t *poly) {
 	poly->vertex_count = 0;
 	poly->vertex_max = POLY_MAX_VERTS;
