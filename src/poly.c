@@ -253,6 +253,10 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 	int count = poly_vertex_count(poly);
 	for(i = 0; i < count; i++) {
 		j = (i + 1) % count;
+
+		// Fill v_cur[..] and v_next[..] with the values of
+		// the current (i) and next (j) vertex (x,y,z) data
+		// from `poly`
 		for(int k = 0; k < 3; k++) {
 			v_cur[k]  = poly->vertices[i][k];
 			v_next[k] = poly->vertices[j][k];
