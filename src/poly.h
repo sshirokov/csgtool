@@ -54,6 +54,7 @@ int poly_vertex_expand(poly_t *poly);
 bool poly_push_vertex(poly_t *poly, float3 v);
 
 int poly_classify_vertex(poly_t *poly, float3 v);
+const char* poly_classify_vertex_string(poly_t *poly, float3 v);
 int poly_classify_poly(poly_t *this, poly_t *other);
 
 int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back);

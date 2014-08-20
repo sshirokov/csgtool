@@ -30,18 +30,13 @@ void poly_print(poly_t *p, FILE *stream) {
 }
 
 void poly_print_with_plane_info(poly_t *p, poly_t *plane, FILE *stream) {
-	fprintf(stream, "Poly(%p) Verts: %d Area: %f:\n", p, poly_vertex_count(p), poly_area(p));
+	fprintf(stream, "Poly(%p) w(%f) Verts: %d Area: %f:\n", p, p->w, poly_vertex_count(p), poly_area(p));
 	for(int i = 0; i < poly_vertex_count(p); i++) {
-		char *front_back = "COPLANAR";
-		switch(poly_classify_vertex(plane, p->vertices[i])) {
-		case FRONT:
-			front_back = "FRONT";
-			break;
-		case BACK:
-			front_back = "BACK";
-			break;
-		}
-		fprintf(stream,"\tV[%d]: (%f, %f, %f) [%s]\n", i, FLOAT3_FORMAT(p->vertices[i]), front_back);
+		float3 diff = FLOAT3_INIT;
+		f3_sub(&diff, p->vertices[i], plane->vertices[0]);
+		float distance = f3_dot(plane->normal, diff);
+		fprintf(stream,"\tV[%d]: (%f, %f, %f) [%s] - %f from plane\n",
+				i, FLOAT3_FORMAT(p->vertices[i]), poly_classify_vertex_string(plane, p->vertices[i]), distance);
 	}
 }
 
@@ -225,6 +220,21 @@ int poly_classify_vertex(poly_t *poly, float3 v) {
 	if(side < -EPSILON) return BACK;
 	if(side > EPSILON) return FRONT;
 	return COPLANAR;
+}
+
+const char* poly_classify_vertex_string(poly_t *poly, float3 v) {
+	const char *classification = "UNKNOWN";
+	switch(poly_classify_vertex(poly, v)) {
+	case FRONT:
+		classification = "FRONT";
+		break;
+	case BACK:
+		classification = "BACK";
+		break;
+	case COPLANAR:
+		classification = "COPLANAR";
+	}
+	return classification;
 }
 
 int poly_classify_poly(poly_t *this, poly_t *other) {
