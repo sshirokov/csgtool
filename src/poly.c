@@ -261,7 +261,6 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 }
 
 int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
-	bool failed = false;
 	// Create polygons if we were not passed allocated ones
 	if(*front == NULL) {
 		*front = alloc_poly();
@@ -303,7 +302,6 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 				log_info("v_cur: [%d](%f, %f, %f) [c:%d]", i, FLOAT3_FORMAT(v_cur), c_cur);
 				log_info("Back:");
 				poly_print_with_plane_info(*back, divider, stderr);
-				failed = true;
 			}
 		}
 		if(c_cur != FRONT) {
@@ -316,7 +314,6 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 				log_info("v_cur: [%d](%f, %f, %f) [c:%d]", i, FLOAT3_FORMAT(v_cur), c_cur);
 				log_info("Back:");
 				poly_print_with_plane_info(*back, divider, stderr);
-				failed = true;
 			}
 		}
 
@@ -346,7 +343,6 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 				poly_print_with_plane_info(poly, divider, stderr);
 				log_info("Splitting Plane Poly:");
 				poly_print(divider, stderr);
-				failed = true;
 			}
 			if(!poly_push_vertex(*back, mid_f)) {
 				log_info("=> Failed to push midpoint to BACK poly(%p)", *back);
@@ -362,36 +358,29 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 				poly_print_with_plane_info(poly, divider, stderr);
 				log_info("Splitting Plane Poly:");
 				poly_print(divider, stderr);
-				failed = true;
 			}
 		}
 	}
 
-
-	if(failed) {
-		log_info("==> FINISHING <==");
-		log_info("=> Front built:");
+	// Clear any polygons that are not finished by this point
+	if((*front != NULL) && (poly_vertex_count(*front) < 3)) {
+		log_info("Tossing out front, incomplete:");
 		poly_print_with_plane_info(*front, divider, stderr);
-		log_info("=> Back  built:");
+
+		free_poly(*front, true);
+		*front = NULL;
+	}
+
+	if((*back != NULL) && (poly_vertex_count(*back) < 3)) {
+		log_info("Tossing out back, incomplete:");
 		poly_print_with_plane_info(*back, divider, stderr);
 
-		//sentinel("Failure detected");
-		if(poly_vertex_count(*front) < 3) {
-			free_poly(*front, true);
-			*front = NULL;
-			log_info("Tossing out back");
-		}
-
-		if(poly_vertex_count(*back) < 3) {
-			free_poly(*back, true);
-			*back = NULL;
-			log_info("Tossing out front");
-		}
+		free_poly(*back, true);
+		*back = NULL;
+		log_info("Tossing out front");
 	}
 
 	return 0;
-//error:
-	return -1;
 }
 
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
