@@ -261,6 +261,7 @@ int poly_classify_poly(poly_t *this, poly_t *other) {
 }
 
 int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
+	bool failed = false;
 	// Create polygons if we were not passed allocated ones
 	if(*front == NULL) {
 		*front = alloc_poly();
@@ -293,12 +294,30 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			check(poly_push_vertex(*front, v_cur),
-				  "Failed to push original vertex into new front polygon(%p).", front);
+			if(!poly_push_vertex(*front, v_cur)) {
+				log_warn("Failed to push original vertex into new front polygon(%p).", front);
+				log_info("Poly:");
+				poly_print_with_plane_info(poly, divider, stderr);
+				log_info("Front:");
+				poly_print_with_plane_info(*front, divider, stderr);
+				log_info("v_cur: [%d](%f, %f, %f) [c:%d]", i, FLOAT3_FORMAT(v_cur), c_cur);
+				log_info("Back:");
+				poly_print_with_plane_info(*back, divider, stderr);
+				failed = true;
+			}
 		}
 		if(c_cur != FRONT) {
-			check(poly_push_vertex(*back, v_cur),
-				  "Failed to push original vertex into new back polygon(%p).", back);
+			if(!poly_push_vertex(*back, v_cur)) {
+				log_warn("Failed to push original vertex into new back polygon(%p).", back);
+				log_info("Poly:");
+				poly_print_with_plane_info(poly, divider, stderr);
+				log_info("Back:");
+				poly_print_with_plane_info(*back, divider, stderr);
+				log_info("v_cur: [%d](%f, %f, %f) [c:%d]", i, FLOAT3_FORMAT(v_cur), c_cur);
+				log_info("Back:");
+				poly_print_with_plane_info(*back, divider, stderr);
+				failed = true;
+			}
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
@@ -313,15 +332,65 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
 			f3_interpolate(&mid_f, v_cur, v_next, t);
 
-			check(poly_push_vertex(*front, mid_f),
-				  "Failed to push midpoint to front poly(%p)", front);
-			check(poly_push_vertex(*back, mid_f),
-				  "Failed to push midpoint to back poly(%p):", back);
+			if(!poly_push_vertex(*front, mid_f)) {
+				log_info("=> Failed to push midpoint to FRONT poly(%p)", *front);
+				log_info("Front:");
+				poly_print_with_plane_info(*front, divider, stderr);
+				log_info("Computed midpoint: (%f, %f, %f)", FLOAT3_FORMAT(mid_f));
+				log_info("Split Span [%d](%f, %f, %f) -> [%d](%f, %f, %f)", i, FLOAT3_FORMAT(v_cur), j, FLOAT3_FORMAT(v_next));
+				float3 span_len = FLOAT3_INIT;
+				f3_sub(&span_len, v_next, v_cur);
+				log_info("Span Length: %f", f3_magnitude(&span_len));
+				log_info("Computed alpha: %f", t);
+				log_info("Original Poly:");
+				poly_print_with_plane_info(poly, divider, stderr);
+				log_info("Splitting Plane Poly:");
+				poly_print(divider, stderr);
+				failed = true;
+			}
+			if(!poly_push_vertex(*back, mid_f)) {
+				log_info("=> Failed to push midpoint to BACK poly(%p)", *back);
+				log_info("Back:");
+				poly_print_with_plane_info(*back, divider, stderr);
+				log_info("Computed midpoint: (%f, %f, %f)", FLOAT3_FORMAT(mid_f));
+				log_info("Split Span [%d](%f, %f, %f) -> [%d](%f, %f, %f)", i, FLOAT3_FORMAT(v_cur), j, FLOAT3_FORMAT(v_next));
+				float3 span_len = FLOAT3_INIT;
+				f3_sub(&span_len, v_next, v_cur);
+				log_info("Span Length: %f", f3_magnitude(&span_len));
+				log_info("Computed alpha: %f", t);
+				log_info("Original Poly:");
+				poly_print_with_plane_info(poly, divider, stderr);
+				log_info("Splitting Plane Poly:");
+				poly_print(divider, stderr);
+				failed = true;
+			}
+		}
+	}
+
+
+	if(failed) {
+		log_info("==> FINISHING <==");
+		log_info("=> Front built:");
+		poly_print_with_plane_info(*front, divider, stderr);
+		log_info("=> Back  built:");
+		poly_print_with_plane_info(*back, divider, stderr);
+
+		//sentinel("Failure detected");
+		if(poly_vertex_count(*front) < 3) {
+			free_poly(*front, true);
+			*front = NULL;
+			log_info("Tossing out back");
+		}
+
+		if(poly_vertex_count(*back) < 3) {
+			free_poly(*back, true);
+			*back = NULL;
+			log_info("Tossing out front");
 		}
 	}
 
 	return 0;
-error:
+//error:
 	return -1;
 }
 
