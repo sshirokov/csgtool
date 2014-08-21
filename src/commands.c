@@ -7,6 +7,7 @@
 #include "bsp.h"
 #include "bsp_mesh.h"
 #include "export.h"
+#include "cmd_audit.h"
 
 typedef bsp_node_t* (*bsp_binary_op)(bsp_node_t *, bsp_node_t *);
 
@@ -132,6 +133,7 @@ const cmd_t commands[] = {
 	{"intersect", "Intersect two geometries", cmd_intersect},
 	{"subtract",  "Subtract two geometries",  cmd_subtract},
 	{"union",     "Union two geometries",     cmd_union},
+	{"audit",     "Audit a mesh on disk for errors",     cmd_audit},
 
 #ifdef DEBUG
 	{"bsp",       "Identity through BSP",     cmd_DEBUG_bsp},
