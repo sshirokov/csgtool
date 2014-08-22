@@ -1,5 +1,7 @@
 #include "cmd_audit.h"
 
+#include "stl_mesh.h"
+
 // The finalizer for `cmd_audit`. Cleans up the structures
 // used, and then returns the value passed.
 // Because I fuckign hate spelling this shit out twice, like I
@@ -29,8 +31,7 @@ int cmd_audit(int argc, char *argv[]) {
 	const char *stl_type = "STL";
 	if(strncmp(in->type, stl_type, strlen(stl_type)) == 0) {
 		log_info("Patching mesh to produce unsafe polygons.");
-		// TODO: Patch in a new method
-		in->to_polygons = in->to_polygons;
+		in->to_polygons = stl_mesh_to_polygons_unsafe;
 	}
 
 
