@@ -119,8 +119,8 @@ char *read_line(FILE *f, bool downcase, bool trim) {
 	return line;
 error:
 	if(line != NULL) free(line);
-	if(feof(f)) debug("FILE(%p) EOF", f);
-	if(ferror(f)) debug("FILE(%p): ERROR. %s", f, clean_errno());
+	if(feof(f)) { debug("FILE(%p) EOF", f); }
+	if(ferror(f)) { debug("FILE(%p): ERROR. %s", f, clean_errno()); }
 	return NULL;
 }
 
