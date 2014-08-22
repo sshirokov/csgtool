@@ -37,8 +37,12 @@ int cmd_audit(int argc, char *argv[]) {
 	log_info("Converting mesh to polygon list for walk.");
 	check(polys = in->to_polygons(in), "Failed to get polygons from mesh.");
 
-	log_info("Loaded [%d] polys from '%s', beginning walk", in->poly_count(in), name);
+	// We should get the same number of polygons as we had in the original structure
+	// after conversion.
+	check(in->poly_count(in) == polys->size,
+		  "Polygon counts differ after polygon list conversion. Mesh(%zd) vs List(%zd)", in->poly_count(in), polys->size);
 
+	log_info("Loaded [%d] polys from '%s', beginning walk", in->poly_count(in), name);
 	kliter_t(poly) *iter = kl_begin(polys);
 	poly_t *poly = NULL;
 	size_t count = 0;
