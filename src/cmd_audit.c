@@ -1,5 +1,7 @@
 #include "cmd_audit.h"
 
+#include "stl_mesh.h"
+
 // The finalizer for `cmd_audit`. Cleans up the structures
 // used, and then returns the value passed.
 // Because I fuckign hate spelling this shit out twice, like I
@@ -21,16 +23,38 @@ int cmd_audit(int argc, char *argv[]) {
 	check(argc >= 1, "Too few args");
 	check(in = mesh_read_file(name), "Failed to read [%s]", name);
 	check(in->poly_count(in) > 0, "Mesh does not contain any polygons.");
+
+	// If we load an STL, we need to patch mesh->to_polygons(..) to
+	// a version that bypasses the `poly_push_vertex` checks, otherwise
+	// invalid polygons simply won't be created, and a shitload of warning
+	// spam will appear.
+	const char *stl_type = "STL";
+	if(strncmp(in->type, stl_type, strlen(stl_type)) == 0) {
+		log_info("Patching mesh to produce unsafe polygons.");
+		in->to_polygons = stl_mesh_to_polygons_unsafe;
+	}
+
+
+	log_info("Converting mesh to polygon list for walk.");
 	check(polys = in->to_polygons(in), "Failed to get polygons from mesh.");
 
-	log_info("Loaded [%d] polys from '%s', beginning walk", in->poly_count(in), name);
+	// We should get the same number of polygons as we had in the original structure
+	// after conversion.
+	check(in->poly_count(in) == polys->size,
+		  "Polygon counts differ after polygon list conversion. Mesh(%d) vs List(%zd)", in->poly_count(in), polys->size);
 
+	log_info("Loaded [%d] polys from '%s', beginning walk", in->poly_count(in), name);
 	kliter_t(poly) *iter = kl_begin(polys);
 	poly_t *poly = NULL;
 	size_t count = 0;
 	size_t bad_count = 0;
 	for(; iter != kl_end(polys); iter = kl_next(iter), count++) {
 		poly = kl_val(iter);
+		if(poly == NULL) {
+			log_warn("Failed to get polygon %zd from mesh, it is NULL", count);
+			bad_count++;
+			continue;
+		}
 
 		// If a squard edge length is zero, it's zero.
 		if(poly_min_edge_length2(poly) == 0.0) {

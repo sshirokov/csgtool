@@ -29,6 +29,17 @@ void poly_print(poly_t *p, FILE *stream) {
 	}
 }
 
+void poly_print_with_plane_info(poly_t *p, poly_t *plane, FILE *stream) {
+	fprintf(stream, "Poly(%p) w(%f) Verts: %d Area: %f:\n", p, p->w, poly_vertex_count(p), poly_area(p));
+	for(int i = 0; i < poly_vertex_count(p); i++) {
+		float3 diff = FLOAT3_INIT;
+		f3_sub(&diff, p->vertices[i], plane->vertices[0]);
+		float distance = f3_dot(plane->normal, diff);
+		fprintf(stream,"\tV[%d]: (%f, %f, %f) [%s] - %f from plane\n",
+				i, FLOAT3_FORMAT(p->vertices[i]), poly_classify_vertex_string(plane, p->vertices[i]), distance);
+	}
+}
+
 poly_t *poly_init(poly_t *poly) {
 	poly->vertex_count = 0;
 	poly->vertex_max = POLY_MAX_VERTS;
@@ -171,15 +182,25 @@ int poly_vertex_expand(poly_t *poly) {
 	return 0;
 }
 
-// add a vertex to the end of the polygon vertex list
-int poly_push_vertex(poly_t *poly, float3 v) {
+// add a vertex to the end of the polygon vertex list, if
+// `guard` is true, a check will be performed to reject
+// verts that cause 0-length edges to appear.
+bool poly_push_vertex_guarded(poly_t *poly, float3 v, bool guard) {
 	if(poly_vertex_available(poly) == 0) {
 		poly_vertex_expand(poly);
 	}
 
-	// TODO: make sure v isn't poly->v[0], because `v` -> `p->v[0]` is an edge
-	// TODO: make sure v isn't poly->v[last], because 'poly->v[last]' -> 'v' is an edge
-	// TODO: ^^^ Neither of those are helpful later.
+	// We only need to perform zero-length-edge checks if we are
+	// actually going to create an edge through this push.
+	if(guard && (poly_vertex_count(poly) > 0)) {
+		int last_idx = poly_vertex_count(poly) - 1;
+		bool duplicate_first = !(f3_distance2(poly->vertices[0], v) > 0.0);
+		bool duplicate_last  = !(f3_distance2(poly->vertices[last_idx], v) > 0.0);
+
+		// Fail out the addition if we're adding a duplucate first or last vertex
+		// as the new last vert. This would create an edge of length zero.
+		if(duplicate_first || duplicate_last) return false;
+	}
 
 	// Dat assignment copy
 	poly->vertices[poly->vertex_count][0] = v[0];
@@ -191,9 +212,20 @@ int poly_push_vertex(poly_t *poly, float3 v) {
 		check(poly_update(poly) == 0, "Failed to update polygon during poly_push_vertex(%p)", poly);
 	}
 
-	return 0;
+	return true;
 error:
-	return -1;
+	return false;
+}
+
+// The default interface to pushing a vertex, force the guard to on
+bool poly_push_vertex(poly_t *poly, float3 v) {
+	return poly_push_vertex_guarded(poly, v, true);
+}
+
+// Unsafe poly push, forces the guard off, allowing 0-length edges
+// to form. Useful in the `audit` command
+bool poly_push_vertex_unsafe(poly_t *poly, float3 v) {
+	return poly_push_vertex_guarded(poly, v, false);
 }
 
 int poly_classify_vertex(poly_t *poly, float3 v) {
@@ -201,6 +233,21 @@ int poly_classify_vertex(poly_t *poly, float3 v) {
 	if(side < -EPSILON) return BACK;
 	if(side > EPSILON) return FRONT;
 	return COPLANAR;
+}
+
+const char* poly_classify_vertex_string(poly_t *poly, float3 v) {
+	const char *classification = "UNKNOWN";
+	switch(poly_classify_vertex(poly, v)) {
+	case FRONT:
+		classification = "FRONT";
+		break;
+	case BACK:
+		classification = "BACK";
+		break;
+	case COPLANAR:
+		classification = "COPLANAR";
+	}
+	return classification;
 }
 
 int poly_classify_poly(poly_t *this, poly_t *other) {
@@ -245,6 +292,10 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 	int count = poly_vertex_count(poly);
 	for(i = 0; i < count; i++) {
 		j = (i + 1) % count;
+
+		// Fill v_cur[..] and v_next[..] with the values of
+		// the current (i) and next (j) vertex (x,y,z) data
+		// from `poly`
 		for(int k = 0; k < 3; k++) {
 			v_cur[k]  = poly->vertices[i][k];
 			v_next[k] = poly->vertices[j][k];
@@ -255,12 +306,10 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 		c_next = poly_classify_vertex(divider, v_next);
 
 		if(c_cur != BACK)  {
-			check(poly_push_vertex(*front, v_cur) == 0,
-				  "Failed to push original vertex into new front polygon(%p).", front);
+			poly_push_vertex(*front, v_cur);
 		}
 		if(c_cur != FRONT) {
-			check(poly_push_vertex(*back, v_cur) == 0,
-				  "Failed to push original vertex into new back polygon(%p).", back);
+			poly_push_vertex(*back, v_cur);
 		}
 
 		// Interpolate a midpoint if we found a spanning edge
@@ -275,32 +324,47 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
 			f3_interpolate(&mid_f, v_cur, v_next, t);
 
-			check(poly_push_vertex(*front, mid_f) == 0,
-				  "Failed to push midpoint to front poly(%p)", front);
-			check(poly_push_vertex(*back, mid_f) == 0,
-				  "Failed to push midpoint to back poly(%p):", back);
+			poly_push_vertex(*front, mid_f);
+			poly_push_vertex(*back, mid_f);
 		}
 	}
 
+	// Clear any polygons that are not finished by this point
+	if((*front != NULL) && (poly_vertex_count(*front) < 3)) {
+		free_poly(*front, true);
+		*front = NULL;
+	}
+
+	if((*back != NULL) && (poly_vertex_count(*back) < 3)) {
+		free_poly(*back, true);
+		*back = NULL;
+	}
+
 	return 0;
-error:
-	return -1;
 }
 
-poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
+poly_t *poly_make_triangle_guarded(float3 a, float3 b, float3 c, bool guard) {
 	poly_t *p = alloc_poly();
 
-	check(poly_push_vertex(p, a) == 0,
+	check_debug(poly_push_vertex_guarded(p, a, guard),
 		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
-	check(poly_push_vertex(p, b) == 0,
+	check_debug(poly_push_vertex_guarded(p, b, guard),
 		  "Failed to add vertex b to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(b));
-	check(poly_push_vertex(p, c) == 0,
+	check_debug(poly_push_vertex_guarded(p, c, guard),
 		  "Failed to add vertex c to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(c));
 
 	return p;
 error:
 	if(p) free_poly(p, 1);
 	return NULL;
+}
+
+poly_t *poly_make_triangle(float3 a, float3 b, float3 c) {
+	return poly_make_triangle_guarded(a, b, c, true);
+}
+
+poly_t *poly_make_triangle_unsafe(float3 a, float3 b, float3 c) {
+	return poly_make_triangle_guarded(a, b, c, false);
 }
 
 poly_t *poly_invert(poly_t *poly) {

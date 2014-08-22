@@ -16,6 +16,11 @@ OBJS = $(patsubst %.c,%.dbg.o,$(SOURCES))
 TARGET := $(TARGET).dbg
 endif
 
+# If RELEASE is set, we turn on NDEBUG and NO_LINENOS
+ifneq ($(origin RELEASE), undefined)
+CFLAGS += -DNDEBUG -DNO_LINENOS -UDEBUG
+endif
+
 ifeq ($(shell uname),Darwin)
 LIB_TARGET = libcsg.dylib
 else

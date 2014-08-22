@@ -29,11 +29,14 @@ typedef struct s_poly {
 } poly_t;
 
 poly_t *alloc_poly(void);
+poly_t *poly_make_triangle_guarded(float3 a, float3 b, float3 c, bool guard);
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c);
+poly_t *poly_make_triangle_unsafe(float3 a, float3 b, float3 c);
 poly_t *clone_poly(poly_t *poly);
 void free_poly(poly_t *p, int free_self);
 
 void poly_print(poly_t *p, FILE *stream);
+void poly_print_with_plane_info(poly_t *p, poly_t *plane, FILE *stream);
 
 poly_t *poly_init(poly_t *poly);
 int poly_update(poly_t *poly);
@@ -50,9 +53,12 @@ int poly_vertex_max(poly_t *poly);
 int poly_vertex_available(poly_t *poly);
 int poly_vertex_dynamic_p(poly_t *poly);
 int poly_vertex_expand(poly_t *poly);
-int poly_push_vertex(poly_t *poly, float3 v);
+bool poly_push_vertex(poly_t *poly, float3 v);
+bool poly_push_vertex_unsafe(poly_t *poly, float3 v);
+bool poly_push_vertex_guarded(poly_t *poly, float3 v, bool guard);
 
 int poly_classify_vertex(poly_t *poly, float3 v);
+const char* poly_classify_vertex_string(poly_t *poly, float3 v);
 int poly_classify_poly(poly_t *this, poly_t *other);
 
 int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back);

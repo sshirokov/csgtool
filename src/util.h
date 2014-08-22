@@ -9,7 +9,10 @@
 #define __UTIL_H
 
 // Fatal memory check
-#define assert_mem(A) assert("Out of memory." && ((A) != NULL))
+#define assert_mem(A) if((A) == NULL) {			\
+		assert("Out of memory." && false);		\
+		abort();								\
+	}
 
 
 char *str_dup(char *str);

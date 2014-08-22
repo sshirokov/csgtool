@@ -25,7 +25,7 @@ void test_polygon__initialize(void) {
 	cl_assert(square != NULL);
 
 	for(int i = 0; i < 3; i++) {
-		cl_assert_(poly_push_vertex(square, square_faces[i]) == 0,
+		cl_assert_(poly_push_vertex(square, square_faces[i]),
 				   "Failed to add square vertex");
 	}
 	cl_assert_equal_i(poly_vertex_count(square), 3);
@@ -36,7 +36,7 @@ void test_polygon__initialize(void) {
 	cl_assert(quad != NULL);
 
 	for(int i = 0; i < 4; i++) {
-		cl_assert_(poly_push_vertex(quad, square_faces[i]) == 0,
+		cl_assert_(poly_push_vertex(quad, square_faces[i]),
 				   "Failed to add quad vertex.");
 	}
 	cl_assert_equal_i(poly_vertex_count(quad), 4);
@@ -46,9 +46,9 @@ void test_polygon__initialize(void) {
 	line = alloc_poly();
 	cl_assert(line != NULL);
 
-	cl_assert(poly_push_vertex(line, square_faces[0]) == 0);
-	cl_assert(poly_push_vertex(line, square_faces[1]) == 0);
-	cl_assert(poly_push_vertex(line, square_faces[2]) == 0);
+	cl_assert(poly_push_vertex(line, square_faces[0]));
+	cl_assert(poly_push_vertex(line, square_faces[1]));
+	cl_assert(poly_push_vertex(line, square_faces[2]));
 
 	// Force the last vertex to be square_faces[0], then force a recompute
 	line->vertices[2][0] = line->vertices[0][0];
@@ -151,4 +151,18 @@ void test_polygon__can_compute_min_edge(void) {
 
 	cl_assert_(shortest2_quad == 1.0, "Shortest squared side of a unit square is a unit");
 	cl_assert_(shortest2_right == 1.0, "Hyp^2 of right unit triangle is 2, and sides are 1");
+}
+
+void test_polygon__will_reject_creation_of_zero_length_edge(void) {
+	cl_assert_(poly_push_vertex(quad, quad->vertices[poly_vertex_count(quad) - 1]) == false,
+			   "It should be impossible to push a duplicate tail vertex in a poly");
+	cl_assert_(poly_push_vertex(quad, quad->vertices[0]) == false,
+			   "It should be impossible to push a duplicate first vertex in a poly");
+}
+
+void test_polygon__will_allow_creation_of_zero_length_edge_if_unsafe(void) {
+	cl_assert_(poly_push_vertex_unsafe(quad, quad->vertices[poly_vertex_count(quad) - 1]) == true,
+			   "It should be possible to push a duplicate tail vertex in a poly with _push_vertex_unsafe");
+	cl_assert_(poly_push_vertex_unsafe(quad, quad->vertices[0]) == true,
+			   "It should be possible to push a duplicate first vertex in a poly with _push_vertex_unsafe");
 }
