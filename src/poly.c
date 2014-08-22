@@ -182,15 +182,17 @@ int poly_vertex_expand(poly_t *poly) {
 	return 0;
 }
 
-// add a vertex to the end of the polygon vertex list
-bool poly_push_vertex(poly_t *poly, float3 v) {
+// add a vertex to the end of the polygon vertex list, if
+// `guard` is true, a check will be performed to reject
+// verts that cause 0-length edges to appear.
+bool poly_push_vertex_guarded(poly_t *poly, float3 v, bool guard) {
 	if(poly_vertex_available(poly) == 0) {
 		poly_vertex_expand(poly);
 	}
 
 	// We only need to perform zero-length-edge checks if we are
 	// actually going to create an edge through this push.
-	if(poly_vertex_count(poly) > 0) {
+	if(guard && (poly_vertex_count(poly) > 0)) {
 		int last_idx = poly_vertex_count(poly) - 1;
 		bool duplicate_first = !(f3_distance2(poly->vertices[0], v) > 0.0);
 		bool duplicate_last  = !(f3_distance2(poly->vertices[last_idx], v) > 0.0);
@@ -213,6 +215,17 @@ bool poly_push_vertex(poly_t *poly, float3 v) {
 	return true;
 error:
 	return false;
+}
+
+// The default interface to pushing a vertex, force the guard to on
+bool poly_push_vertex(poly_t *poly, float3 v) {
+	return poly_push_vertex_guarded(poly, v, true);
+}
+
+// Unsafe poly push, forces the guard off, allowing 0-length edges
+// to form. Useful in the `audit` command
+bool poly_push_vertex_unsafe(poly_t *poly, float3 v) {
+	return poly_push_vertex_guarded(poly, v, false);
 }
 
 int poly_classify_vertex(poly_t *poly, float3 v) {

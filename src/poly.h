@@ -52,6 +52,8 @@ int poly_vertex_available(poly_t *poly);
 int poly_vertex_dynamic_p(poly_t *poly);
 int poly_vertex_expand(poly_t *poly);
 bool poly_push_vertex(poly_t *poly, float3 v);
+bool poly_push_vertex_unsafe(poly_t *poly, float3 v);
+bool poly_push_vertex_guarded(poly_t *poly, float3 v, bool guard);
 
 int poly_classify_vertex(poly_t *poly, float3 v);
 const char* poly_classify_vertex_string(poly_t *poly, float3 v);
