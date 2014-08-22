@@ -91,7 +91,17 @@ klist_t(poly) *poly_to_tris(klist_t(poly)* dst, poly_t *poly) {
 			v_cur = &poly->vertices[i];
 			v_prev = &poly->vertices[i - 1];
 			poly_t *tri = poly_make_triangle(poly->vertices[0], *v_prev, *v_cur);
-			*kl_pushp(poly, result) = tri;
+
+			// If we don't create a valid polygon, don't include it in the result.
+			if(tri != NULL) {
+				*kl_pushp(poly, result) = tri;
+			}
+			else {
+				log_warn("Failed to build triangle:\n(%f, %f, %f)\n(%f, %f, %f)\n(%f, %f, %f)",
+						 FLOAT3_FORMAT(poly->vertices[0]), FLOAT3_FORMAT(*v_prev), FLOAT3_FORMAT(*v_cur));
+				log_warn("Original:");
+				poly_print(poly, dbg_get_log());
+			}
 		}
 	} else {
 		sentinel("polygon(%p) has less than three(%d) vertices.", poly, poly_vertex_count(poly));
