@@ -40,7 +40,7 @@ int cmd_audit(int argc, char *argv[]) {
 	// We should get the same number of polygons as we had in the original structure
 	// after conversion.
 	check(in->poly_count(in) == polys->size,
-		  "Polygon counts differ after polygon list conversion. Mesh(%zd) vs List(%zd)", in->poly_count(in), polys->size);
+		  "Polygon counts differ after polygon list conversion. Mesh(%d) vs List(%zd)", in->poly_count(in), polys->size);
 
 	log_info("Loaded [%d] polys from '%s', beginning walk", in->poly_count(in), name);
 	kliter_t(poly) *iter = kl_begin(polys);
