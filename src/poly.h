@@ -29,7 +29,9 @@ typedef struct s_poly {
 } poly_t;
 
 poly_t *alloc_poly(void);
+poly_t *poly_make_triangle_guarded(float3 a, float3 b, float3 c, bool guard);
 poly_t *poly_make_triangle(float3 a, float3 b, float3 c);
+poly_t *poly_make_triangle_unsafe(float3 a, float3 b, float3 c);
 poly_t *clone_poly(poly_t *poly);
 void free_poly(poly_t *p, int free_self);
 
