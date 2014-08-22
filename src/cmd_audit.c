@@ -21,6 +21,19 @@ int cmd_audit(int argc, char *argv[]) {
 	check(argc >= 1, "Too few args");
 	check(in = mesh_read_file(name), "Failed to read [%s]", name);
 	check(in->poly_count(in) > 0, "Mesh does not contain any polygons.");
+
+	// If we load an STL, we need to patch mesh->to_polygons(..) to
+	// a version that bypasses the `poly_push_vertex` checks, otherwise
+	// invalid polygons simply won't be created, and a shitload of warning
+	// spam will appear.
+	const char *stl_type = "STL";
+	if(strncmp(in->type, stl_type, strlen(stl_type)) == 0) {
+		log_info("Patching mesh to produce unsafe polygons.");
+		// TODO: Patch in a new method
+		in->to_polygons = in->to_polygons;
+	}
+
+
 	log_info("Converting mesh to polygon list for walk.");
 	check(polys = in->to_polygons(in), "Failed to get polygons from mesh.");
 
