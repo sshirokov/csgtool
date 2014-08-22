@@ -24,15 +24,16 @@ int stl_mesh_poly_count(void *self) {
 	return mesh->stl->facet_count;
 }
 
-klist_t(poly)* stl_mesh_to_polygons(void *self) {
+klist_t(poly)* stl_mesh_to_polygons_guarded(void *self, bool guard) {
 	stl_mesh_t *mesh = (stl_mesh_t*)self;
 	int count = mesh->_(poly_count)(mesh);
 	klist_t(poly)* polys = kl_init(poly);
 
 	for(int i = 0; i < count; i++) {
-		poly_t *poly = poly_make_triangle(mesh->stl->facets[i].vertices[0],
-										  mesh->stl->facets[i].vertices[1],
-										  mesh->stl->facets[i].vertices[2]);
+		poly_t *poly = poly_make_triangle_guarded(mesh->stl->facets[i].vertices[0],
+												  mesh->stl->facets[i].vertices[1],
+												  mesh->stl->facets[i].vertices[2],
+												  guard);
 		if(poly != NULL) {
 			*kl_pushp(poly, polys) = poly;
 		}
@@ -40,6 +41,14 @@ klist_t(poly)* stl_mesh_to_polygons(void *self) {
 
 
 	return polys;
+}
+
+klist_t(poly)* stl_mesh_to_polygons(void *self) {
+	return stl_mesh_to_polygons_guarded(self, true);
+}
+
+klist_t(poly)* stl_mesh_to_polygons_unsafe(void *self) {
+	return stl_mesh_to_polygons_guarded(self, false);
 }
 
 // Mesh type definitions
