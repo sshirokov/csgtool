@@ -346,11 +346,11 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 poly_t *poly_make_triangle_guarded(float3 a, float3 b, float3 c, bool guard) {
 	poly_t *p = alloc_poly();
 
-	check(poly_push_vertex_guarded(p, a, guard),
+	check_debug(poly_push_vertex_guarded(p, a, guard),
 		  "Failed to add vertex a to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(a));
-	check(poly_push_vertex_guarded(p, b, guard),
+	check_debug(poly_push_vertex_guarded(p, b, guard),
 		  "Failed to add vertex b to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(b));
-	check(poly_push_vertex_guarded(p, c, guard),
+	check_debug(poly_push_vertex_guarded(p, c, guard),
 		  "Failed to add vertex c to poly(%p): (%f, %f, %f)", p, FLOAT3_FORMAT(c));
 
 	return p;
