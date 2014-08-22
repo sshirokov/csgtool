@@ -97,10 +97,12 @@ klist_t(poly) *poly_to_tris(klist_t(poly)* dst, poly_t *poly) {
 				*kl_pushp(poly, result) = tri;
 			}
 			else {
+#ifdef DEBUG
 				log_warn("Failed to build triangle:\n(%f, %f, %f)\n(%f, %f, %f)\n(%f, %f, %f)",
 						 FLOAT3_FORMAT(poly->vertices[0]), FLOAT3_FORMAT(*v_prev), FLOAT3_FORMAT(*v_cur));
 				log_warn("Original:");
 				poly_print(poly, dbg_get_log());
+#endif
 			}
 		}
 	} else {
