@@ -31,6 +31,11 @@ int cmd_audit(int argc, char *argv[]) {
 	size_t bad_count = 0;
 	for(; iter != kl_end(polys); iter = kl_next(iter), count++) {
 		poly = kl_val(iter);
+		if(poly == NULL) {
+			log_warn("Failed to get polygon %zd from mesh, it is NULL", count);
+			bad_count++;
+			continue;
+		}
 
 		// If a squard edge length is zero, it's zero.
 		if(poly_min_edge_length2(poly) == 0.0) {
