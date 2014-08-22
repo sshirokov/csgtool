@@ -159,3 +159,10 @@ void test_polygon__will_reject_creation_of_zero_length_edge(void) {
 	cl_assert_(poly_push_vertex(quad, quad->vertices[0]) == false,
 			   "It should be impossible to push a duplicate first vertex in a poly");
 }
+
+void test_polygon__will_allow_creation_of_zero_length_edge_if_unsafe(void) {
+	cl_assert_(poly_push_vertex_unsafe(quad, quad->vertices[poly_vertex_count(quad) - 1]) == true,
+			   "It should be possible to push a duplicate tail vertex in a poly with _push_vertex_unsafe");
+	cl_assert_(poly_push_vertex_unsafe(quad, quad->vertices[0]) == true,
+			   "It should be impossible to push a duplicate first vertex in a poly with _push_vertex_unsafe");
+}
