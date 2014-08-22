@@ -33,7 +33,9 @@ klist_t(poly)* stl_mesh_to_polygons(void *self) {
 		poly_t *poly = poly_make_triangle(mesh->stl->facets[i].vertices[0],
 										  mesh->stl->facets[i].vertices[1],
 										  mesh->stl->facets[i].vertices[2]);
-		*kl_pushp(poly, polys) = poly;
+		if(poly != NULL) {
+			*kl_pushp(poly, polys) = poly;
+		}
 	}
 
 
