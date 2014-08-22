@@ -21,6 +21,7 @@ int cmd_audit(int argc, char *argv[]) {
 	check(argc >= 1, "Too few args");
 	check(in = mesh_read_file(name), "Failed to read [%s]", name);
 	check(in->poly_count(in) > 0, "Mesh does not contain any polygons.");
+	log_info("Converting mesh to polygon list for walk.");
 	check(polys = in->to_polygons(in), "Failed to get polygons from mesh.");
 
 	log_info("Loaded [%d] polys from '%s', beginning walk", in->poly_count(in), name);
