@@ -1,6 +1,8 @@
 require 'ffi'
 
 module CSG
+  class Error < StandardError; end
+
   module Native
     extend FFI::Library
 
@@ -70,7 +72,7 @@ module CSG
       if not mesh_ptr.null?
           @mesh = CSG::Native::Mesh.new mesh_ptr
       else
-        raise Exception.new("Failed to produce Mesh from #{path}")
+        raise CSG::Error.new("Failed to produce Mesh from #{path}")
       end
     end
 
@@ -83,25 +85,25 @@ module CSG
       define_method name do |solid|
         # I'm so paranoid because ruby will gladly FFI through a
         # *NULL and explode if you ask, and that's much worse.
-        raise Exception.new("The calling mesh is a NULL pointer") if mesh.null?
-        raise Exception.new("The parameter mesh is a NULL pointer") if solid.mesh.null?
+        raise CSG::Error.new("The calling mesh is a NULL pointer") if mesh.null?
+        raise CSG::Error.new("The parameter mesh is a NULL pointer") if solid.mesh.null?
 
-        raise Exception.new("My BSP tree is NULL.") if (my_bsp_ptr = mesh[:to_bsp].call mesh).null?
+        raise CSG::Error.new("My BSP tree is NULL.") if (my_bsp_ptr = mesh[:to_bsp].call mesh).null?
         # Assign ASAP in case the exception triggers an unwind, and I want the GC to know about this
         my_bsp = CSG::Native::BSPNode.new(my_bsp_ptr)
 
-        raise Exception.new("My BSP tree is NULL.") if (their_bsp_ptr = solid.mesh[:to_bsp].call solid.mesh).null?
+        raise CSG::Error.new("My BSP tree is NULL.") if (their_bsp_ptr = solid.mesh[:to_bsp].call solid.mesh).null?
         their_bsp = CSG::Native::BSPNode.new(their_bsp_ptr)
 
         result_ptr = CSG::Native.send "bsp_#{name}", my_bsp, their_bsp
-        raise Exception.new("Result of #{name} is NULL") if result_ptr.null?
+        raise CSG::Error.new("Result of #{name} is NULL") if result_ptr.null?
 
         # We will not wrap the result in a CSG::Native::BSPNode because
         # to avoid garbage collection, and we'll manage this pointer
         # inside of the CSG::Native::Mesh object we get with
         # bsp_to_mesh(.., 0) - which will not clone the input parameter
         result_mesh_ptr = CSG::Native.bsp_to_mesh result_ptr, 0
-        raise Exception.new("Failed to wrap BSPNode(#{result_mesh_ptr} pointer as a Mesh, got NULL") if result_mesh_ptr.null?
+        raise CSG::Error.new("Failed to wrap BSPNode(#{result_mesh_ptr} pointer as a Mesh, got NULL") if result_mesh_ptr.null?
         CSG::Solid.new :mesh => CSG::Native::Mesh.new(result_mesh_ptr)
       end
     end
