@@ -31,4 +31,6 @@ char *read_line(FILE *f, bool downcase, bool trim);
 // Gets the "next" non-blank line
 char *next_line(FILE *f, bool downcase, bool trim);
 
+float clampf(float val, float min, float max);
+
 #endif

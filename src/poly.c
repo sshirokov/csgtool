@@ -320,6 +320,7 @@ int poly_split(poly_t *divider, poly_t *poly, poly_t **front, poly_t **back) {
 			float t = divider->w;
 			t = t - f3_dot(divider->normal, v_cur);
 			t = t / f3_dot(divider->normal, diff);
+			t = clampf(t, 0.0, 1.0);
 
 			float3 mid_f = {v_cur[0], v_cur[1], v_cur[2]};
 			f3_interpolate(&mid_f, v_cur, v_next, t);
