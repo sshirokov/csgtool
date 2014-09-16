@@ -136,3 +136,9 @@ char *next_line(FILE *f, bool downcase, bool trim) {
 
 	return line;
 }
+
+float clampf(float val, float min, float max) {
+	if(val > max) return max;
+	if(val < min) return min;
+	return val;
+}
