@@ -1,9 +1,12 @@
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "dbg.h"
 
@@ -178,6 +181,26 @@ stl_object *stl_read_object(int fd) {
 		rc = read(fd, &n_tris, sizeof(n_tris));
 		check(rc == sizeof(n_tris), "Failed to read facet count.");
 
+		// The expected file size, as annotated. The `stl_facet` struct layout
+		// is spelled out and summed, otherwise the sizeof(stl_facet) constant might
+		// be wrong because of packing for alignement:
+		// (normal(4b) + (3 * vertex(4)) + attr(2) = 18b, which can't dword align)
+		size_t req_size =
+			sizeof(header) +               // Header size
+			sizeof(n_tris) +               // Triangle count
+			(n_tris * (                    // The number of triangles *
+				sizeof(float3) +           //   float3 normal
+				(3 * sizeof(float3)) +     //   float3 vertex * 3
+				sizeof(uint16_t)));        //   short attr
+		struct stat fd_stat = {0};
+		check((rc = fstat(fd, &fd_stat) == 0), "Failed to stat fd(%d)", fd);
+
+		// Do we have a file that supports that size?
+		check(fd_stat.st_size == req_size,
+			  "File at fd(%d) is %zd bytes, needs to be %zd bytes for %zd facets.",
+			  fd, fd_stat.st_size, req_size, n_tris);
+
+		// Allocate space for the object we know we can hold
 		obj = stl_alloc(header, n_tris);
 
 		for(uint32_t i = 0; i < obj->facet_count; i++) {
