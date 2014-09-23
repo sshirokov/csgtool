@@ -183,7 +183,7 @@ stl_object *stl_read_object(int fd) {
 
 		// The expected file size, as annotated. The `stl_facet` struct layout
 		// is spelled out and summed, otherwise the sizeof(stl_facet) constant might
-		// be wrong because of packing for alignement:
+		// be wrong because of padding for alignement:
 		// (normal(4b) + (3 * vertex(4)) + attr(2) = 18b, which can't dword align)
 		size_t req_size =
 			sizeof(header) +               // Header size
