@@ -197,7 +197,7 @@ stl_object *stl_read_object(int fd) {
 
 		// Do we have a file that supports that size?
 		check(fd_stat.st_size == req_size,
-			  "File at fd(%d) is %zd bytes, needs to be %zd bytes for %zd facets.",
+			  "File at fd(%d) is %zd bytes, needs to be %zd bytes for %u facets.",
 			  fd, fd_stat.st_size, req_size, n_tris);
 
 		// Allocate space for the object we know we can hold
