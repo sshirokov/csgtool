@@ -318,7 +318,6 @@ stl_reader* stl_detect_reader(char *path) {
 		for(int i = 0; i < upto; i++) {
 				check((rc = read(fd, &c, 1)) == 1, "Failed to read byte %d for reader detection of %s", i, path);
 				if(!isprint(c) && !isspace(c)) {
-						log_info("Using binary reader for %s", path);
 						reader = stl_read_object;
 						break;
 				}
