@@ -15,84 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\bsp.c">
+    <ClCompile Include="src\*.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\cmd_audit.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\commands.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dbg.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\export.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mesh.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\poly.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\reader.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\stl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\stl_mesh.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vector.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\bsp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\bsp_mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cmd_audit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\commands.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dbg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\export.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\klist.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\poly.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\reader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\stl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\stl_mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vector.h">
+    <ClInclude Include="src\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
