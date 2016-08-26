@@ -16,6 +16,7 @@
 #include "stl.h"
 #include "util.h"
 
+// Thanks, Windows/C++/World <3
 #ifdef _WIN32
 #define fdopen _fdopen
 #endif
