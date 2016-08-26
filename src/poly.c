@@ -102,11 +102,11 @@ float poly_triangle_2area(poly_t *triangle) {
 // The actual area of a triangle `triangle`
 // Works through poly_triangle_2area
 float poly_triangle_area(poly_t *triangle) {
-	return 0.5 * poly_triangle_2area(triangle);
+	return 0.5f * poly_triangle_2area(triangle);
 }
 
 float poly_area(poly_t *poly) {
-	return poly_2area(poly) / 2.0;
+	return poly_2area(poly) / 2.0f;
 }
 
 float poly_2area(poly_t *poly) {

@@ -45,7 +45,7 @@ bsp_node_t *stl_to_bsp(stl_object *stl) {
 	klist_t(poly) *polys = kl_init(poly);
 	poly_t *poly = NULL;
 
-	for(int i = 0; i < stl->facet_count; i++) {
+	for(unsigned int i = 0; i < stl->facet_count; i++) {
 		poly = poly_make_triangle(stl->facets[i].vertices[0],
 								  stl->facets[i].vertices[1],
 								  stl->facets[i].vertices[2]);

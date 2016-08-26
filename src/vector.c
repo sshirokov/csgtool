@@ -11,7 +11,7 @@ float3 *clone_f3(float3 f) {
 }
 
 float f3_magnitude(float3 *v) {
-	return sqrt((*v)[0] * (*v)[0] +
+	return sqrtf((*v)[0] * (*v)[0] +
 				(*v)[1] * (*v)[1] +
 				(*v)[2] * (*v)[2]);
 }
@@ -60,7 +60,7 @@ float3 *f3_interpolate(float3 *result, float3 start, float3 v, float alpha) {
 }
 
 float f3_distance(float3 a, float3 b) {
-	return sqrt(f3_distance2(a, b));
+	return sqrtf(f3_distance2(a, b));
 }
 
 float f3_distance2(float3 a, float3 b) {
