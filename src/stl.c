@@ -240,7 +240,7 @@ stl_object *stl_read_file(char *path, int recompute_normals) {
 		close(fd);
 
 		if(recompute_normals) {
-			for(int i = 0; i < obj->facet_count; i++) {
+			for(unsigned int i = 0; i < obj->facet_count; i++) {
 				stl_facet_update_normal(&obj->facets[i]);
 			}
 		}
