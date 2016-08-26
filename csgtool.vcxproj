@@ -98,34 +98,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\bsp.c" />
-    <ClCompile Include="src\cmd_audit.c" />
-    <ClCompile Include="src\commands.c" />
-    <ClCompile Include="src\dbg.c" />
-    <ClCompile Include="src\export.c" />
-    <ClCompile Include="src\mesh.c" />
-    <ClCompile Include="src\poly.c" />
-    <ClCompile Include="src\reader.c" />
-    <ClCompile Include="src\stl.c" />
-    <ClCompile Include="src\stl_mesh.c" />
-    <ClCompile Include="src\util.c" />
-    <ClCompile Include="src\vector.c" />
+    <ClCompile Include="src\*.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\bsp.h" />
-    <ClInclude Include="src\bsp_mesh.h" />
-    <ClInclude Include="src\cmd_audit.h" />
-    <ClInclude Include="src\commands.h" />
-    <ClInclude Include="src\dbg.h" />
-    <ClInclude Include="src\export.h" />
-    <ClInclude Include="src\klist.h" />
-    <ClInclude Include="src\mesh.h" />
-    <ClInclude Include="src\poly.h" />
-    <ClInclude Include="src\reader.h" />
-    <ClInclude Include="src\stl.h" />
-    <ClInclude Include="src\stl_mesh.h" />
-    <ClInclude Include="src\util.h" />
-    <ClInclude Include="src\vector.h" />
+    <ClInclude Include="src\*.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
