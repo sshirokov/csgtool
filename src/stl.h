@@ -1,4 +1,7 @@
+#ifndef _WIN32
 #include <unistd.h>
+#endif
+
 #include <stdint.h>
 #include <math.h>
 

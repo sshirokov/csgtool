@@ -6,7 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "dbg.h"
 

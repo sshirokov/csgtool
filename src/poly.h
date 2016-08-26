@@ -1,5 +1,8 @@
-#include <stdbool.h>
+#ifndef _WIN32
 #include <strings.h>
+#endif 
+
+#include <stdbool.h>
 #include "dbg.h"
 #include "klist.h"
 #include "vector.h"
