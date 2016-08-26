@@ -10,6 +10,9 @@
 // Platform specific IO
 #ifndef _WIN32
 #include <unistd.h>
+
+// Thanks, windows. Love this.
+#define O_BINARY 0
 #else
 #include <io.h>
 
@@ -236,7 +239,7 @@ stl_object *stl_read_file(char *path, int recompute_normals) {
 		int fd = -1;
 
 		check((reader = stl_detect_reader(path)), "Unable to find reader for format of %s", path);
-		check((fd = open(path, O_RDONLY)) != -1, "Unable to open '%s'", path);
+		check((fd = open(path, O_RDONLY | O_BINARY)) != -1, "Unable to open '%s'", path);
 
 		obj = reader(fd);
 		check(obj != NULL, "Failed to read STL from %s", path);
@@ -261,7 +264,7 @@ error:
 
 int stl_write_file(stl_object *obj, char *path) {
 		int rc = -1;
-		int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0755);
+		int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0755);
 		check(fd != -1, "Failed to open '%s' for write", path);
 
 		rc = stl_write_object(obj, fd);
@@ -315,6 +318,7 @@ stl_reader* stl_detect_reader(char *path) {
 		for(int i = 0; i < upto; i++) {
 				check((rc = read(fd, &c, 1)) == 1, "Failed to read byte %d for reader detection of %s", i, path);
 				if(!isprint(c) && !isspace(c)) {
+						log_info("Using binary reader for %s", path);
 						reader = stl_read_object;
 						break;
 				}
