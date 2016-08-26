@@ -16,6 +16,10 @@
 #include "stl.h"
 #include "util.h"
 
+#ifdef _WIN32
+#define fdopen _fdopen
+#endif
+
 void stl_free(stl_object *obj) {
 		if(obj == NULL) return;
 		if(obj->facets) free(obj->facets);
