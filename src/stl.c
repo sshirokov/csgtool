@@ -7,19 +7,26 @@
 #include <stdlib.h>
 #include <math.h>
 
+// Platform specific IO
 #ifndef _WIN32
 #include <unistd.h>
+#else
+#include <io.h>
+
+// And also rename the basics
+#define read _read
+#define write _write
+#define open _open
+#define close _close
+
+// Not technically part of `io.h`
+#define fdopen _fdopen
 #endif
 
 #include "dbg.h"
 
 #include "stl.h"
 #include "util.h"
-
-// Thanks, Windows/C++/World <3
-#ifdef _WIN32
-#define fdopen _fdopen
-#endif
 
 void stl_free(stl_object *obj) {
 		if(obj == NULL) return;
